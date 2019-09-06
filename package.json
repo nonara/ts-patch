@@ -1,0 +1,40 @@
+{
+  "name": "ts-patch",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "rimraf lib && tsc --outDir lib",
+    "test": "mocha ./test/**/*.test.ts"
+  },
+  "keywords": [],
+  "author": "Ron S.",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/nonara/ts-patch.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nonara/ts-patch/issues"
+  },
+  "homepage": "https://github.com/nonara/ts-patch#readme",
+  "description": "",
+  "dependencies": {
+    "minimist": "^1.2.0",
+    "shelljs": "^0.8.3",
+    "ttypescript": "^1.5.7"
+  },
+  "bin": {
+    "ts-patch": "lib/cli.js"
+  },
+  "peerDependencies": {
+    "typescript": "^3.6.2"
+  },
+  "devDependencies": {
+    "@types/minimist": "^1.2.0",
+    "@types/shelljs": "^0.8.5",
+    "mocha": "^6.2.0",
+    "rimraf": "^3.0.0",
+    "ts-node": "^8.3.0",
+    "typescript": "^3.6.2"
+  }
+}

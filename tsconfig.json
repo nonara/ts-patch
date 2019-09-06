@@ -1,0 +1,27 @@
+{
+  "include": ["src"],
+
+  "compilerOptions": {
+    "strict": true,
+    "noUnusedLocals": false,
+    "noImplicitReturns": true,
+    "forceConsistentCasingInFileNames": true,
+
+    "lib": ["es2019"],
+    "outDir": "lib",
+    "target": "es5",
+    "module":"commonjs",
+    "moduleResolution": "node",
+
+    "allowJs": true,
+    "allowUnreachableCode": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "inlineSourceMap": true,
+    "emitDecoratorMetadata": true,
+
+    "rootDirs": [ "src", "lib" ],
+    "baseUrl": "./node_modules"
+  }
+}
