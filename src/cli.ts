@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 
 import minimist from 'minimist';
-import * as patch from './patch';
+import * as patch from './actions';
 
 const { version } = require('../package.json');
-const { version: TTVersion } = require("ttypescript/package.json");
 const { version: TSVersion } = require ("typescript/package.json");
 
 
@@ -26,9 +25,7 @@ const menu = `
     ts-patch [command] <options>
     
     i, install ............... Installs ts-patch
-    u, uninstall ............. Completely restores original typescript directory in node_modules
-    e, enable ................ Links patched typescript library in node_modules
-    d, disable ............... Links unpatched typescript in node_modules
+    u, uninstall ............. Restores original typescript files
     -v, version .............. Show version
     -h, help  ................ Show help menu
     
@@ -61,13 +58,7 @@ const menu = `
       return console.log(menu);
 
     case 'version':
-      return console.log(`ts-patch: v${version}    typescript: ${TSVersion}    ttypescript: ${TTVersion}`);
-
-    case 'enable': case 'e':
-      return patch.enable(options);
-
-    case 'disable': case 'd':
-      return patch.disable(options);
+      return console.log(`ts-patch: v${version}    typescript: ${TSVersion}`);
 
     case 'install': case 'i':
       return patch.install(options);

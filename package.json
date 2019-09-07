@@ -3,8 +3,15 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "build": "rimraf lib && tsc --outDir lib",
-    "test": "mocha ./test/**/*.test.ts"
+    "build": "rimraf lib && tsc --inlineSourceMap false",
+    "compile": "tsc",
+    "test": "mocha ./test/**/*.test.ts",
+    "reinstall TS": "rimraf node_modules/typescript && npm i typescript",
+    "---------- ": "---------- ",
+    "patch": "ts-patch i",
+    "unpatch": "ts-patch u",
+    "----------  ": "----------  ",
+    "postbuild": "node ./src/post-build.js"
   },
   "keywords": [],
   "author": "Ron S.",
@@ -31,6 +38,7 @@
   },
   "devDependencies": {
     "@types/minimist": "^1.2.0",
+    "@types/resolve": "0.0.8",
     "@types/shelljs": "^0.8.5",
     "mocha": "^6.2.0",
     "rimraf": "^3.0.0",

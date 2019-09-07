@@ -7,21 +7,18 @@
     "noImplicitReturns": true,
     "forceConsistentCasingInFileNames": true,
 
-    "lib": ["es2019"],
+    "lib": ["es2015"],
     "outDir": "lib",
     "target": "es5",
     "module":"commonjs",
     "moduleResolution": "node",
 
-    "allowJs": true,
+    "allowJs": false,
     "allowUnreachableCode": true,
     "esModuleInterop": true,
-    "experimentalDecorators": true,
-    "allowSyntheticDefaultImports": true,
     "inlineSourceMap": true,
-    "emitDecoratorMetadata": true,
+    "declaration": true,
 
-    "rootDirs": [ "src", "lib" ],
-    "baseUrl": "./node_modules"
+    "rootDirs": ["src", "lib"]
   }
 }

@@ -1,2 +1,2 @@
 export { TSPOptions } from './cli';
-export { uninstall, disable, enable, install } from './patch'
+export { uninstall, install } from './actions'
