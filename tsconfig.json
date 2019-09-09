@@ -8,7 +8,7 @@
     "forceConsistentCasingInFileNames": true,
 
     "lib": ["es2015"],
-    "outDir": "lib",
+    "outDir": "built",
     "target": "es5",
     "module":"commonjs",
     "moduleResolution": "node",
@@ -17,8 +17,12 @@
     "allowUnreachableCode": true,
     "esModuleInterop": true,
     "inlineSourceMap": true,
-    "declaration": true,
 
-    "rootDirs": ["src", "lib"]
+    "rootDirs": ["src", "lib"],
+    "baseUrl": "./src",
+    "paths": {
+      "@cli/*": [ "cli/*" ],
+      "@patch/*": [ "patch/*" ]
+    }
   }
 }

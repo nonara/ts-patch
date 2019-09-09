@@ -2,8 +2,8 @@ import * as shell from 'shelljs';
 import * as path from 'path';
 import * as fs from 'fs';
 import glob from 'glob';
-import { TSPOptions } from './cli';
-import { Log, runTasks } from './helpers';
+import { TSPOptions } from '@cli/cli';
+import { Log, runTasks } from '@cli/helpers';
 
 /* ********************************************************************************************************************
  * Path Constants
@@ -57,13 +57,8 @@ export function install({silent}: TSPOptions) {
 
       'copy system files': () => shell.cp(path.join(SRC_TSP, '*'), DEST_TSP),
 
-      'add absolute paths to tsserverlibrary': () => {
+      'add absolute path to tsserverlibrary': () => {
         // Use exact path in tsserverlibrary (needed to support language service running in IDEs)
-        shell.sed('-i',
-          /(?<=loadTSModule.+?){\s*folder:.+?}/,
-          `{ folder: '${DEST_LIB.split(path.sep).join('/')}' }`,
-          path.join(DEST_LIB, 'tsserverlibrary.js')
-        );
         shell.sed('-i',
           /(?<=["'`])\.\.\/ts-patch\/loader(?=["'`])/,
           DEST_TSP.split(path.sep).join('/') + '/loader',

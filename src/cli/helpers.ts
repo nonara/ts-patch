@@ -2,7 +2,7 @@ import * as shell from "shelljs";
 
 
 /* ********************************************************************************************************************
- * Helpers
+ * Error
  * ********************************************************************************************************************/
 
 export class TaskError extends Error {
@@ -13,6 +13,10 @@ export class TaskError extends Error {
     this.stack = (<any> new Error()).stack;
   }
 }
+
+/* ********************************************************************************************************************
+ * Helpers
+ * ********************************************************************************************************************/
 
 /**
  * Execute a series of tasks and throw if any shelljs errors
@@ -25,4 +29,7 @@ export function runTasks(tasks: { [x:string]: () => any }, verbose = false) {
   }
 }
 
+/**
+ * Output log message if not silent
+ */
 export const Log = (msg: string, silent?: boolean) => (!silent) && console.log(msg);

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "build": "rimraf lib && tsc --inlineSourceMap false",
+    "build": "rimraf lib built && tsc --inlineSourceMap false --outDir lib",
     "compile": "tsc",
     "test": "mocha ./test/**/*.test.ts",
     "reinstall TS": "rimraf node_modules/typescript && npm i typescript",

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import minimist from 'minimist';
-import * as patch from './actions';
+import * as patch from '@cli/actions'
 
 const { version } = require('../package.json');
 const { version: TSVersion } = require ("typescript/package.json");
