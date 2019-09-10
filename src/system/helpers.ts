@@ -1,7 +1,7 @@
 import path from "path";
 import fs from "fs";
 import resolve = require('resolve');
-import { PackageError, TaskError } from './errors';
+import { FileNotFound, PackageError, TaskError } from './errors';
 import * as shell from 'shelljs';
 import { defaultOptions, TSPOptions } from './options';
 
@@ -13,7 +13,9 @@ import { defaultOptions, TSPOptions } from './options';
  * Output log message if not silent
  */
 export function Log(msg: string, logLevel: typeof Log[Exclude<keyof typeof Log, 'isSilent' | 'isVerbose'>] = Log.normal) {
-  if (!Log.isSilent || (logLevel === Log.system)) console.log(msg)
+  if (Log.isSilent && (logLevel !== Log.system)) return;
+  if ((logLevel === Log.verbose) && (!Log.isVerbose)) return;
+  console.log(msg);
 }
 
 export namespace Log {
@@ -47,6 +49,15 @@ export function runTasks(tasks: { [x:string]: () => any }) {
 }
 
 /**
+ * Handles options & returns a full options object (pre-filled with defaults)
+ */
+export const parseOptions = (options: Partial<TSPOptions>): TSPOptions => {
+  options = { ...defaultOptions, ...pick(options, ...getKeys(defaultOptions)) };
+  Object.assign(Log, { isSilent: Boolean(options.silent), isVerbose: Boolean(options.verbose) });
+  return (options as TSPOptions);
+};
+
+/**
  * Filter object to only include entries by keys (Based on TypeScript Pick)
  * @param obj - Object to filter
  * @param keys - Keys to extract
@@ -58,11 +69,10 @@ export function pick<T, K extends keyof T>(obj: T, ...keys: K[]): Pick<T, K> {
   return { ...keys.reduce((p, key) => ({ ...p, [key]: (obj as any)[key] }), {}) } as Pick<T, K>;
 }
 
-export const parseOptions = (options: Partial<TSPOptions>): TSPOptions => {
-  options = { ...defaultOptions, ...options };
-  Object.assign(Log, { isSilent: options.silent, isVerbose: options.verbose });
-  return (options as TSPOptions);
-};
+/**
+ * Type mapping for Object.keys
+ */
+const getKeys = <T>(obj: T): Array<keyof T> => Object.keys(obj) as Array<keyof T>;
 
 
 /* ********************************************************************************************************************
@@ -114,6 +124,8 @@ export function getTSInfo(basedir: string = process.cwd(), noValidateVersion: bo
 export function getModuleInfo(moduleFile: string, includeSrc: boolean = false):
   {canPatch: boolean, patchVersion: string | false | null, moduleSrc?: string}
 {
+  if (!fs.existsSync(moduleFile)) throw new FileNotFound(`Could not find file ${moduleFile}.`);
+
   const fileData = fs.readFileSync(moduleFile, 'utf8');
   const canPatch = Boolean(fileData.match(/^\(function\s\(ts\)\s?{[\s\S]+?\(ts\s?\|\|\s?\(ts\s?=\s?{}\)\);?$/m));
   const patchVersion =

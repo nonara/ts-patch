@@ -1,17 +1,10 @@
+import {
+  TSPOptions, AlreadyPatched, FileCopyError, getTSInfo, isAbsolute, Log, runTasks, parseOptions
+} from './system';
 import * as shell from 'shelljs';
 import * as path from 'path';
 import * as fs from 'fs';
 import glob from 'glob';
-import {
-  TSPOptions,
-  AlreadyPatched,
-  FileCopyError,
-  getTSInfo,
-  isAbsolute,
-  Log,
-  runTasks,
-  parseOptions
-} from './system';
 import { patchTSModule } from './patch/patcher';
 
 
@@ -20,8 +13,8 @@ import { patchTSModule } from './patch/patcher';
  * ********************************************************************************************************************/
 // region Config
 
-const SRC_FILES = ['tsc', 'tsserverlibrary', 'typescript', 'typescriptServices'];
-const BACKUP_DIRNAME = 'lib-backup';
+export const SRC_FILES = ['tsc', 'tsserverlibrary', 'typescript', 'typescriptServices'];
+export const BACKUP_DIRNAME = 'lib-backup';
 
 // endregion
 
@@ -74,6 +67,10 @@ export function uninstall(opts: Partial<TSPOptions>) {
         shell.cp(file, libDir);
         if (shell.error()) errors.push(filename);
       }
+    },
+    'remove backup directory': () => {
+      if (errors.length < 1) shell.rm('-rf', backupDir);
+      else Log(`[!] Skipping removing backup directory because of errors.`, Log.verbose);
     }
   });
 
@@ -109,7 +106,7 @@ export function patch(fileOrFilesOrGlob: string | string[], opts: Partial<TSPOpt
       else throw e;
     }
 
-    Log(`[+] Successfully patched ${filename}.`, Log.verbose);
+    Log(`[+] Successfully patched ${filename}.\r\n`, Log.verbose);
   }
 }
 

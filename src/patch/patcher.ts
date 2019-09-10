@@ -1,6 +1,6 @@
+import { getModuleInfo, getTSInfo, AlreadyPatched, FileNotFound, PatchError, FileWriteError } from '../system';
 import fs from 'fs';
 import path from 'path';
-import { getModuleInfo, getTSInfo, AlreadyPatched, FileNotFound, PatchError, FileWriteError } from '../system';
 
 
 /* ********************************************************************************************************************

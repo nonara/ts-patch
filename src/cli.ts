@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
+import { getTSInfo, parseOptions, Log, defaultOptions, TSPOptions } from './system';
 import minimist from 'minimist';
 import * as actions from './actions'
-import { getTSInfo, parseOptions, Log, defaultOptions, TSPOptions } from './system';
 
 
 /* ********************************************************************************************************************
