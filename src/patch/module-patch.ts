@@ -13,8 +13,11 @@ const { dirname } = require('path');
 
 /* Declarations (implemented post-patch process) */
 declare const ts: typeof TS;
-declare const originalCreateProgram: typeof createProgram;
 declare const isTSC: boolean;
+declare const tsPatch: {
+  originalCreateProgram: typeof createProgram,
+  createProgram: typeof createProgram
+};
 
 // endregion
 
@@ -105,67 +108,69 @@ function createProgram(
    * ***********************************************************/
   // region Logic
 
-  let rootNames;
-  let projectDir = process.cwd();
+  return (function run() {
+    let rootNames;
+    let projectDir = process.cwd();
 
-  /* Determine options */
-  const createOpts = !Array.isArray(rootNamesOrOptions) ? <TS.CreateProgramOptions>rootNamesOrOptions : void 0;
-  if (createOpts) {
-    rootNames = createOpts.rootNames;
-    options = createOpts.options;
-    host = createOpts.host;
-    oldProgram = createOpts.oldProgram;
-    configFileParsingDiagnostics = createOpts.configFileParsingDiagnostics;
-  } else {
-    options = options!;
-    rootNames = rootNamesOrOptions as ReadonlyArray<string>;
-  }
+    /* Determine options */
+    const createOpts = !Array.isArray(rootNamesOrOptions) ? <TS.CreateProgramOptions>rootNamesOrOptions : void 0;
+    if (createOpts) {
+      rootNames = createOpts.rootNames;
+      options = createOpts.options;
+      host = createOpts.host;
+      oldProgram = createOpts.oldProgram;
+      configFileParsingDiagnostics = createOpts.configFileParsingDiagnostics;
+    } else {
+      options = options!;
+      rootNames = rootNamesOrOptions as ReadonlyArray<string>;
+    }
 
-  /* Get Config */
-  if (isTSC) {
-    const info = getConfig(options, rootNames, projectDir);
-    options = info.compilerOptions;
+    /* Get Config */
+    if (isTSC) {
+      const info = getConfig(options, rootNames, projectDir);
+      options = info.compilerOptions;
 
-    if (createOpts) createOpts.options = options;
+      if (createOpts) createOpts.options = options;
 
-    projectDir = info.projectDir;
-  }
+      projectDir = info.projectDir;
+    }
 
-  /* Invoke TS createProgram */
-  const program: TS.Program = createOpts ?
-    originalCreateProgram(createOpts) :
-    originalCreateProgram(rootNames, options, host, oldProgram, configFileParsingDiagnostics);
+    /* Invoke TS createProgram */
+    const program: TS.Program = createOpts ?
+      tsPatch.originalCreateProgram(createOpts) :
+      tsPatch.originalCreateProgram(rootNames, options, host, oldProgram, configFileParsingDiagnostics);
 
-  /* Prepare Plugins */
-  const plugins = preparePluginsFromCompilerOptions(options.plugins);
-  const pluginCreator = new PluginCreator(plugins, projectDir);
+    /* Prepare Plugins */
+    const plugins = preparePluginsFromCompilerOptions(options.plugins);
+    const pluginCreator = new PluginCreator(plugins, projectDir);
 
-  /* Hook TypeScript emit method */
-  const originalEmit = program.emit;
-  program.emit = function newEmit(
-    targetSourceFile?: TS.SourceFile,
-    writeFile?: TS.WriteFileCallback,
-    cancellationToken?: TS.CancellationToken,
-    emitOnlyDtsFiles?: boolean,
-    customTransformers?: TS.CustomTransformers
-  ): TS.EmitResult {
-    /* Merge in our tranformers */
-    const mergedTransformers = pluginCreator.createTransformers({ program }, customTransformers);
+    /* Hook TypeScript emit method */
+    const originalEmit = program.emit;
+    program.emit = function newEmit(
+      targetSourceFile?: TS.SourceFile,
+      writeFile?: TS.WriteFileCallback,
+      cancellationToken?: TS.CancellationToken,
+      emitOnlyDtsFiles?: boolean,
+      customTransformers?: TS.CustomTransformers
+    ): TS.EmitResult {
+      /* Merge in our tranformers */
+      const mergedTransformers = pluginCreator.createTransformers({ program }, customTransformers);
 
-    /* Invoke TS emit */
-    const result: TS.EmitResult = originalEmit(
-      targetSourceFile,
-      writeFile,
-      cancellationToken,
-      emitOnlyDtsFiles,
-      mergedTransformers
-    );
+      /* Invoke TS emit */
+      const result: TS.EmitResult = originalEmit(
+        targetSourceFile,
+        writeFile,
+        cancellationToken,
+        emitOnlyDtsFiles,
+        mergedTransformers
+      );
 
-    result.diagnostics = [...result.diagnostics, ...transformerErrors.get(program)!];
-    return result;
-  };
+      result.diagnostics.concat(transformerErrors.get(program) || []);
+      return result;
+    };
 
-  return program;
+    return program;
+  })();
 
   // endregion
 }
@@ -423,5 +428,15 @@ class PluginCreator {
     return ret;
   }
 }
+
+// endregion
+
+
+/* ********************************************************************************************************************
+ * Exports
+ * ********************************************************************************************************************/
+// region Exports
+
+tsPatch.createProgram = createProgram;
 
 // endregion

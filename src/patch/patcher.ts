@@ -1,42 +1,57 @@
 import fs from 'fs';
 import path from 'path';
-import resolve = require('resolve');
+import { getModuleInfo, getTSInfo, AlreadyPatched, FileNotFound, PatchError, FileWriteError } from '../system';
 
-export function patchTSModule(file: string, dir?: string) {
-  dir = dir || resolve.sync('typescript/package.json');
 
-  /* Validate TS installation */
-  const pkg_file = path.join(dir,'package.json');
+/* ********************************************************************************************************************
+ * Patch
+ * ********************************************************************************************************************/
 
-  const {name, version} = (() => {
-    try {
-      return fs.existsSync(path.join(dir!,'package.json')) && JSON.parse(fs.readFileSync(pkg_file, 'utf8'));
-    } catch (e) {
-      throw new Error(`Could not parse json data in ${dir}`)
+/**
+ * Generate insertion code for module-patch
+ * Note: Regex removes esModule exports line and sourceMap data
+ */
+const generatePatch = (isTSC: boolean) => `
+  var tsPatch;
+  (function (tsPatch) {
+    var isTSC = ${isTSC};
+    ${fs
+      .readFileSync(path.join(require('app-root-path').toString(), 'lib/patch', 'module-patch.js'), 'utf-8')
+      .replace(/(^Object.defineProperty\(exports.+?;)|(\/\/#\ssourceMappingURL.+?$)/gm, '')
     }
-  })();
+  })(tsPatch || (tsPatch = {}));
+  tsPatch.originalCreateProgram = ts.createProgram;
+  tsPatch.version = '${require('../../package.json').version}';
+  ts.createProgram = tsPatch.createProgram;
+  ${isTSC ? `ts.executeCommandLine(ts.sys.args);` : ''}
+`;
 
-  const [major, minor] = version.split('.');
+/**
+ * Patch TypeScript Module
+ */
+export function patchTSModule(file: string, dir?: string) {
+  const filename = path.basename(file);
 
-  if (name !== 'typescript') throw new Error(`The package in ${dir} must be TypeScript. Found: ${name}.`);
-  if (+major < 3 && +minor < 7) throw new Error(`ts-patch requires TypeScript v2.7 or higher.`);
+  const { libDir } = getTSInfo(dir);
 
   /* Validate Module */
-  const tsModuleFile = path.join(dir, 'lib', file);
-  if (!fs.existsSync(tsModuleFile))
-    throw new Error(`Could not find module ${path.basename(file,path.extname(file))} in ${dir}.`);
+  if (!fs.existsSync(file)) throw new FileNotFound(`Could not find module ${filename} in ${libDir + path.sep}`);
+
+  const {canPatch, patchVersion, moduleSrc} = getModuleInfo(file, true);
+
+  if (patchVersion) throw new AlreadyPatched(`Module ${filename} is already patched with ts-patch v${patchVersion}`);
+  if (!canPatch) throw new PatchError(`Module ${filename} cannot be patched! No instance of TypeScript found.`);
 
   /* Install patch */
-  const isTSC = (file === 'tsc.ts');
-  const patchSrc = fs.readFileSync(path.join(__dirname, 'module-patch.ts'), 'utf-8');
+  const isTSC = (file === 'tsc.js');
+  const patchSrc = generatePatch(isTSC);
 
-  fs.appendFileSync(tsModuleFile, `
-    var tsPatch;
-    (function (tsPatch) {
-      var isTSC = ${isTSC};
-      ${patchSrc}
-    })(tsPatch);
-    tsPatch.originalCreateProgram = ts.createProgram;
-    ts.createProgram = tsPatch.createProgram;
-  `);
+  try {
+    if (isTSC)
+      fs.writeFileSync(file, moduleSrc!.replace(/ts.executeCommandLine\(ts.sys.args\);/, '') + patchSrc);
+    else
+      fs.appendFileSync(file, patchSrc);
+  } catch (e) {
+    throw new FileWriteError(filename, e.message);
+  }
 }

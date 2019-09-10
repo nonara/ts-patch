@@ -7,22 +7,18 @@
     "noImplicitReturns": true,
     "forceConsistentCasingInFileNames": true,
 
-    "lib": ["es2015"],
-    "outDir": "built",
+    "lib": ["es2019"],
+    "outDir": "lib",
     "target": "es5",
     "module":"commonjs",
     "moduleResolution": "node",
+    "removeComments": true,
 
     "allowJs": false,
     "allowUnreachableCode": true,
     "esModuleInterop": true,
     "inlineSourceMap": true,
 
-    "rootDirs": ["src", "lib"],
-    "baseUrl": "./src",
-    "paths": {
-      "@cli/*": [ "cli/*" ],
-      "@patch/*": [ "patch/*" ]
-    }
+    "rootDirs": ["src", "lib"]
   }
 }
