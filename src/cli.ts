@@ -2,9 +2,9 @@
 
 import { getTSInfo, parseOptions, Log, defaultOptions, TSPOptions, getKeys } from './system';
 import minimist from 'minimist';
-import * as actions from './actions'
 import chalk from 'chalk';
 import stripAnsi from 'strip-ansi';
+import * as actions from './actions'
 
 
 /* ********************************************************************************************************************
@@ -73,13 +73,16 @@ const menu =
  * ********************************************************************************************************************/
 // region App
 
+// Set default Log level to Log.normal for CLI
+Log.appLogLevel = Log.normal;
+
 export function run() {
   const args = minimist(process.argv.slice(2));
 
   /* Select command by short or full code */
   let cmd:string | undefined = args._[0] ? args._[0].toLowerCase() : void 0;
-  if (cmd) cmd = (cmd in cliOptions) ?
-    cmd : (Object.entries(cliCommands).find(([n, {short}]) => n && (short == cmd)) || [])[0];
+  if (cmd) cmd = (Object.keys(cliCommands).includes(cmd)) ? cmd :
+    (Object.entries(cliCommands).find(([n, {short}]) => n && (short == cmd)) || [])[0];
 
   if (!args.s && !args.silent) args.silent = false;
 

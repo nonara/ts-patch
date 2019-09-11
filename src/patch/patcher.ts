@@ -43,7 +43,7 @@ export function patchTSModule(file: string, dir?: string) {
   if (!canPatch) throw new PatchError(`Module ${filename} cannot be patched! No instance of TypeScript found.`);
 
   /* Install patch */
-  const isTSC = (file === 'tsc.js');
+  const isTSC = (filename === 'tsc.js');
   const patchSrc = generatePatch(isTSC);
 
   try {

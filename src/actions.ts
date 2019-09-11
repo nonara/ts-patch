@@ -1,6 +1,6 @@
 import {
-  TSPOptions, AlreadyPatched, FileCopyError, getTSInfo, Log, runTasks, parseOptions, getModuleInfo, getModuleFile,
-  defaultOptions
+  TSPOptions, AlreadyPatched, FileCopyError, getTSInfo, Log, parseOptions, getModuleInfo, getModuleAbsolutePath,
+  defaultOptions, TaskError
 } from './system';
 import * as shell from 'shelljs';
 import * as path from 'path';
@@ -8,6 +8,26 @@ import * as fs from 'fs';
 import glob from 'glob';
 import chalk from 'chalk';
 import { patchTSModule } from './patch/patcher';
+
+
+/* ********************************************************************************************************************
+ * Helpers
+ * ********************************************************************************************************************/
+// region Helpers
+
+/**
+ * Execute a series of tasks and throw if any shelljs errors
+ */
+export function runTasks(tasks: { [x:string]: () => any }) {
+  for (let [caption, task] of Object.entries(tasks)) {
+    Log('', Log.verbose);
+    Log(['=', `Running task: ${chalk.bold.yellow(caption)}\r\n`], Log.verbose);
+    if (task() && shell.error())
+      throw new TaskError(caption, shell.error());
+  }
+}
+
+// endregion
 
 
 /* ********************************************************************************************************************
@@ -38,7 +58,7 @@ export function install(opts: Partial<TSPOptions> = defaultOptions) {
     'create backups directory': () => shell.mkdir('-p', backupDir),
 
     'backup original modules': () => {
-      for (let file of SRC_FILES.map(f => path.join(libDir, `${f}.js`))) {
+      for (let file of SRC_FILES.map(f => getModuleAbsolutePath(f, libDir))) {
         const filename = path.basename(file);
         Log(['~', `Backing up ${filename}...`], Log.verbose);
         shell.cp(file, backupDir);
@@ -63,7 +83,7 @@ export function uninstall(opts: Partial<TSPOptions> = defaultOptions) {
 
   runTasks({
     'restore original modules': () => {
-      for (let file of SRC_FILES.map(f => path.join(backupDir, `${f}.js`))) {
+      for (let file of SRC_FILES.map(f => getModuleAbsolutePath(f, backupDir))) {
         const filename = path.basename(file);
         Log(['~', `Restoring ${filename}...`], Log.verbose);
         shell.cp(file, libDir);
@@ -98,7 +118,7 @@ export function check(opts: Partial<TSPOptions> = defaultOptions, fileOrFilesOrG
   Log(`Checking TypeScript ${chalk.blueBright(`v${version}`)} installation in ${chalk.blueBright(packageDir)}\r\n`);
 
   for (let f of files) {
-    const file = getModuleFile(f, libDir);
+    const file = getModuleAbsolutePath(f, libDir);
     const filename = path.basename(file);
 
     Log(['~', `Checking ${filename}.`], Log.verbose);
@@ -134,7 +154,7 @@ export function patch(fileOrFilesOrGlob: string | string[], opts: Partial<TSPOpt
   const {libDir} = getTSInfo(options.basedir);
 
   for (let f of files) {
-    const file = getModuleFile(f, libDir);
+    const file = getModuleAbsolutePath(f, libDir);
     const filename = path.basename(file);
 
     Log(['~', `Patching ${chalk.blueBright(filename)} in ${chalk.blueBright(path.dirname(file))}`], Log.verbose);
@@ -146,7 +166,7 @@ export function patch(fileOrFilesOrGlob: string | string[], opts: Partial<TSPOpt
       else throw e;
     }
 
-    Log(['+', chalk.green(`Successfully patched ${chalk.blueBright(filename)}.\r\n`)], Log.verbose);
+    Log(['+', chalk.green(`Successfully patched ${chalk.bold.yellow(filename)}.\r\n`)], Log.verbose);
   }
 }
 

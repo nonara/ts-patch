@@ -1,24 +1,25 @@
 import path from "path";
 import fs from "fs";
 import resolve = require('resolve');
-import { FileNotFound, PackageError, TaskError } from './errors';
-import * as shell from 'shelljs';
-import { defaultOptions, TSPOptions } from './options';
 import chalk from 'chalk';
+import { FileNotFound, PackageError } from './errors';
 
 
 /* ********************************************************************************************************************
  * Logger
  * ********************************************************************************************************************/
+// region Logger
 
 /**
  * Output log message if not silent
  */
-export function Log(msg: string | [string, string], logLevel: typeof Log[Exclude<keyof typeof Log, 'appLogLevel'>] = Log.normal) {
+export function Log(
+  msg: string | [string, string], logLevel: typeof Log[Exclude<keyof typeof Log, 'appLogLevel'>] = Log.normal
+) {
   if (logLevel > Log.appLogLevel) return;
 
+  /* Handle Icon */
   const printIcon = (icon:string) => chalk.bold.cyanBright(`[${ icon }] `);
-
   if (Array.isArray(msg)) {
     const icon = msg[0];
     msg = (icon === '!') ? printIcon(chalk.bold.yellow(icon)) + chalk.yellow(msg[1]) :
@@ -33,17 +34,20 @@ export function Log(msg: string | [string, string], logLevel: typeof Log[Exclude
 }
 
 export namespace Log {
-  export let appLogLevel = Log.system;
+  export let appLogLevel = Log.system;    // Default level for imported (CLI sets to Log.normal)
 
   export const system = 0;
   export const normal = 1;
   export const verbose = 2;
 }
 
+// endregion
+
 
 /* ********************************************************************************************************************
  * General
  * ********************************************************************************************************************/
+// region General
 
 /**
  * Determine if path is absolute (works on windows and *nix)
@@ -54,34 +58,11 @@ export const isAbsolute = (sPath: string) =>
 /**
  * Get absolute path for module file
  */
-export const getModuleFile = (filename: string, libDir: string) => {
+export const getModuleAbsolutePath = (filename: string, libDir: string) => {
   let file = isAbsolute(filename) ? filename : path.join(libDir, filename);
   if (path.extname(file) !== '.js') file = path.join(path.dirname(file), `${path.basename(file, path.extname(file))}.js`);
 
   return file;
-};
-
-/**
- * Execute a series of tasks and throw if any shelljs errors
- */
-export function runTasks(tasks: { [x:string]: () => any }) {
-  for (let [caption, task] of Object.entries(tasks)) {
-    Log('', Log.verbose);
-    Log(['=', `Running task: ${caption}\r\n`], Log.verbose);
-    if (task() && shell.error())
-      throw new TaskError(caption, shell.error());
-  }
-}
-
-/**
- * Handles options & returns a full options object (pre-filled with defaults)
- */
-export const parseOptions = (options: Partial<TSPOptions>): TSPOptions => {
-  options = { ...defaultOptions, ...pick(options, ...getKeys(defaultOptions)) };
-
-  Log.appLogLevel = (options.silent) ? Log.system : (options.verbose) ? Log.verbose : Log.appLogLevel;
-
-  return (options as TSPOptions);
 };
 
 /**
@@ -101,10 +82,13 @@ export function pick<T, K extends keyof T>(obj: T, ...keys: K[]): Pick<T, K> {
  */
 export const getKeys = <T>(obj: T): Array<keyof T> => Object.keys(obj) as Array<keyof T>;
 
+// endregion
+
 
 /* ********************************************************************************************************************
  * File Operations
  * ********************************************************************************************************************/
+// region File Operations
 
 interface TSInfo { version: string, packageFile: string, packageDir: string, libDir: string }
 const tsInfoCache = new Map<string,TSInfo>();
@@ -160,3 +144,5 @@ export function getModuleInfo(moduleFile: string, includeSrc: boolean = false):
 
   return {canPatch, patchVersion, ...(includeSrc && {moduleSrc: fileData})};
 }
+
+// endregion
