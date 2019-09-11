@@ -22,11 +22,13 @@
   "description": "",
   "dependencies": {
     "app-root-path": "^2.2.1",
+    "chalk": "^2.4.2",
     "minimist": "^1.2.0",
-    "shelljs": "^0.8.3"
+    "shelljs": "^0.8.3",
+    "strip-ansi": "^5.2.0"
   },
   "bin": {
-    "ts-patch": "lib/cli/main.js"
+    "ts-patch": "lib/cli.js"
   },
   "peerDependencies": {
     "typescript": "^3.6.2"

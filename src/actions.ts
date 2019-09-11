@@ -1,10 +1,12 @@
 import {
-  TSPOptions, AlreadyPatched, FileCopyError, getTSInfo, isAbsolute, Log, runTasks, parseOptions
+  TSPOptions, AlreadyPatched, FileCopyError, getTSInfo, Log, runTasks, parseOptions, getModuleInfo, getModuleFile,
+  defaultOptions
 } from './system';
 import * as shell from 'shelljs';
 import * as path from 'path';
 import * as fs from 'fs';
 import glob from 'glob';
+import chalk from 'chalk';
 import { patchTSModule } from './patch/patcher';
 
 
@@ -27,7 +29,7 @@ export const BACKUP_DIRNAME = 'lib-backup';
 /**
  * Patch TypeScript modules
  */
-export function install(opts: Partial<TSPOptions>) {
+export function install(opts: Partial<TSPOptions> = defaultOptions) {
   const options = parseOptions(opts);
   const {libDir, packageDir} = getTSInfo(options.basedir);
   const backupDir = path.join(packageDir, BACKUP_DIRNAME);
@@ -38,7 +40,7 @@ export function install(opts: Partial<TSPOptions>) {
     'backup original modules': () => {
       for (let file of SRC_FILES.map(f => path.join(libDir, `${f}.js`))) {
         const filename = path.basename(file);
-        Log(`[~] Backing up ${filename}...`, Log.verbose);
+        Log(['~', `Backing up ${filename}...`], Log.verbose);
         shell.cp(file, backupDir);
         if (shell.error()) throw new FileCopyError(`Could not backup ${filename} to ${backupDir}. ${shell.error()}`);
       }
@@ -47,13 +49,13 @@ export function install(opts: Partial<TSPOptions>) {
     'patch modules': () => patch(SRC_FILES, options)
   });
 
-  Log(`ts-patch installed!`);
+  Log(['+', chalk.green(`ts-patch installed!`)]);
 }
 
 /**
  * Remove patches from TypeScript modules
  */
-export function uninstall(opts: Partial<TSPOptions>) {
+export function uninstall(opts: Partial<TSPOptions> = defaultOptions) {
   const options = parseOptions(opts);
   const {libDir, packageDir} = getTSInfo(options.basedir);
   const backupDir = path.join(packageDir, BACKUP_DIRNAME);
@@ -63,28 +65,67 @@ export function uninstall(opts: Partial<TSPOptions>) {
     'restore original modules': () => {
       for (let file of SRC_FILES.map(f => path.join(backupDir, `${f}.js`))) {
         const filename = path.basename(file);
-        Log(`[~] Restoring ${filename}...`, Log.verbose);
+        Log(['~', `Restoring ${filename}...`], Log.verbose);
         shell.cp(file, libDir);
         if (shell.error()) errors.push(filename);
       }
     },
     'remove backup directory': () => {
       if (errors.length < 1) shell.rm('-rf', backupDir);
-      else Log(`[!] Skipping removing backup directory because of errors.`, Log.verbose);
+      else Log(['!', `Skipping removing backup directory because of errors.`], Log.verbose);
     }
   });
 
   if (errors.length > 0) throw new FileCopyError(
     `Could not restore all files. Try reinstalling typescript via npm. The following files could not be copied: [` +
-    `${errors.join(', ')}]`
+    `${chalk.yellow(errors.join(', '))}]`
   );
-  else Log('ts-patch removed!');
+  else Log(['-', chalk.green('ts-patch removed!')]);
+}
+
+/**
+ * Check if files can be patched
+ */
+export function check(opts: Partial<TSPOptions> = defaultOptions, fileOrFilesOrGlob: string | string[] = SRC_FILES) {
+  const options = parseOptions(opts);
+  const files = Array.isArray(fileOrFilesOrGlob) ? fileOrFilesOrGlob
+    : fs.existsSync(fileOrFilesOrGlob) ? [fileOrFilesOrGlob]
+    : glob.sync(fileOrFilesOrGlob);
+
+  const {libDir, packageDir, version} = getTSInfo(options.basedir);
+  const ret = [];
+
+  Log(`Checking TypeScript ${chalk.blueBright(`v${version}`)} installation in ${chalk.blueBright(packageDir)}\r\n`);
+
+  for (let f of files) {
+    const file = getModuleFile(f, libDir);
+    const filename = path.basename(file);
+
+    Log(['~', `Checking ${filename}.`], Log.verbose);
+
+    if (!fs.existsSync(file)) {
+      console.warn(`[!] Could not find ${filename} in ${libDir}`);
+      continue;
+    }
+
+    const {patchVersion, canPatch} = getModuleInfo(file);
+
+    if (patchVersion) Log(['+', `${chalk.blueBright(filename)} is patched with ts-patch version ${chalk.blueBright(patchVersion)}.`]);
+    else if (canPatch) Log(['-', `${chalk.blueBright(filename)} is not patched.`]);
+    else Log(['-', chalk.red(`${chalk.redBright(filename)} is not patched and cannot be patched!`)]);
+
+    Log('', Log.verbose);
+
+    ret.push({ [filename]: { patchVersion, canPatch }});
+  }
+
+  return ret;
 }
 
 /**
  * Patch a TypeScript module
  */
-export function patch(fileOrFilesOrGlob: string | string[], opts: Partial<TSPOptions>) {
+export function patch(fileOrFilesOrGlob: string | string[], opts: Partial<TSPOptions> = defaultOptions) {
   const options = parseOptions(opts);
   const files = Array.isArray(fileOrFilesOrGlob) ? fileOrFilesOrGlob
     : fs.existsSync(fileOrFilesOrGlob) ? [fileOrFilesOrGlob]
@@ -92,21 +133,20 @@ export function patch(fileOrFilesOrGlob: string | string[], opts: Partial<TSPOpt
 
   const {libDir} = getTSInfo(options.basedir);
 
-  for (let file of files) {
-    file = isAbsolute(file) ? file : path.join(libDir,file);
-    if (path.extname(file) !== '.js') file = path.join(path.dirname(file), `${path.basename(file, path.extname(file))}.js`);
+  for (let f of files) {
+    const file = getModuleFile(f, libDir);
     const filename = path.basename(file);
 
-    Log(`[~] Patching ${filename} in ${path.dirname(file)}`, Log.verbose);
+    Log(['~', `Patching ${chalk.blueBright(filename)} in ${chalk.blueBright(path.dirname(file))}`], Log.verbose);
 
     try {
       patchTSModule(file, options.basedir)
     } catch (e) {
-      if (e instanceof AlreadyPatched) Log(`[-] Skipping ${filename}. [Already patched]`, Log.verbose);
+      if (e instanceof AlreadyPatched) Log(['-', `Skipping ${chalk.blueBright(filename)}. [${chalk.underline(`Already patched`)}]`], Log.verbose);
       else throw e;
     }
 
-    Log(`[+] Successfully patched ${filename}.\r\n`, Log.verbose);
+    Log(['+', chalk.green(`Successfully patched ${chalk.blueBright(filename)}.\r\n`)], Log.verbose);
   }
 }
 

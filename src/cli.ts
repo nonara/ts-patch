@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 
-import { getTSInfo, parseOptions, Log, defaultOptions, TSPOptions } from './system';
+import { getTSInfo, parseOptions, Log, defaultOptions, TSPOptions, getKeys } from './system';
 import minimist from 'minimist';
 import * as actions from './actions'
+import chalk from 'chalk';
+import stripAnsi from 'strip-ansi';
 
 
 /* ********************************************************************************************************************
@@ -18,7 +20,12 @@ const cliOptions: Record<keyof TSPOptions, { flag: string, caption: string | str
 const cliCommands = {
   install: { short: 'i', caption: 'Installs ts-patch' },
   uninstall: { short: 'u', caption: 'Restores original typescript files' },
-  patch: { short: void 0, caption: ['<module_file> | <glob>', 'Patch specific module(s)'] },
+  check: { short: 'c', caption:
+      `Check patch status (use with ${chalk.cyanBright('--basedir')} to specify TS package location)`
+  },
+  patch: { short: void 0, caption: [
+    '<module_file> | <glob>', 'Patch specific module(s) ' + chalk.yellow('(Not recommended. Use install instead)')
+  ]},
   version: { short: 'v', caption: 'Show version' },
   help: { short: '/?', caption: 'Show help menu' },
 };
@@ -29,31 +36,33 @@ const cliCommands = {
  * ********************************************************************************************************************/
 // region Menu
 
+const SPACER = '\r\n\t';
 const COL_WIDTH = 45;
 
 const formatLine = (left: (string | undefined)[], caption: string | string[]) => {
   const paramCaption = Array.isArray(caption) && caption[0];
   const mainCaption = paramCaption ? caption[1] : caption;
-  const col1 = left.filter(Boolean).join(', ') + (paramCaption ? ` ${paramCaption} ` : ' ');
+  const leftColumn = left.filter(Boolean).join(chalk.blue(', ')) + (paramCaption ? ` ${chalk.yellow(paramCaption)} ` : ' ');
 
-  return col1 + '.'.repeat(COL_WIDTH - col1.length) + ' ' + mainCaption;
+  return leftColumn + chalk.grey('.'.repeat(COL_WIDTH - stripAnsi(leftColumn).length)) + ' ' + mainCaption;
 };
 
 const menu =
-  `\r\n\tts-patch [command] <options>\r\n\r\n\t` +
+  SPACER + chalk.bold.blue('ts-patch [command] ') + chalk.blue('<options>') + '\r\n' + SPACER +
 
   // Commands
   Object
     .entries(cliCommands)
     .map(([cmd, {short, caption}]) => formatLine([cmd, short], caption))
-    .join('\r\n\t') +
+    .join(SPACER) +
 
   // Options
-  `\r\n\r\n\tOptions:\r\n\t`+
+  '\r\n' + SPACER + chalk.bold('Options') + SPACER +
   Object
     .entries(cliOptions)
-    .map(([long, {flag, caption}]) => formatLine([flag && `-${flag}`, long && `--${long}`], caption))
-    .join('\r\n\t');
+    .map(([long, {flag, caption}]) => formatLine(
+      [flag && `${chalk.cyanBright('-' + flag)}`, long && `${chalk.cyanBright('--' + long)}`], caption))
+    .join(SPACER);
 
 
 // endregion
@@ -64,7 +73,7 @@ const menu =
  * ********************************************************************************************************************/
 // region App
 
-(function run() {
+export function run() {
   const args = minimist(process.argv.slice(2));
 
   /* Select command by short or full code */
@@ -72,10 +81,15 @@ const menu =
   if (cmd) cmd = (cmd in cliOptions) ?
     cmd : (Object.entries(cliCommands).find(([n, {short}]) => n && (short == cmd)) || [])[0];
 
+  if (!args.s && !args.silent) args.silent = false;
+
   /* Build & Handle options */
   const options = parseOptions(
-    (Object.keys(cliOptions) as (keyof typeof cliOptions)[]).reduce((p, name) => ({
-      ...p, [name]: args[name] || args[cliOptions[name].flag] || defaultOptions[name]
+    getKeys(cliOptions).reduce((p, name) => ({
+      ...p, [name]:
+        (name in args) ? args[name] :
+        (cliOptions[name].flag in args) ? args[cliOptions[name].flag] :
+          defaultOptions[name]
     }), <TSPOptions>{})
   );
 
@@ -84,22 +98,39 @@ const menu =
   if (args.help || args.h) cmd = 'help';
 
   /* Handle commands */
-  switch (cmd) {
-    case 'help': return Log(menu, Log.system);
+  try {
+    (() => {
+      switch (cmd) {
+      case 'help': return Log(menu, Log.system);
 
-    case 'version':
-      return Log(
-        `ts-patch: ${require('../../package.json').version}    typescript: ${getTSInfo(options.basedir).version}`
-      , Log.system);
+      case 'version':
+        const {version: tsVersion, packageDir} = getTSInfo(options.basedir);
+        return Log('\r\n' +
+          chalk.bold.blue('ts-patch:    ') + require('../package.json').version + '\r\n' +
+          chalk.bold.blue('typescript:  ') + tsVersion + chalk.gray(`   [${packageDir}]`),
+          Log.system
+        );
 
-    case 'install': return actions.install(options);
+      case 'install': return actions.install(options);
 
-    case 'uninstall': return actions.uninstall(options);
+      case 'uninstall': return actions.uninstall(options);
 
-    case 'patch': return actions.patch(args._.slice(1).join(' '), options);
+      case 'patch': return actions.patch(args._.slice(1).join(' '), options);
 
-    default: return Log('Invalid command. Try ts-patch /? for more info', Log.system);
+      case 'check': return actions.check(options);
+
+      default: return Log('Invalid command. Try ts-patch /? for more info', Log.system);
+      }
+    })();
+  } catch (e) {
+    Log(['=', chalk.bold.red(`Error ${e.constructor.name} - ${e.message}`)]);
   }
-})();
+
+  // Output for analysis by tests
+  return (!require.main) ? ({cmd, args, options}) : void 0;
+}
+
+/* Execute if CLI */
+if (require.main === module) run();
 
 // endregion

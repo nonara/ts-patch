@@ -4,23 +4,37 @@ import resolve = require('resolve');
 import { FileNotFound, PackageError, TaskError } from './errors';
 import * as shell from 'shelljs';
 import { defaultOptions, TSPOptions } from './options';
+import chalk from 'chalk';
 
 
 /* ********************************************************************************************************************
  * Logger
  * ********************************************************************************************************************/
+
 /**
  * Output log message if not silent
  */
-export function Log(msg: string, logLevel: typeof Log[Exclude<keyof typeof Log, 'isSilent' | 'isVerbose'>] = Log.normal) {
-  if (Log.isSilent && (logLevel !== Log.system)) return;
-  if ((logLevel === Log.verbose) && (!Log.isVerbose)) return;
+export function Log(msg: string | [string, string], logLevel: typeof Log[Exclude<keyof typeof Log, 'appLogLevel'>] = Log.normal) {
+  if (logLevel > Log.appLogLevel) return;
+
+  const printIcon = (icon:string) => chalk.bold.cyanBright(`[${ icon }] `);
+
+  if (Array.isArray(msg)) {
+    const icon = msg[0];
+    msg = (icon === '!') ? printIcon(chalk.bold.yellow(icon)) + chalk.yellow(msg[1]) :
+      (icon === '~') ? printIcon(chalk.bold.cyanBright(icon)) + msg[1] :
+      (icon === '=') ? printIcon(chalk.bold.greenBright(icon)) + msg[1] :
+      (icon === '+') ? printIcon(chalk.bold.green(icon)) + msg[1] :
+      (icon === '-') ? printIcon(chalk.bold.white(icon)) + msg[1] :
+        msg[1];
+  }
+
   console.log(msg);
 }
 
 export namespace Log {
-  export let isSilent: boolean = false;
-  export let isVerbose: boolean = false;
+  export let appLogLevel = Log.system;
+
   export const system = 0;
   export const normal = 1;
   export const verbose = 2;
@@ -38,11 +52,22 @@ export const isAbsolute = (sPath: string) =>
   path.resolve(sPath) === path.normalize(sPath).replace(RegExp(path.sep + '$'), '');
 
 /**
+ * Get absolute path for module file
+ */
+export const getModuleFile = (filename: string, libDir: string) => {
+  let file = isAbsolute(filename) ? filename : path.join(libDir, filename);
+  if (path.extname(file) !== '.js') file = path.join(path.dirname(file), `${path.basename(file, path.extname(file))}.js`);
+
+  return file;
+};
+
+/**
  * Execute a series of tasks and throw if any shelljs errors
  */
 export function runTasks(tasks: { [x:string]: () => any }) {
   for (let [caption, task] of Object.entries(tasks)) {
-    Log(`\r\n[=] Running task: ${caption}\r\n`, Log.verbose);
+    Log('', Log.verbose);
+    Log(['=', `Running task: ${caption}\r\n`], Log.verbose);
     if (task() && shell.error())
       throw new TaskError(caption, shell.error());
   }
@@ -53,7 +78,9 @@ export function runTasks(tasks: { [x:string]: () => any }) {
  */
 export const parseOptions = (options: Partial<TSPOptions>): TSPOptions => {
   options = { ...defaultOptions, ...pick(options, ...getKeys(defaultOptions)) };
-  Object.assign(Log, { isSilent: Boolean(options.silent), isVerbose: Boolean(options.verbose) });
+
+  Log.appLogLevel = (options.silent) ? Log.system : (options.verbose) ? Log.verbose : Log.appLogLevel;
+
   return (options as TSPOptions);
 };
 
@@ -72,7 +99,7 @@ export function pick<T, K extends keyof T>(obj: T, ...keys: K[]): Pick<T, K> {
 /**
  * Type mapping for Object.keys
  */
-const getKeys = <T>(obj: T): Array<keyof T> => Object.keys(obj) as Array<keyof T>;
+export const getKeys = <T>(obj: T): Array<keyof T> => Object.keys(obj) as Array<keyof T>;
 
 
 /* ********************************************************************************************************************
