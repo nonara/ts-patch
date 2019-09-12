@@ -1,13 +1,26 @@
 import {
   TSPOptions, AlreadyPatched, FileCopyError, getTSInfo, Log, parseOptions, getModuleInfo, getModuleAbsolutePath,
-  defaultOptions, TaskError
+  TaskError, PatchError
 } from './system';
-import * as shell from 'shelljs';
 import * as path from 'path';
 import * as fs from 'fs';
 import glob from 'glob';
 import chalk from 'chalk';
 import { patchTSModule } from './patch/patcher';
+import * as shell from 'shelljs';
+
+
+/* ********************************************************************************************************************
+ * Config
+ * ********************************************************************************************************************/
+// region Config
+
+shell.config.silent = true;
+
+export const SRC_FILES = ['tsc', 'tsserverlibrary', 'typescript', 'typescriptServices'];
+export const BACKUP_DIRNAME = 'lib-backup';
+
+// endregion
 
 
 /* ********************************************************************************************************************
@@ -31,17 +44,6 @@ export function runTasks(tasks: { [x:string]: () => any }) {
 
 
 /* ********************************************************************************************************************
- * Config
- * ********************************************************************************************************************/
-// region Config
-
-export const SRC_FILES = ['tsc', 'tsserverlibrary', 'typescript', 'typescriptServices'];
-export const BACKUP_DIRNAME = 'lib-backup';
-
-// endregion
-
-
-/* ********************************************************************************************************************
  * Exports
  * ********************************************************************************************************************/
 // region Exports
@@ -49,7 +51,7 @@ export const BACKUP_DIRNAME = 'lib-backup';
 /**
  * Patch TypeScript modules
  */
-export function install(opts: Partial<TSPOptions> = defaultOptions) {
+export function install(opts?: Partial<TSPOptions>) {
   const options = parseOptions(opts);
   const {libDir, packageDir} = getTSInfo(options.basedir);
   const backupDir = path.join(packageDir, BACKUP_DIRNAME);
@@ -75,7 +77,7 @@ export function install(opts: Partial<TSPOptions> = defaultOptions) {
 /**
  * Remove patches from TypeScript modules
  */
-export function uninstall(opts: Partial<TSPOptions> = defaultOptions) {
+export function uninstall(opts?: Partial<TSPOptions>) {
   const options = parseOptions(opts);
   const {libDir, packageDir} = getTSInfo(options.basedir);
   const backupDir = path.join(packageDir, BACKUP_DIRNAME);
@@ -106,7 +108,7 @@ export function uninstall(opts: Partial<TSPOptions> = defaultOptions) {
 /**
  * Check if files can be patched
  */
-export function check(opts: Partial<TSPOptions> = defaultOptions, fileOrFilesOrGlob: string | string[] = SRC_FILES) {
+export function check(fileOrFilesOrGlob: string | string[] = SRC_FILES, opts?: Partial<TSPOptions>) {
   const options = parseOptions(opts);
   const files = Array.isArray(fileOrFilesOrGlob) ? fileOrFilesOrGlob
     : fs.existsSync(fileOrFilesOrGlob) ? [fileOrFilesOrGlob]
@@ -145,8 +147,11 @@ export function check(opts: Partial<TSPOptions> = defaultOptions, fileOrFilesOrG
 /**
  * Patch a TypeScript module
  */
-export function patch(fileOrFilesOrGlob: string | string[], opts: Partial<TSPOptions> = defaultOptions) {
+export function patch(fileOrFilesOrGlob: string | string[], opts?: Partial<TSPOptions>) {
   const options = parseOptions(opts);
+
+  if (!fileOrFilesOrGlob) throw new PatchError(`Must provide a file path, array of files, or glob.`);
+
   const files = Array.isArray(fileOrFilesOrGlob) ? fileOrFilesOrGlob
     : fs.existsSync(fileOrFilesOrGlob) ? [fileOrFilesOrGlob]
     : glob.sync(fileOrFilesOrGlob);
@@ -162,7 +167,8 @@ export function patch(fileOrFilesOrGlob: string | string[], opts: Partial<TSPOpt
     try {
       patchTSModule(file, options.basedir)
     } catch (e) {
-      if (e instanceof AlreadyPatched) Log(['-', `Skipping ${chalk.blueBright(filename)}. [${chalk.underline(`Already patched`)}]`], Log.verbose);
+      if (e instanceof AlreadyPatched)
+        Log(['-', `Skipping ${chalk.blueBright(filename)}. [${chalk.underline(`Already patched`)}]`], Log.verbose);
       else throw e;
     }
 

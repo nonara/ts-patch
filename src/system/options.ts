@@ -1,31 +1,51 @@
-import { getKeys, Log, pick } from './helpers';
+import { Log } from './logger';
+import { OptionsError } from './errors';
+import { getGlobalTSDir, getKeys, pick } from './helpers';
 
 
 /* ********************************************************************************************************************
- * Default Options & Type
+ * Options & Type
  * ********************************************************************************************************************/
 export type TSPOptions = { [K in keyof typeof defaultOptions]: (typeof defaultOptions)[K] }
 
 export const defaultOptions = {
-  silent: true,
+  logLevel: Log.normal,
+  color: true,
+  silent: false,
   verbose: false,
-  basedir: process.cwd()
+  basedir: process.cwd(),
+  instanceIsCLI: false
 };
+
+/* Exported options object */
+export let appOptions = {...defaultOptions};
 
 
 /* ********************************************************************************************************************
- * Parse
+ * Parser
  * ********************************************************************************************************************/
 
 /**
- * Handles options & returns a full options object (pre-filled with defaults)
+ * Create full options object using user input and assigns it to appOptions
  */
-export const parseOptions = (options: Partial<TSPOptions>): TSPOptions => {
-  options = { ...defaultOptions, ...pick(options, ...getKeys(defaultOptions)) };
+export const parseOptions = (options?: Partial<TSPOptions>): TSPOptions => {
+  if (!options || (options === appOptions)) return appOptions;
+  const has = (key: string) => options.hasOwnProperty(key);
 
-  Log.appLogLevel = (options.silent) ? Log.system :
-    (options.verbose) ? Log.verbose :
-      Log.appLogLevel;
+  if (has('color')) appOptions.color = options['color']!;
 
-  return (options as TSPOptions);
+  if (has('global') && has('basedir')) throw new OptionsError(`Cannot specify both --global and --basedir`);
+  if (has('global')) options.basedir = getGlobalTSDir();
+
+  Object.assign(appOptions, {
+    ...defaultOptions,
+    ...(pick(options, ...getKeys(defaultOptions))),
+    logLevel:
+      (options.silent) ? Log.system :
+      (options.verbose) ? Log.verbose :
+      (options.instanceIsCLI) ? Log.normal :
+        defaultOptions.logLevel
+  });
+
+  return appOptions;
 };

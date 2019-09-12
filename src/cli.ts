@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { getTSInfo, parseOptions, Log, defaultOptions, TSPOptions, getKeys } from './system';
+import { getTSInfo, parseOptions, Log, TSPOptions, appOptions } from './system';
 import minimist from 'minimist';
 import chalk from 'chalk';
 import stripAnsi from 'strip-ansi';
@@ -11,10 +11,14 @@ import * as actions from './actions'
  * Commands & Options
  * ********************************************************************************************************************/
 
-const cliOptions: Record<keyof TSPOptions, { flag: string, caption: string | string[] }> = {
+type CLIOptions = Record<keyof typeof cliOptions, { flag?: string, caption: string | string[], inverse?: boolean }>;
+
+const cliOptions = {
   silent: { flag: 's', caption: 'Run silently' },
+  global: { flag: 'g', caption: 'Target global TypeScript installation' },
   verbose: { flag: 'v', caption: 'Chat it up' },
-  basedir: { flag: 'd', caption: ['<dir>', 'Base directory to resolve package from'] }
+  basedir: { flag: 'd', caption: ['<dir>', 'Base directory to resolve package from'] },
+  color: { inverse: true, caption: 'Strip ansi colours from output' }
 };
 
 const cliCommands = {
@@ -59,9 +63,11 @@ const menu =
   // Options
   '\r\n' + SPACER + chalk.bold('Options') + SPACER +
   Object
-    .entries(cliOptions)
-    .map(([long, {flag, caption}]) => formatLine(
-      [flag && `${chalk.cyanBright('-' + flag)}`, long && `${chalk.cyanBright('--' + long)}`], caption))
+    .entries(<CLIOptions>cliOptions)
+    .map(([long, {flag, inverse, caption}]) => formatLine([
+      flag && `${chalk.cyanBright('-' + flag)}`,
+      long && `${chalk.cyanBright(`${inverse ? '--no-' : '--'}${long}`)}`
+    ], caption))
     .join(SPACER);
 
 
@@ -73,67 +79,66 @@ const menu =
  * ********************************************************************************************************************/
 // region App
 
-// Set default Log level to Log.normal for CLI
-Log.appLogLevel = Log.normal;
+const instanceIsCLI = (require.main === module);
+
+if (instanceIsCLI) run();
 
 export function run() {
-  const args = minimist(process.argv.slice(2));
-
-  /* Select command by short or full code */
+  let args = minimist(process.argv.slice(2));
   let cmd:string | undefined = args._[0] ? args._[0].toLowerCase() : void 0;
-  if (cmd) cmd = (Object.keys(cliCommands).includes(cmd)) ? cmd :
-    (Object.entries(cliCommands).find(([n, {short}]) => n && (short == cmd)) || [])[0];
 
-  if (!args.s && !args.silent) args.silent = false;
-
-  /* Build & Handle options */
-  const options = parseOptions(
-    getKeys(cliOptions).reduce((p, name) => ({
-      ...p, [name]:
-        (name in args) ? args[name] :
-        (cliOptions[name].flag in args) ? args[cliOptions[name].flag] :
-          defaultOptions[name]
-    }), <TSPOptions>{})
-  );
-
-  /* Handle special arguments */
-  if ((args.v) && (!cmd)) cmd = 'version';
-  if (args.help || args.h) cmd = 'help';
-
-  /* Handle commands */
   try {
+    /* Select command by short or full code */
+    if (cmd) cmd = (Object.keys(cliCommands).includes(cmd)) ? cmd :
+      (Object.entries(cliCommands).find(([n, {short}]) => n && (short == cmd)) || [])[0];
+
+    /* Parse options (convert short-code to long) */
+    const opts = Object
+      .entries(<CLIOptions>cliOptions)
+      .reduce((p, [key, {flag}]) => ({
+        ...p,
+        ...(args.hasOwnProperty(key) && { [key]: args[key] }),
+        ...(flag && args.hasOwnProperty(flag) && { [key]: args[flag] })
+      }), <TSPOptions>{});
+
+    /* Handle special cases */
+    if ((args.v) && (!cmd)) cmd = 'version';
+    if (args.h || !cmd) cmd = 'help';
+    if (args.colour !== undefined) opts.color = args.colour;
+
+    /* Build & Handle options */
+    parseOptions({ instanceIsCLI, ...opts });
+
+    /* Handle commands */
     (() => {
       switch (cmd) {
-      case 'help': return Log(menu, Log.system);
+        case 'help': return Log(menu, Log.system);
 
-      case 'version':
-        const {version: tsVersion, packageDir} = getTSInfo(options.basedir);
-        return Log('\r\n' +
-          chalk.bold.blue('ts-patch:    ') + require('../package.json').version + '\r\n' +
-          chalk.bold.blue('typescript:  ') + tsVersion + chalk.gray(`   [${packageDir}]`),
-          Log.system
-        );
+        case 'version':
+          const {version: tsVersion, packageDir} = getTSInfo(appOptions.basedir);
+          return Log('\r\n' +
+            chalk.bold.blue('ts-patch:    ') + require('../package.json').version + '\r\n' +
+            chalk.bold.blue('typescript:  ') + tsVersion + chalk.gray(`   [${packageDir}]`),
+            Log.system
+          );
 
-      case 'install': return actions.install(options);
+        case 'install': return actions.install();
 
-      case 'uninstall': return actions.uninstall(options);
+        case 'uninstall': return actions.uninstall();
 
-      case 'patch': return actions.patch(args._.slice(1).join(' '), options);
+        case 'patch': return actions.patch(args._.slice(1).join(' '));
 
-      case 'check': return actions.check(options);
+        case 'check': return actions.check();
 
-      default: return Log('Invalid command. Try ts-patch /? for more info', Log.system);
+        default: return Log('Invalid command. Try ts-patch /? for more info', Log.system);
       }
     })();
   } catch (e) {
-    Log(['=', chalk.bold.red(`Error ${e.constructor.name} - ${e.message}`)]);
+    Log(['!', chalk.bold.yellow(e.name && (e.name !== 'Error') ? `[${e.name}]: ` : 'Error: ') + chalk.red(e.message)]);
   }
 
   // Output for analysis by tests
-  return (!require.main) ? ({cmd, args, options}) : void 0;
+  return (!require.main) ? ({cmd, args, options: appOptions}) : void 0;
 }
-
-/* Execute if CLI */
-if (require.main === module) run();
 
 // endregion

@@ -1,47 +1,7 @@
 import path from "path";
 import fs from "fs";
 import resolve = require('resolve');
-import chalk from 'chalk';
 import { FileNotFound, PackageError } from './errors';
-
-
-/* ********************************************************************************************************************
- * Logger
- * ********************************************************************************************************************/
-// region Logger
-
-/**
- * Output log message if not silent
- */
-export function Log(
-  msg: string | [string, string], logLevel: typeof Log[Exclude<keyof typeof Log, 'appLogLevel'>] = Log.normal
-) {
-  if (logLevel > Log.appLogLevel) return;
-
-  /* Handle Icon */
-  const printIcon = (icon:string) => chalk.bold.cyanBright(`[${ icon }] `);
-  if (Array.isArray(msg)) {
-    const icon = msg[0];
-    msg = (icon === '!') ? printIcon(chalk.bold.yellow(icon)) + chalk.yellow(msg[1]) :
-      (icon === '~') ? printIcon(chalk.bold.cyanBright(icon)) + msg[1] :
-      (icon === '=') ? printIcon(chalk.bold.greenBright(icon)) + msg[1] :
-      (icon === '+') ? printIcon(chalk.bold.green(icon)) + msg[1] :
-      (icon === '-') ? printIcon(chalk.bold.white(icon)) + msg[1] :
-        msg[1];
-  }
-
-  console.log(msg);
-}
-
-export namespace Log {
-  export let appLogLevel = Log.system;    // Default level for imported (CLI sets to Log.normal)
-
-  export const system = 0;
-  export const normal = 1;
-  export const verbose = 2;
-}
-
-// endregion
 
 
 /* ********************************************************************************************************************
@@ -56,16 +16,6 @@ export const isAbsolute = (sPath: string) =>
   path.resolve(sPath) === path.normalize(sPath).replace(RegExp(path.sep + '$'), '');
 
 /**
- * Get absolute path for module file
- */
-export const getModuleAbsolutePath = (filename: string, libDir: string) => {
-  let file = isAbsolute(filename) ? filename : path.join(libDir, filename);
-  if (path.extname(file) !== '.js') file = path.join(path.dirname(file), `${path.basename(file, path.extname(file))}.js`);
-
-  return file;
-};
-
-/**
  * Filter object to only include entries by keys (Based on TypeScript Pick)
  * @param obj - Object to filter
  * @param keys - Keys to extract
@@ -74,7 +24,12 @@ export const getModuleAbsolutePath = (filename: string, libDir: string) => {
  * obj = pick(obj, 'a', 'b')            // Type is { a: number, c: string }
  */
 export function pick<T, K extends keyof T>(obj: T, ...keys: K[]): Pick<T, K> {
-  return { ...keys.reduce((p, key) => ({ ...p, [key]: (obj as any)[key] }), {}) } as Pick<T, K>;
+  return {
+    ...keys.reduce((p, key) => ({
+      ...p,
+      ...((obj as any).hasOwnProperty(key) && { [key]: obj[key] })
+    }), {})
+  } as Pick<T, K>;
 }
 
 /**
@@ -86,9 +41,9 @@ export const getKeys = <T>(obj: T): Array<keyof T> => Object.keys(obj) as Array<
 
 
 /* ********************************************************************************************************************
- * File Operations
+ * File & Directory
  * ********************************************************************************************************************/
-// region File Operations
+// region File & Directory
 
 interface TSInfo { version: string, packageFile: string, packageDir: string, libDir: string }
 const tsInfoCache = new Map<string,TSInfo>();
@@ -96,7 +51,7 @@ const tsInfoCache = new Map<string,TSInfo>();
 /**
  * Try to resolve typescript package in basedir and return package info (throws if not cannot find ts package)
  */
-export function getTSInfo(basedir: string = process.cwd(), noValidateVersion: boolean = false): TSInfo {
+export function getTSInfo(basedir: string = process.cwd()): TSInfo {
   if (!fs.existsSync(basedir)) throw new PackageError(`${basedir} is not a valid directory`);
 
   const packageDir = path.dirname(resolve.sync('typescript/package.json', { basedir }));
@@ -111,16 +66,13 @@ export function getTSInfo(basedir: string = process.cwd(), noValidateVersion: bo
     try {
       return JSON.parse(fs.readFileSync(packageFile, 'utf8'));
     } catch (e) {
-      throw new PackageError(`Could not parse json data in ${packageFile}`)
+      throw new PackageError(`Could not parse json data in ${packageFile}`);
     }
   })();
 
   /* Validate */
-  if (name !== 'typescript') throw new PackageError(`The package in ${packageDir} is not TypeScript. Found: ${name}.`);
-  if (!noValidateVersion) {
-    const [major, minor] = version;
-    if (+major < 3 && +minor < 7) throw new PackageError(`ts-patch requires TypeScript v2.7 or higher.`);
-  }
+  if (name !== 'typescript')
+    throw new PackageError(`The package in ${packageDir} is not TypeScript. Found: ${name}.`);
 
   /* Construct result & save to cache */
   const res = {version, packageFile, packageDir, libDir: path.join(packageDir, 'lib')};
@@ -128,6 +80,22 @@ export function getTSInfo(basedir: string = process.cwd(), noValidateVersion: bo
 
   return res;
 }
+
+/**
+ * Attempts to locate global installation of TypeScript
+ */
+export const getGlobalTSDir = () => {
+  const errors = [];
+  const basedir = require('global-prefix');
+  const check = (dir: string) => { try { return getTSInfo(dir) } catch (e) { errors.push(e); return <any>{}; } };
+
+  const { packageDir } = (check(basedir) || check(path.join(basedir, 'lib')));
+
+  if (!packageDir)
+    throw new PackageError(`Could not find global TypeScript installation! Are you sure it's installed globally?`);
+
+  return packageDir;
+};
 
 /**
  * Check if module can be patched, and if it is, get its version
@@ -144,5 +112,16 @@ export function getModuleInfo(moduleFile: string, includeSrc: boolean = false):
 
   return {canPatch, patchVersion, ...(includeSrc && {moduleSrc: fileData})};
 }
+
+/**
+ * Get absolute path for module file
+ */
+export const getModuleAbsolutePath = (filename: string, libDir: string) => {
+  let file = isAbsolute(filename) ? filename : path.join(libDir, filename);
+  if (path.extname(file) !== '.js') file = path.join(path.dirname(file), `${path.basename(file, path.extname(file))}.js`);
+
+  return file;
+};
+
 
 // endregion
