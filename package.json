@@ -5,7 +5,7 @@
   "scripts": {
     "build": "rimraf lib && tsc --inlineSourceMap false",
     "compile": "tsc",
-    "test": "mocha ./test/**/*.test.ts",
+    "test": "mocha -r ts-node/register ./test/**/*.test.ts",
     "reinstall TS": "rimraf node_modules/typescript && npm i typescript"
   },
   "keywords": [],
@@ -21,11 +21,11 @@
   "homepage": "https://github.com/nonara/ts-patch#readme",
   "description": "",
   "dependencies": {
-    "app-root-path": "^2.2.1",
-    "chalk": "^2.4.2",
-    "global-prefix": "^3.0.0",
-    "minimist": "^1.2.0",
     "shelljs": "^0.8.3",
+    "minimist": "^1.2.0",
+    "chalk": "^2.4.2",
+    "app-root-path": "^2.2.1",
+    "global-prefix": "^3.0.0",
     "strip-ansi": "^5.2.0"
   },
   "bin": {
@@ -40,10 +40,17 @@
     "@types/minimist": "^1.2.0",
     "@types/mocha": "^5.2.7",
     "@types/resolve": "0.0.8",
+    "@types/rewire": "^2.5.28",
     "@types/shelljs": "^0.8.5",
+    "@types/sinon-chai": "^3.2.3",
+    "@types/test-console": "^1.1.0",
     "chai": "^4.2.0",
     "mocha": "^6.2.0",
+    "rewire": "^4.0.1",
     "rimraf": "^3.0.0",
+    "sinon": "^7.4.2",
+    "sinon-chai": "^3.3.0",
+    "test-console": "^1.1.0",
     "ts-node": "^8.3.0",
     "typescript": "^3.6.2"
   }

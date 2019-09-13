@@ -27,11 +27,13 @@ export function Log(msg: string | [string, string], logLevel: typeof Log[keyof t
       (icon === '-') ? printIcon(chalk.bold.white(icon)) + msg[1] :
         msg[1];
   }
+  const isError = (icon === '!');
 
+  /* Print message */
   msg = !color ? stripAnsi(msg) : msg;
 
   if (!instanceIsCLI) console.log(msg);
-  else if (icon === '!') process.stderr.write(msg + '\r\n');
+  else if (isError) process.stderr.write(msg + '\r\n');
   else process.stdout.write(msg + '\r\n');
 }
 

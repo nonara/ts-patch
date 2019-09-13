@@ -51,14 +51,14 @@ const tsInfoCache = new Map<string,TSInfo>();
 /**
  * Try to resolve typescript package in basedir and return package info (throws if not cannot find ts package)
  */
-export function getTSInfo(basedir: string = process.cwd()): TSInfo {
+export function getTSInfo(basedir: string = process.cwd(), noCache: boolean = false): TSInfo {
   if (!fs.existsSync(basedir)) throw new PackageError(`${basedir} is not a valid directory`);
 
   const packageDir = path.dirname(resolve.sync('typescript/package.json', { basedir }));
   if (!packageDir) throw new PackageError(`Could not find typescript package in ${packageDir}`);
 
   /* Return from cache if already loaded */
-  if (tsInfoCache.has(packageDir)) return tsInfoCache.get(packageDir)!;
+  if (!noCache && tsInfoCache.has(packageDir)) return tsInfoCache.get(packageDir)!;
 
   /* Parse package.json data */
   const packageFile = path.join(packageDir,'package.json');

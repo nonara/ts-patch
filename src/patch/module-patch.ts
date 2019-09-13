@@ -1,3 +1,8 @@
+/*
+ * The logic in this file is based on TTypescript (https://github.com/cevek/ttypescript)
+ * Credit & thanks go to cevek (https://github.com/cevek) for the incredible work!
+ */
+
 import { Diagnostic } from 'typescript';
 import * as TS from 'typescript';
 

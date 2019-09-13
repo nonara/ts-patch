@@ -14,10 +14,11 @@ export const defaultOptions = {
   silent: false,
   verbose: false,
   basedir: process.cwd(),
-  instanceIsCLI: false
+  instanceIsCLI: false,
+  cacheTSInfo: true
 };
 
-/* Exported options object */
+/* App-wide options storage */
 export let appOptions = {...defaultOptions};
 
 
@@ -37,15 +38,13 @@ export const parseOptions = (options?: Partial<TSPOptions>): TSPOptions => {
   if (has('global') && has('basedir')) throw new OptionsError(`Cannot specify both --global and --basedir`);
   if (has('global')) options.basedir = getGlobalTSDir();
 
-  Object.assign(appOptions, {
-    ...defaultOptions,
-    ...(pick(options, ...getKeys(defaultOptions))),
-    logLevel:
-      (options.silent) ? Log.system :
-      (options.verbose) ? Log.verbose :
-      (options.instanceIsCLI) ? Log.normal :
-        defaultOptions.logLevel
-  });
+  Object.assign(appOptions, pick(options, ...getKeys(defaultOptions)));
+
+  appOptions.logLevel =
+      (appOptions.silent) ? Log.system :
+      (appOptions.verbose) ? Log.verbose :
+      (appOptions.instanceIsCLI) ? Log.normal :
+        defaultOptions.logLevel;
 
   return appOptions;
 };

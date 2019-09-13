@@ -1,11 +1,5 @@
 import {
-  getModuleInfo,
-  getTSInfo,
-  AlreadyPatched,
-  FileNotFound,
-  PatchError,
-  FileWriteError,
-  PackageError
+  getModuleInfo, getTSInfo, AlreadyPatched, FileNotFound, PatchError, FileWriteError, WrongVersionError
 } from '../system';
 import fs from 'fs';
 import path from 'path';
@@ -37,14 +31,14 @@ const generatePatch = (isTSC: boolean) => `
 /**
  * Patch TypeScript Module
  */
-export function patchTSModule(file: string, dir?: string) {
+export function patchTSModule(file: string, dir?: string, noCache?: boolean) {
   const filename = path.basename(file);
 
-  const { libDir, version } = getTSInfo(dir);
+  const { libDir, version } = getTSInfo(dir, noCache);
 
   /* Validate TS */
   const [major, minor] = version.split('.');
-  if (+major < 3 && +minor < 7) throw new PackageError(`ts-patch requires TypeScript v2.7 or higher.`);
+  if (+major < 3 && +minor < 7) throw new WrongVersionError(`ts-patch requires TypeScript v2.7 or higher.`);
 
   /* Validate Module */
   if (!fs.existsSync(file)) throw new FileNotFound(`Could not find module ${filename} in ${libDir + path.sep}`);
