@@ -4,7 +4,7 @@ import sinon, { SinonSpy } from 'sinon';
 import { setOptions } from '../src';
 import stripAnsi from 'strip-ansi';
 import { run as runFn } from '../src/cli';
-import { getGlobalTSDir } from '../src/system';
+import { getGlobalTSDir } from '../src/ts-utils';
 
 chai.use(sinonChai);
 

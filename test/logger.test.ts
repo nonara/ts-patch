@@ -1,4 +1,4 @@
-import { getGlobalTSDir, getTSInfo, Log, TSPOptions } from '../src/system';
+import { Log, TSPOptions } from '../src/system';
 import { setOptions } from '../src';
 import chai, { expect } from 'chai';
 import sinonChai from 'sinon-chai';
@@ -49,28 +49,18 @@ const hasColor = /\x1b\[[0-9;]*m/g;
  * Tests
  * ********************************************************************************************************************/
 
-describe(`System`, () => {
-  describe(`getGlobalTSDir`, () => {
-    const tsDir = getGlobalTSDir();
+describe(`Logger`, () => {
+  before(() => setOptions({ logLevel: Log.normal }));
 
-    it(`Returns a result`, () => expect(tsDir).to.not.be.undefined);
-    it(`Is valid TS dir`, () => expect(getTSInfo(tsDir)).to.not.throw);
-    it(`Path includes npm global prefix`, () => expect(tsDir).to.include(require('global-prefix')));
-  });
+  it(`Uses colour if color=true`, () => expect(hasColor.test(log({ color: true }).console)).to.be.true);
+  it(`Strips colour if color=false`, () => expect(hasColor.test(log({ color: false }).console)).to.be.false);
 
-  describe(`Logger`, () => {
-    before(() => setOptions({ logLevel: Log.normal }));
-
-    it(`Uses colour if color=true`, () => expect(hasColor.test(log({ color: true }).console)).to.be.true);
-    it(`Strips colour if color=false`, () => expect(hasColor.test(log({ color: false }).console)).to.be.false);
-
-    describe(`CLI Mode`, () => {
-      it(`Log goes to stdout`, () =>
-        expect(/std_out/g.test(log({ instanceIsCLI: true },['=','std_out']).stdout)).to.be.true
-      );
-      it(`Error goes to stderr`, () =>
-        expect(/std_err/g.test(log({ instanceIsCLI: true },['!','std_err']).stderr)).to.be.true
-      );
-    });
+  describe(`CLI Mode`, () => {
+    it(`Log goes to stdout`, () =>
+      expect(/std_out/g.test(log({ instanceIsCLI: true },['=','std_out']).stdout)).to.be.true
+    );
+    it(`Error goes to stderr`, () =>
+      expect(/std_err/g.test(log({ instanceIsCLI: true },['!','std_err']).stderr)).to.be.true
+    );
   });
 });

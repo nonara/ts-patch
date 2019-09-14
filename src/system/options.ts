@@ -1,6 +1,7 @@
 import { Log } from './logger';
 import { OptionsError } from './errors';
-import { getGlobalTSDir, getKeys, pick } from './helpers';
+import { getKeys, pick } from './helpers';
+import { getGlobalTSDir } from '../ts-utils';
 
 
 /* ********************************************************************************************************************
@@ -9,6 +10,7 @@ import { getGlobalTSDir, getKeys, pick } from './helpers';
 export type TSPOptions = { [K in keyof typeof defaultOptions]: (typeof defaultOptions)[K] }
 
 export const defaultOptions = {
+  persist: true,
   logLevel: Log.normal,
   color: true,
   silent: false,
@@ -48,3 +50,5 @@ export const parseOptions = (options?: Partial<TSPOptions>): TSPOptions => {
 
   return appOptions;
 };
+
+export const resetOptions = (options?: Partial<TSPOptions>) => parseOptions({ ...defaultOptions, ...options });

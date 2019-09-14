@@ -1,8 +1,7 @@
-import {
-  getModuleInfo, getTSInfo, AlreadyPatched, FileNotFound, PatchError, FileWriteError, WrongVersionError
-} from '../system';
+import { FileNotFound, PatchError, FileWriteError, WrongTSVersion } from '../system';
 import fs from 'fs';
 import path from 'path';
+import { TSModule, TSPackage } from '../ts-utils';
 
 
 /* ********************************************************************************************************************
@@ -29,24 +28,35 @@ const generatePatch = (isTSC: boolean) => `
 `;
 
 /**
+ * Validate TSModule and TSPackage before patching
+ */
+function validate(module?: TSModule, tsPackage?: TSPackage) {
+  if (module) {
+    const {file, filename, dir, patchVersion, canPatch} = module;
+
+    if (!fs.existsSync(file)) throw new FileNotFound(`Could not find module ${filename} in ${dir + path.sep}`);
+
+    if (patchVersion) throw new PatchError(`Module ${filename} is already patched with ts-patch v${patchVersion}`);
+    if (!canPatch) throw new PatchError(`Module ${filename} cannot be patched! No instance of TypeScript found.`);
+  }
+
+  if (tsPackage) {
+    const {version} = tsPackage;
+
+    const [major, minor] = version.split('.');
+    if (+major < 3 && +minor < 7) throw new WrongTSVersion(`ts-patch requires TypeScript v2.7 or higher.`);
+  }
+
+  return true;
+}
+
+/**
  * Patch TypeScript Module
  */
-export function patchTSModule(file: string, dir?: string, noCache?: boolean) {
-  const filename = path.basename(file);
+export function patchTSModule(module: TSModule, tsPackage: TSPackage) {
+  validate(module, tsPackage);
 
-  const { libDir, version } = getTSInfo(dir, noCache);
-
-  /* Validate TS */
-  const [major, minor] = version.split('.');
-  if (+major < 3 && +minor < 7) throw new WrongVersionError(`ts-patch requires TypeScript v2.7 or higher.`);
-
-  /* Validate Module */
-  if (!fs.existsSync(file)) throw new FileNotFound(`Could not find module ${filename} in ${libDir + path.sep}`);
-
-  const {canPatch, patchVersion, moduleSrc} = getModuleInfo(file, true);
-
-  if (patchVersion) throw new AlreadyPatched(`Module ${filename} is already patched with ts-patch v${patchVersion}`);
-  if (!canPatch) throw new PatchError(`Module ${filename} cannot be patched! No instance of TypeScript found.`);
+  const { filename, file, moduleSrc } = module;
 
   /* Install patch */
   const isTSC = (filename === 'tsc.js');

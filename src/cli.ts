@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 
-import { getTSInfo, parseOptions, Log, TSPOptions, appOptions } from './system';
+import { parseOptions, Log, TSPOptions, appOptions } from './system';
 import minimist from 'minimist';
 import chalk from 'chalk';
 import stripAnsi from 'strip-ansi';
 import * as actions from './actions'
+import { getTSPackage } from './ts-utils';
 
 
 /* ********************************************************************************************************************
@@ -18,7 +19,8 @@ const cliOptions:MenuData = {
   global: { short: 'g', caption: 'Target global TypeScript installation' },
   verbose: { short: 'v', caption: 'Chat it up' },
   basedir: { short: 'd', paramCaption: '<dir>', caption: 'Base directory to resolve package from' },
-  color: { inverse: true, caption: 'Strip ansi colours from output' }
+  color: { inverse: true, caption: 'Strip ansi colours from output' },
+  persist: { inverse: true, caption: 'Do not automatically persist patch if TypeScript is reinstalled/updated' }
 };
 
 const cliCommands:MenuData = {
@@ -113,7 +115,7 @@ export function run() {
         case 'help': return Log(menu, Log.system);
 
         case 'version':
-          const {version: tsVersion, packageDir} = getTSInfo(appOptions.basedir);
+          const {version: tsVersion, packageDir} = getTSPackage(appOptions.basedir);
           return Log('\r\n' +
             chalk.bold.blue('ts-patch:    ') + require('../package.json').version + '\r\n' +
             chalk.bold.blue('typescript:  ') + tsVersion + chalk.gray(`   [${packageDir}]`),
