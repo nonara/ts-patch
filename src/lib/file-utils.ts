@@ -141,7 +141,7 @@ function getConfig(packageDir: string) {
 
   const config:TSPConfig = {
     ...fileData,
-    version: fileData.version || require('../package.json').version,
+    version: fileData.version || require('../../package.json').version,
     file: configFile
   };
 

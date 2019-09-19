@@ -3,7 +3,7 @@ import sinonChai from 'sinon-chai';
 import sinon, { SinonSpy } from 'sinon';
 import { setOptions } from '../src';
 import stripAnsi from 'strip-ansi';
-import { run as runFn } from '../src/cli';
+import { run as runFn } from '../src/bin/cli';
 import { getGlobalTSDir } from '../src/ts-utils';
 
 chai.use(sinonChai);

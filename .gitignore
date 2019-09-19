@@ -1,5 +1,4 @@
 node_modules
-lib
+dist
 .idea
-ttypescript
 package-lock.json

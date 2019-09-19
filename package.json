@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "build": "rimraf lib && tsc --inlineSourceMap false",
+    "build": "rimraf dist && tsc --inlineSourceMap false && cp src/resources/postinstall* dist/resources/",
     "compile": "tsc",
     "test": "mocha -r ts-node/register ./test/**/*.test.ts",
     "reinstall TS": "rimraf node_modules/typescript && npm i typescript"
@@ -29,7 +29,7 @@
     "strip-ansi": "^5.2.0"
   },
   "bin": {
-    "ts-patch": "lib/cli.js"
+    "ts-patch": "bin/cli.js"
   },
   "peerDependencies": {
     "typescript": "^3.6.2"

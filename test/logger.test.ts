@@ -1,4 +1,4 @@
-import { Log, TSPOptions } from '../src/system';
+import { Log, TSPOptions } from '../src/lib/system';
 import { setOptions } from '../src';
 import chai, { expect } from 'chai';
 import sinonChai from 'sinon-chai';

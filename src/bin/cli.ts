@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
-import { parseOptions, Log, TSPOptions, appOptions } from './system';
 import minimist from 'minimist';
 import chalk from 'chalk';
 import stripAnsi from 'strip-ansi';
-import * as actions from './actions'
-import { getTSPackage } from './file-utils';
-import { disablePersistence, enablePersistence } from './actions';
+import * as actions from '../lib/actions'
+import { parseOptions, Log, TSPOptions, appOptions } from '../lib/system';
+import { disablePersistence, enablePersistence } from '../lib/actions';
+import { getTSPackage } from '..';
 
 
 /* ********************************************************************************************************************
@@ -35,6 +35,9 @@ const cliCommands:MenuData = {
   },
   patch: { short: void 0, paramCaption: '<module_file> | <glob>', caption:
       'Patch specific module(s) ' + chalk.yellow('(Not recommended. Use install instead)')
+  },
+  unpatch: { short: void 0, paramCaption: '<module_file> | <glob>', caption:
+      'Un-patch specific module(s) ' + chalk.yellow('(Not recommended. Use uninstall instead)')
   },
   version: { short: 'v', caption: 'Show version' },
   help: { short: '/?', caption: 'Show help menu' },
@@ -121,7 +124,7 @@ export function run() {
         case 'version':
           const {version: tsVersion, packageDir} = getTSPackage(appOptions.basedir);
           return Log('\r\n' +
-            chalk.bold.blue('ts-patch:    ') + require('../package.json').version + '\r\n' +
+            chalk.bold.blue('ts-patch:    ') + require('../../package.json').version + '\r\n' +
             chalk.bold.blue('typescript:  ') + tsVersion + chalk.gray(`   [${packageDir}]`),
             Log.system
           );
@@ -131,6 +134,8 @@ export function run() {
         case 'uninstall': return actions.uninstall();
 
         case 'patch': return actions.patch(args._.slice(1).join(' '));
+
+        case 'unpatch': return actions.unpatch(args._.slice(1).join(' '));
 
         case 'check': return actions.check();
 

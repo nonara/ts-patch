@@ -1,13 +1,13 @@
-import {
-  TSPOptions, Log, parseOptions, PatchError, RestoreError, resetOptions, defineProperties, BackupError, PersistenceError
-} from './system';
-import { patchTSModule } from './patcher';
-import { getModuleAbsolutePath, getTSModule, getTSPackage, TSModule, TSPackage } from './file-utils';
 import * as path from 'path';
 import * as fs from 'fs';
 import glob from 'glob';
 import chalk from 'chalk';
 import * as shell from 'shelljs';
+import { patchTSModule } from './patcher';
+import { getModuleAbsolutePath, getTSModule, getTSPackage, TSModule, TSPackage } from './file-utils';
+import {
+  TSPOptions, Log, parseOptions, PatchError, RestoreError, resetOptions, defineProperties, BackupError, PersistenceError
+} from './system';
 
 
 /* ********************************************************************************************************************

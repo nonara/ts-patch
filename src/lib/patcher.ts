@@ -1,6 +1,6 @@
-import { FileNotFound, PatchError, FileWriteError, WrongTSVersion } from './system';
 import fs from 'fs';
 import path from 'path';
+import { FileNotFound, PatchError, FileWriteError, WrongTSVersion } from './system';
 import { TSModule, TSPackage } from './file-utils';
 
 

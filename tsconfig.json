@@ -8,7 +8,7 @@
     "forceConsistentCasingInFileNames": true,
 
     "lib": ["es2019"],
-    "outDir": "lib",
+    "outDir": "dist",
     "target": "es5",
     "module":"commonjs",
     "moduleResolution": "node",
@@ -19,6 +19,6 @@
     "esModuleInterop": true,
     "inlineSourceMap": true,
 
-    "rootDirs": ["src", "lib"]
+    "rootDirs": ["src", "dist"]
   }
 }

@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import { expect } from 'chai';
 import { getTSModule, install, patch, setOptions, uninstall } from '../src';
-import { SRC_FILES, BACKUP_DIRNAME, check } from '../src/actions';
+import { SRC_FILES, BACKUP_DIRNAME, check } from '../src/lib/actions';
 import { backupDir, createFakeTSInstallation, destDir, libDir, removeFakeInstallation, tmpDir } from './lib';
 
 
