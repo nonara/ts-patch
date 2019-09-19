@@ -7,6 +7,7 @@ export class WrongTSVersion extends Error { name = 'WrongTSVersion' }
 export class FileNotFound extends Error { name = 'FileNotFound' }
 export class PackageError extends Error { name = 'PackageError'  }
 export class PatchError extends Error { name = 'PatchError' }
+export class PersistenceError extends Error { name = 'PersistenceError' }
 export class OptionsError extends Error { name = 'OptionsError' }
 
 export class RestoreError extends Error {
@@ -16,11 +17,10 @@ export class RestoreError extends Error {
   }
 }
 
-export class TaskError extends Error {
-  name = 'TaskError';
-
-  constructor(task: string, message: string) {
-    super(`Error while trying to ${task}${message && `: ${message}`}.`);
+export class BackupError extends Error {
+  constructor(public filename: string, public message: string) {
+    super(`Error backing up ${filename}${message ? ' - '+message : ''}`);
+    this.name = 'BackupError';
   }
 }
 

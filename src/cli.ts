@@ -5,7 +5,8 @@ import minimist from 'minimist';
 import chalk from 'chalk';
 import stripAnsi from 'strip-ansi';
 import * as actions from './actions'
-import { getTSPackage } from './ts-utils';
+import { getTSPackage } from './file-utils';
+import { disablePersistence, enablePersistence } from './actions';
 
 
 /* ********************************************************************************************************************
@@ -20,7 +21,10 @@ const cliOptions:MenuData = {
   verbose: { short: 'v', caption: 'Chat it up' },
   basedir: { short: 'd', paramCaption: '<dir>', caption: 'Base directory to resolve package from' },
   color: { inverse: true, caption: 'Strip ansi colours from output' },
-  persist: { inverse: true, caption: 'Do not automatically persist patch if TypeScript is reinstalled/updated' }
+  persist: { caption:
+      'Enable automatic persistence. (If TypeScript is updated/reinstalled, it will automatically re-patch)'
+  },
+  'no-persist': { caption: 'Disable automatic persistence.' }
 };
 
 const cliCommands:MenuData = {
@@ -51,7 +55,7 @@ const formatLine = (left: (string | undefined)[], caption: string, paramCaption:
   return `${leftCol} ${dots} ${caption}`;
 };
 
-const menu =
+const menuText =
   LINE_INDENT + chalk.bold.blue('ts-patch [command] ') + chalk.blue('<options>') + '\r\n' + LINE_INDENT +
 
   // Commands
@@ -112,7 +116,7 @@ export function run() {
     /* Handle commands */
     (() => {
       switch (cmd) {
-        case 'help': return Log(menu, Log.system);
+        case 'help': return Log(menuText, Log.system);
 
         case 'version':
           const {version: tsVersion, packageDir} = getTSPackage(appOptions.basedir);
@@ -133,6 +137,9 @@ export function run() {
         default: return Log('Invalid command. Try ts-patch /? for more info', Log.system);
       }
     })();
+
+    /* Handle persist option */
+    if (args.persist !== undefined) (args.persist) ? enablePersistence() : disablePersistence();
   } catch (e) {
     Log([
       '!',

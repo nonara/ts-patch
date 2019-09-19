@@ -1,7 +1,7 @@
 import { Log } from './logger';
 import { OptionsError } from './errors';
 import { getKeys, pick } from './helpers';
-import { getGlobalTSDir } from '../ts-utils';
+import { getGlobalTSDir } from '../file-utils';
 
 
 /* ********************************************************************************************************************
@@ -10,7 +10,6 @@ import { getGlobalTSDir } from '../ts-utils';
 export type TSPOptions = { [K in keyof typeof defaultOptions]: (typeof defaultOptions)[K] }
 
 export const defaultOptions = {
-  persist: true,
   logLevel: Log.normal,
   color: true,
   silent: false,
