@@ -4,7 +4,7 @@ import sinon, { SinonSpy } from 'sinon';
 import { setOptions } from '../src';
 import stripAnsi from 'strip-ansi';
 import { run as runFn } from '../src/bin/cli';
-import { getGlobalTSDir } from '../src/ts-utils';
+import { getGlobalTSDir } from '../src/lib/file-utils';
 
 chai.use(sinonChai);
 
@@ -14,13 +14,16 @@ chai.use(sinonChai);
  * ********************************************************************************************************************/
 
 const rewire = require('rewire');
-const cliModule = rewire('../src/cli');
+const cliModule = rewire('../src/bin/cli');
 
 const actions = {
   install: sinon.fake(),
   uninstall: sinon.fake(),
   check: sinon.fake(),
-  patch: sinon.fake()
+  patch: sinon.fake(),
+  unpatch: sinon.fake(),
+  enablePersistence: sinon.fake(),
+  disablePersistence: sinon.fake()
 };
 
 cliModule.__set__('actions', actions);
@@ -36,6 +39,7 @@ const opts = { color: false };
 
 const run = (...args:any[]) => { setOptions(opts); return cliModule.run(args.join(' ')) as ReturnType<typeof runFn> };
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 
 /* ********************************************************************************************************************
  * Tests
@@ -53,7 +57,10 @@ describe(`CLI`, () => {
     it(`Install`, () => { run('install'); expect(actions['install']).to.be.calledOnce});
     it(`Uninstall`, () => { run('uninstall'); expect(actions['uninstall']).to.be.calledOnce});
     it(`Patch`, () => { run('patch'); expect(actions['patch']).to.be.calledOnce});
+    it(`Unpatch`, () => { run('unpatch'); expect(actions['unpatch']).to.be.calledOnce});
     it(`Check`, () => { run('check'); expect(actions['check']).to.be.calledOnce});
+    it(`--persist`, () => { run('--persist'); expect(actions['enablePersistence']).to.be.calledOnce});
+    it(`--no-persist`, () => { run('--no-persist'); expect(actions['disablePersistence']).to.be.calledOnce});
   });
 
   describe(`Log commands output`, () => {
@@ -66,7 +73,7 @@ describe(`CLI`, () => {
 
     describe(`Help`, () => {
       let output: string;
-      before('init', () => {
+      before(() => {
         logSpy.resetHistory();
         run('help');
         output = logSpy.lastCall.args.join(' ');

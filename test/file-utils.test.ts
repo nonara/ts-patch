@@ -1,4 +1,4 @@
-import { getGlobalTSDir, getTSPackage } from '../src/ts-utils';
+import { getGlobalTSDir, getTSPackage } from '../src/lib/file-utils';
 import { expect } from 'chai';
 
 
@@ -6,7 +6,7 @@ import { expect } from 'chai';
  * Tests
  * ********************************************************************************************************************/
 
-describe(`ts-utils`, () => {
+describe(`file-utils`, () => {
   describe(`getGlobalTSDir`, () => {
     const tsDir = getGlobalTSDir();
 

@@ -5,13 +5,13 @@ case `uname` in
     *CYGWIN*) basedir=`cygpath -w "$basedir"`;;
 esac
 
-[ ! -f "$basedir/../ts-patch/bin/postinstall.js" ] && rm -rf "$basedir/postinstall*"
+[ ! -f "$basedir/../ts-patch/bin/persist.js" ] && rm -rf "$basedir/persist*"
 
 if [ -x "$basedir/node" ]; then
-  "$basedir/node"  "$basedir/../ts-patch/bin/postinstall.js"
+  "$basedir/node"  "$basedir/../ts-patch/bin/persist.js"
   ret=$?
 else
-  node  "$basedir/../ts-patch/bin/postinstall.js"
+  node  "$basedir/../ts-patch/bin/persist.js"
   ret=$?
 fi
 exit $ret

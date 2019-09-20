@@ -17,7 +17,7 @@ const generatePatch = (isTSC: boolean) => `
   (function (tsPatch) {
     var isTSC = ${isTSC};
     ${fs
-      .readFileSync(path.join(require('app-root-path').toString(), 'lib/resources', 'module-patch.js'), 'utf-8')
+      .readFileSync(path.join(require('../../package.json').directories.resources, 'module-patch.js'), 'utf-8')
       .replace(/(^Object.defineProperty\(exports.+?;)|(\/\/#\ssourceMappingURL.+?$)/gm, '')
     }
   })(tsPatch || (tsPatch = {}));

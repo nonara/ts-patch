@@ -15,8 +15,7 @@ export const defaultOptions = {
   silent: false,
   verbose: false,
   basedir: process.cwd(),
-  instanceIsCLI: false,
-  cacheTSInfo: true
+  instanceIsCLI: false
 };
 
 /* App-wide options storage */

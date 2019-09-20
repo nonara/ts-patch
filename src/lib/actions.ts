@@ -17,9 +17,9 @@ import {
 
 shell.config.silent = true;
 
-export const SRC_FILES = ['tsc', 'tsserverlibrary', 'typescript', 'typescriptServices'];
+export const SRC_FILES = ['tsc.js', 'tsserverlibrary.js', 'typescript.js', 'typescriptServices.js'];
 export const BACKUP_DIRNAME = 'lib-backup';
-export const RESOURCES_PATH = path.join(require('app-root-path').toString(), 'lib/resources');
+export const RESOURCES_PATH = require('../../package.json').directories.resources;
 export const HOOKS_FILES = ['postinstall', 'postinstall.cmd'];
 
 // endregion
@@ -33,7 +33,7 @@ export const HOOKS_FILES = ['postinstall', 'postinstall.cmd'];
 /**
  * Parse file, array of files, or glob of files and get TSModule info for each
  */
-function parseFiles(fileOrFilesOrGlob: string | string[], dir: string, includeSrc: boolean = false) {
+export function parseFiles(fileOrFilesOrGlob: string | string[], dir: string, includeSrc: boolean = false) {
   const files =
     Array.isArray(fileOrFilesOrGlob) ? fileOrFilesOrGlob :
     fs.existsSync(getModuleAbsolutePath(fileOrFilesOrGlob, dir)) ? [fileOrFilesOrGlob] :
@@ -256,7 +256,7 @@ export function enablePersistence(opts?: Partial<TSPOptions>) {
   if (shell.cp(hooksFiles, hooksDir) && shell.error())
     throw new PersistenceError(`Error trying to copy persistence hooks: ${shell.error()}`);
 
-  Log(['+', chalk.green(`Successfully enabled persistence.`)], Log.verbose);
+  Log(['+', chalk.green(`Enabled persistence for ${chalk.blueBright(packageDir)}`)]);
 }
 
 /**
@@ -278,7 +278,7 @@ export function disablePersistence(opts?: Partial<TSPOptions>) {
   if (shell.rm('-rf', hooksFiles) && shell.error())
     throw new PersistenceError(`Error trying to remove persistence hooks: ${shell.error()}`);
 
-  Log(['+', chalk.green(`Successfully disabled persistence.`)], Log.verbose);
+  Log(['-', chalk.green(`Disabled persistence for ${chalk.blueBright(packageDir)}`)]);
 }
 
 // endregion

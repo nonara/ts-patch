@@ -4,6 +4,7 @@ import { BACKUP_DIRNAME, SRC_FILES } from '../../src/lib/actions';
 import fs from "fs";
 import resolve from 'resolve';
 import shell from 'shelljs';
+import { getModuleAbsolutePath } from '../../src/lib/file-utils';
 
 
 /* ********************************************************************************************************************
@@ -16,7 +17,7 @@ export const destDir = path.join(tmpDir, 'node_modules', 'typescript');
 export const libDir = path.join(destDir, 'lib');
 export const backupDir = path.join(destDir, BACKUP_DIRNAME);
 
-const files = SRC_FILES.map(f => path.join(srcDir,'lib',`${f}.js`));
+const files = SRC_FILES.map(f => getModuleAbsolutePath(f, path.join(srcDir, 'lib')));
 
 
 /* ********************************************************************************************************************

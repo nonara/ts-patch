@@ -129,7 +129,7 @@ function getConfig(packageDir: string) {
   const configFile = path.join(packageDir, 'ts-patch.json');
 
   /* Load config file */
-  let fileData;
+  let fileData = <TSPConfig>{};
   if (fs.existsSync(configFile)) {
     try {
       fileData = JSON.parse(fs.readFileSync(configFile, 'utf8'));
@@ -140,13 +140,15 @@ function getConfig(packageDir: string) {
   }
 
   const config:TSPConfig = {
+    persist: false,
+    modules: {},
     ...fileData,
     version: fileData.version || require('../../package.json').version,
-    file: configFile
+    file: configFile,
+    save() { saveConfig(this) }
   };
 
   return defineProperties(config, {
-    save: { enumerable: false, value: () => saveConfig(config) },
     version: { writable: false },
     file: { enumerable: false, writable: false }
   });

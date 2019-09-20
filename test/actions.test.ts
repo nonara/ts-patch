@@ -1,37 +1,39 @@
 import path from 'path';
 import fs from 'fs';
 import { expect } from 'chai';
-import { getTSModule, install, patch, setOptions, uninstall } from '../src';
-import { SRC_FILES, BACKUP_DIRNAME, check } from '../src/lib/actions';
+import { getTSPackage, install, patch, setOptions, uninstall } from '../src';
+import { SRC_FILES, BACKUP_DIRNAME, check, parseFiles } from '../src/lib/actions';
 import { backupDir, createFakeTSInstallation, destDir, libDir, removeFakeInstallation, tmpDir } from './lib';
 
 
 /* ********************************************************************************************************************
- * Config & Helpers
+ * Config
  * ********************************************************************************************************************/
 const tspVersion = require('../package.json').version;
 
 /* Options to use with install/uninstall */
 const TSP_OPTIONS = { silent: true, basedir: tmpDir };
 
-/**
- * Iterate each file in SRC_FILES in dir and call a callback with getTSModule
- */
-const iterateFiles = (dir: string, callback: Function) => {
-  for (let filename of SRC_FILES) {
-    const file = path.join(dir, `${filename}.js`);
-    expect(fs.existsSync(file)).to.be.true;
 
-    callback(getTSModule(file));
-  }
+/* ********************************************************************************************************************
+ * Helpers
+ * ********************************************************************************************************************/
+
+function checkModules(
+  expectedPatchVersion: string | undefined,
+  dir: string,
+  filenames: string[] = SRC_FILES
+) {
+  const modules = parseFiles(filenames, dir);
+  expect(modules.map(m => m.filename)).to.eql(filenames);
+  for (let {canPatch, patchVersion} of modules)
+    expect({canPatch, patchVersion}).to.eql({ canPatch: true, patchVersion: expectedPatchVersion });
+}
+
+const callPatch = (files: any, tsVersion?: string) => {
+  createFakeTSInstallation(tsVersion);
+  patch(files, TSP_OPTIONS);
 };
-
-const checkExpected = (files: string[], isPatched: boolean) =>
-  files.reduce((p, k) => ({
-    ...p,
-    [`${path.basename(k, path.extname(k))}.js`]: { canPatch: true, patchVersion: isPatched ? tspVersion : undefined }
-  }), {});
-
 
 /* ********************************************************************************************************************
  * Tests
@@ -45,23 +47,35 @@ describe(`Actions`, () => {
       install(TSP_OPTIONS);
     });
 
-    it(`Original files backed up`, () => iterateFiles(
-      backupDir,
-      ({ canPatch, patchVersion }: ReturnType<typeof getTSModule>) => {
-        expect(canPatch).to.be.true;
-        expect(patchVersion).to.be.undefined;
-      }
-    ));
+    it(`Original files backed up`, () => checkModules(undefined, backupDir));
 
-    it(`All files patched`, () => iterateFiles(
-      libDir,
-      ({ canPatch, patchVersion }: ReturnType<typeof getTSModule>) => {
-        expect(canPatch).to.be.true;
-        expect(patchVersion).to.eq(tspVersion);
-      }
-    ));
+    it(`All files patched`, () => checkModules(tspVersion, libDir));
 
-    it(`check() is accurate`, () => expect(check(SRC_FILES)).to.include(checkExpected(SRC_FILES, true)));
+    it(`Config file is correct`, () => {
+      const file = path.join(destDir, 'ts-patch.json');
+      expect(fs.existsSync(file)).to.be.true;
+
+      const config = getTSPackage(destDir).config;
+
+      expect(config).to.include({ version: tspVersion, persist: false });
+
+      expect(Object
+        .entries(config.modules)
+        .filter(([filename, timestamp]) =>
+          SRC_FILES.includes(filename) &&         // Filename must be valid
+          !isNaN(parseFloat(<any>timestamp))    // Timestamp must be valid
+        )
+        .length
+      ).to.eq(SRC_FILES.length);
+    });
+
+    it(`check() is accurate`, () => {
+      const modules = check(SRC_FILES);
+      expect(modules.map(({filename}) => filename)).to.eql(SRC_FILES);
+      expect(modules.unPatchable.length).to.eql(0);
+      expect(modules.patchable.length).to.eql(0);
+      expect(modules.alreadyPatched.length).to.eql(SRC_FILES.length);
+    });
   });
 
   describe(`Uninstall`, () => {
@@ -70,42 +84,36 @@ describe(`Actions`, () => {
 
     it(`Removes backup directory`, () => expect(fs.existsSync(path.join(destDir, BACKUP_DIRNAME))).to.be.false);
 
-    it(`Restores original files`, () => iterateFiles(
-      libDir,
-      ({ canPatch, patchVersion }: ReturnType<typeof getTSModule>) => {
-        expect(canPatch).to.be.true;
-        expect(patchVersion).to.be.undefined;
-      }
-    ));
+    it(`Restores original files`, () => checkModules(undefined, libDir));
 
-    it(`check() is accurate`, () => expect(check(SRC_FILES)).to.include(checkExpected(SRC_FILES, false)));
+    it(`check() is accurate`, () => {
+      const modules = check(SRC_FILES);
+      expect(modules.map(m => m.filename)).to.eql(SRC_FILES);
+      expect(modules.alreadyPatched.length).to.eql(0);
+      expect(modules.unPatchable.length).to.eql(0);
+      expect(modules.patchable.length).to.eql(SRC_FILES.length);
+    });
   });
 
   describe(`Patch`, () => {
     afterEach(removeFakeInstallation);
-    const callPatch = (files: any, tsVersion?: string) => {
-      createFakeTSInstallation(tsVersion);
-      patch(files, TSP_OPTIONS);
-    };
 
     it(`Patches single file`, () => {
       callPatch(SRC_FILES[0]);
-      expect(check(SRC_FILES[0])).to.include(checkExpected([SRC_FILES[0]], true))
+      checkModules(tspVersion, libDir, [SRC_FILES[0]]);
     });
 
     it(`Patches array of files`, () => {
       callPatch(SRC_FILES);
-      expect(check(SRC_FILES)).to.include(checkExpected(SRC_FILES, true))
+      checkModules(tspVersion, libDir);
     });
 
     it(`Patches glob`, () => {
       callPatch(path.join(libDir,'*.*'));
-      expect(check(SRC_FILES)).to.include(checkExpected(SRC_FILES, true))
+      checkModules(tspVersion, libDir);
     });
 
     it(`Throws with TS version < 2.7`, () => {
-      setOptions({ cacheTSInfo: false });
-
       let err: Error | undefined;
       try { callPatch(SRC_FILES, '2.6.0'); } catch (e) { err = e; }
       expect(err && err.name).to.eq('WrongTSVersion');

@@ -5,7 +5,6 @@ import chalk from 'chalk';
 import stripAnsi from 'strip-ansi';
 import * as actions from '../lib/actions'
 import { parseOptions, Log, TSPOptions, appOptions } from '../lib/system';
-import { disablePersistence, enablePersistence } from '../lib/actions';
 import { getTSPackage } from '..';
 
 
@@ -139,12 +138,13 @@ export function run() {
 
         case 'check': return actions.check();
 
-        default: return Log('Invalid command. Try ts-patch /? for more info', Log.system);
+        default: return (args.persist === undefined) ?
+          Log('Invalid command. Try ts-patch /? for more info', Log.system) : {}
       }
     })();
 
     /* Handle persist option */
-    if (args.persist !== undefined) (args.persist) ? enablePersistence() : disablePersistence();
+    if (args.persist !== undefined) (args.persist) ? actions.enablePersistence() : actions.disablePersistence();
   } catch (e) {
     Log([
       '!',
