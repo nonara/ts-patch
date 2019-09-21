@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { FileNotFound, PatchError, FileWriteError, WrongTSVersion } from './system';
+import { FileNotFound, PatchError, FileWriteError, WrongTSVersion, tspPackageJSON, appRoot } from './system';
 import { TSModule, TSPackage } from './file-utils';
 
 
@@ -17,12 +17,12 @@ const generatePatch = (isTSC: boolean) => `
   (function (tsPatch) {
     var isTSC = ${isTSC};
     ${fs
-      .readFileSync(path.join(require('../../package.json').directories.resources, 'module-patch.js'), 'utf-8')
+      .readFileSync(path.resolve(appRoot, tspPackageJSON.directories.resources, 'module-patch.js'), 'utf-8')
       .replace(/(^Object.defineProperty\(exports.+?;)|(\/\/#\ssourceMappingURL.+?$)/gm, '')
     }
   })(tsPatch || (tsPatch = {}));
   tsPatch.originalCreateProgram = ts.createProgram;
-  tsPatch.version = '${require('../../package.json').version}';
+  tsPatch.version = '${tspPackageJSON.version}';
   ts.createProgram = tsPatch.createProgram;
   ${isTSC ? `ts.executeCommandLine(ts.sys.args);` : ''}
 `;
@@ -30,9 +30,9 @@ const generatePatch = (isTSC: boolean) => `
 /**
  * Validate TSModule and TSPackage before patching
  */
-function validate(module?: TSModule, tsPackage?: TSPackage) {
-  if (module) {
-    const {file, filename, dir, patchVersion, canPatch} = module;
+function validate(tsModule?: TSModule, tsPackage?: TSPackage) {
+  if (tsModule) {
+    const {file, filename, dir, patchVersion, canPatch} = tsModule;
 
     if (!fs.existsSync(file)) throw new FileNotFound(`Could not find module ${filename} in ${dir + path.sep}`);
 
@@ -58,10 +58,10 @@ function validate(module?: TSModule, tsPackage?: TSPackage) {
 /**
  * Patch TypeScript Module
  */
-export function patchTSModule(module: TSModule, tsPackage: TSPackage) {
-  validate(module, tsPackage);
+export function patchTSModule(tsModule: TSModule, tsPackage: TSPackage) {
+  validate(tsModule, tsPackage);
 
-  const { filename, file, moduleSrc } = module;
+  const { filename, file, moduleSrc } = tsModule;
 
   /* Install patch */
   const isTSC = (filename === 'tsc.js');

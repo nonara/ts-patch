@@ -6,8 +6,8 @@ import { expect } from 'chai';
  * Tests
  * ********************************************************************************************************************/
 
-describe(`file-utils`, () => {
-  describe(`getGlobalTSDir`, () => {
+describe(`extras`, () => {
+  describe(`getGlobalTSDir()`, () => {
     const tsDir = getGlobalTSDir();
 
     it(`Returns a result`, () => expect(tsDir).to.not.be.undefined);

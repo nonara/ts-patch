@@ -4,9 +4,10 @@ import glob from 'glob';
 import chalk from 'chalk';
 import * as shell from 'shelljs';
 import { patchTSModule } from './patcher';
-import { getModuleAbsolutePath, getTSModule, getTSPackage, TSModule, TSPackage } from './file-utils';
+import { getModuleAbsolutePath, getTSModule, getTSPackage, mkdirIfNotExist, TSModule, TSPackage } from './file-utils';
 import {
-  TSPOptions, Log, parseOptions, PatchError, RestoreError, resetOptions, defineProperties, BackupError, PersistenceError
+  TSPOptions, Log, parseOptions, PatchError, RestoreError, resetOptions, defineProperties, BackupError,
+  PersistenceError, tspPackageJSON, appRoot
 } from './system';
 
 
@@ -19,7 +20,7 @@ shell.config.silent = true;
 
 export const SRC_FILES = ['tsc.js', 'tsserverlibrary.js', 'typescript.js', 'typescriptServices.js'];
 export const BACKUP_DIRNAME = 'lib-backup';
-export const RESOURCES_PATH = require('../../package.json').directories.resources;
+export const RESOURCES_PATH = path.join(appRoot, tspPackageJSON.directories.resources);
 export const HOOKS_FILES = ['postinstall', 'postinstall.cmd'];
 
 // endregion
@@ -51,14 +52,14 @@ export function parseFiles(fileOrFilesOrGlob: string | string[], dir: string, in
 /**
  * Create backup of TS Module file
  */
-function backup(module: TSModule, tsPackage: TSPackage) {
+function backup(tsModule: TSModule, tsPackage: TSPackage) {
   const backupDir = path.join(tsPackage.packageDir, BACKUP_DIRNAME);
 
-  if (shell.mkdir('-p', backupDir) && shell.error())
-    throw new BackupError(module.filename, `Couldn't create backup directory. ${shell.error()}`);
+  try { mkdirIfNotExist(backupDir) }
+  catch (e) { throw new BackupError(tsModule.filename, `Couldn't create backup directory. ${e.message}`); }
 
-  if (shell.cp(module.file, backupDir) && shell.error())
-    throw new BackupError(module.filename, shell.error());
+  if (shell.cp(tsModule.file, backupDir) && shell.error())
+    throw new BackupError(tsModule.filename, shell.error());
 }
 
 /**
@@ -160,12 +161,12 @@ export function patch(fileOrFilesOrGlob: string | string[], opts?: Partial<TSPOp
   }
 
   /* Patch files */
-  for (let module of modules.patchable) {
-    const {file, filename} = module;
+  for (let m of modules.patchable) {
+    const {file, filename} = m;
     Log(['~', `Patching ${chalk.blueBright(filename)} in ${chalk.blueBright(path.dirname(file))}`], Log.verbose);
 
-    backup(module, tsPackage);
-    patchTSModule(module, tsPackage);
+    backup(m, tsPackage);
+    patchTSModule(m, tsPackage);
     tsPackage.config.modules[filename] = fs.statSync(file).mtimeMs;
 
     Log(['+', chalk.green(`Successfully patched ${chalk.bold.yellow(filename)}.\r\n`)], Log.verbose);
@@ -198,12 +199,12 @@ export function unpatch(fileOrFilesOrGlob: string | string[], opts?: Partial<TSP
 
   /* Restore files */
   const errors:RestoreError[] = [];
-  for (let module of modules.alreadyPatched) {
-    const {file, filename} = module;
+  for (let tsModule of modules.alreadyPatched) {
+    const {file, filename} = tsModule;
     Log(['~', `Restoring ${chalk.blueBright(filename)} in ${chalk.blueBright(path.dirname(file))}`], Log.verbose);
 
     try {
-      restore(module, tsPackage);
+      restore(tsModule, tsPackage);
       delete tsPackage.config.modules[filename];
 
       Log(['+', chalk.green(`Successfully restored ${chalk.bold.yellow(filename)}.\r\n`)], Log.verbose);
@@ -250,8 +251,8 @@ export function enablePersistence(opts?: Partial<TSPOptions>) {
   const hooksDir = path.join(packageDir, '../.hooks');
   const hooksFiles = HOOKS_FILES.map(f => path.join(RESOURCES_PATH, f));
 
-  if (shell.mkdir(hooksDir) && shell.error())
-    throw new PersistenceError(`Could not create hooks directory in node_modules: ${shell.error()}`);
+  try { mkdirIfNotExist(hooksDir) }
+  catch (e) { throw new PersistenceError(`Could not create hooks directory in node_modules: ${e.message}`); }
 
   if (shell.cp(hooksFiles, hooksDir) && shell.error())
     throw new PersistenceError(`Error trying to copy persistence hooks: ${shell.error()}`);

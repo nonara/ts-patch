@@ -1,4 +1,5 @@
 import path from "path";
+import fs from "fs";
 
 
 /* ********************************************************************************************************************
@@ -49,3 +50,29 @@ export function defineProperties
 {
   return Object.defineProperties(obj, properties);
 }
+
+
+/* ********************************************************************************************************************
+ * TS Patch
+ * ********************************************************************************************************************/
+
+/**
+ * Root directory for ts-patch
+ */
+export const appRoot = (() => {
+  const moduleDir = path.join(path.dirname(module.filename), '../..');
+
+  const chkFile = (pkgFile: string) =>
+    (fs.existsSync(pkgFile) && (require(pkgFile).name === 'ts-patch')) ? path.dirname(pkgFile) : void 0;
+
+  const res = chkFile(path.join(moduleDir, 'package.json')) || chkFile(path.join(moduleDir, '..', 'package.json'));
+
+  if (!res) throw new Error(`Error getting app root. No valid ts-patch package file found.`);
+
+  return res;
+})();
+
+/**
+ * Package json for ts-patch
+ */
+export const tspPackageJSON = require(path.resolve(appRoot, 'package.json'));

@@ -11,12 +11,15 @@ import { patch } from '..';
  * ********************************************************************************************************************/
 
 /* Read config file */
-const tsPackage = getTSPackage();
-const {config} = tsPackage;
+const {config, libDir, packageDir} = getTSPackage(path.resolve(path.dirname(process.argv[1]), '../../'));
+
+if (!config.persist) process.exit();
 
 /* Iterate and patch updated files */
 for (let [filename, timestamp] of Object.entries(config.modules)) {
-  const file = path.join(tsPackage.libDir, filename);
-  if (<number>timestamp < fs.statSync(file).mtimeMs)
-    try { patch(file, { silent: true }); } catch(e) { }
+  const file = path.join(libDir, filename);
+  if (<number>timestamp < fs.statSync(file).mtimeMs) {
+    try { patch(file, { silent: true, basedir: packageDir }) }
+    catch (e) { }
+  }
 }

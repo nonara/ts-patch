@@ -1,14 +1,21 @@
 import path from 'path';
 import fs from 'fs';
+import shell from 'shelljs';
 import { expect } from 'chai';
 import { getTSPackage, install, patch, setOptions, uninstall } from '../src';
-import { SRC_FILES, BACKUP_DIRNAME, check, parseFiles } from '../src/lib/actions';
-import { backupDir, createFakeTSInstallation, destDir, libDir, removeFakeInstallation, tmpDir } from './lib';
+import {
+  SRC_FILES, BACKUP_DIRNAME, check, parseFiles, enablePersistence, disablePersistence
+} from '../src/lib/actions';
+import {
+  backupDir, createFakeTSInstallation, destDir, installFakePackage, installTSPatch, libDir, removeFakeInstallation,
+  removeTSPatch, tmpDir
+} from './lib';
 
 
 /* ********************************************************************************************************************
  * Config
  * ********************************************************************************************************************/
+
 const tspVersion = require('../package.json').version;
 
 /* Options to use with install/uninstall */
@@ -117,6 +124,88 @@ describe(`Actions`, () => {
       let err: Error | undefined;
       try { callPatch(SRC_FILES, '2.6.0'); } catch (e) { err = e; }
       expect(err && err.name).to.eq('WrongTSVersion');
+    });
+  });
+
+  describe(`Persistence`, () => {
+    before(() => {
+      createFakeTSInstallation();
+      install(TSP_OPTIONS);
+      installTSPatch();
+      enablePersistence();
+    });
+    after(removeFakeInstallation);
+
+    describe(`Enable`, () => {
+      it(`Copies hooks`, () => {
+        expect(fs.existsSync(path.join(tmpDir, 'node_modules/.hooks/postinstall'))).to.be.true;
+        expect(fs.existsSync(path.join(tmpDir, 'node_modules/.hooks/postinstall.cmd'))).to.be.true;
+      });
+
+      it(`Config file shows persist=true`, () => expect(getTSPackage(destDir).config.persist).to.be.true);
+    });
+
+    describe(`Hooks`, () => {
+      let installLog: string;
+      let modules: ReturnType<typeof parseFiles>;
+      let skippedFilename: string;
+      before(() => {
+        /* Unpatch */
+        shell.cp(path.join(backupDir, '*'), path.join(libDir, '/'));
+        modules = parseFiles(SRC_FILES, libDir);
+        expect(modules.patchable.length).to.eq(modules.length);
+
+        /* Mark one to skip */
+        const {config} = getTSPackage(destDir);
+        skippedFilename = modules[0].filename;
+        config.modules[skippedFilename] += 5 * (60000);
+        config.save();
+
+        // Trigger hook
+        installLog = installFakePackage();
+
+        modules = parseFiles(SRC_FILES, libDir);
+      });
+
+      it(`Invokes hooks after new package install`, () =>
+        expect(/\.hooks[\\/]postinstall/g.test(installLog)).to.be.true
+      );
+
+      it(`Re-patches modules after hook invoked`, () =>
+        expect(modules.alreadyPatched.length >= modules.length-1).to.true
+      );
+
+      it(`Skips patching non-modified module`, () => {
+        expect(modules.patchable.length).to.eq(1);
+        expect(modules.patchable[0].filename).to.eq(skippedFilename);
+      });
+    });
+
+    describe(`Disable`, () => {
+      before(() => disablePersistence());
+
+      it(`Removes hooks files`, () => {
+        expect(fs.existsSync(path.join(tmpDir, 'node_modules/.hooks/postinstall'))).to.be.false;
+        expect(fs.existsSync(path.join(tmpDir, 'node_modules/.hooks/postinstall.cmd'))).to.be.false;
+      });
+
+      it(`Config file shows persist=false`, () => expect(getTSPackage(destDir).config.persist).to.be.false);
+    });
+
+    describe(`Auto-remove`, () => {
+      before(() => {
+        enablePersistence();
+        expect(fs.existsSync(path.join(tmpDir, 'node_modules/.hooks/postinstall'))).to.be.true;
+        expect(fs.existsSync(path.join(tmpDir, 'node_modules/.hooks/postinstall.cmd'))).to.be.true;
+
+        removeTSPatch();
+        installFakePackage();
+      });
+
+      it(`Removes hooks files if ts-patch is uninstalled`, () => {
+        expect(fs.existsSync(path.join(tmpDir, 'node_modules/.hooks/postinstall'))).to.be.false;
+        expect(fs.existsSync(path.join(tmpDir, 'node_modules/.hooks/postinstall.cmd'))).to.be.false;
+      });
     });
   });
 });

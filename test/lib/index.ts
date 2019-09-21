@@ -1,1 +1,1 @@
-export * from './fake-ts';
+export * from './fakes';

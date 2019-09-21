@@ -1,7 +1,9 @@
 import path from "path";
 import fs from "fs";
 import resolve = require('resolve');
-import { FileNotFound, PackageError, isAbsolute, Log, appOptions, defineProperties, FileWriteError } from './system';
+import {
+  FileNotFound, PackageError, isAbsolute, Log, appOptions, defineProperties, FileWriteError, tspPackageJSON
+} from './system';
 
 
 /* ********************************************************************************************************************
@@ -34,6 +36,8 @@ export const getModuleAbsolutePath = (filename: string, libDir: string) => {
 
   return file;
 };
+
+export const mkdirIfNotExist = (dir: string) => !fs.existsSync(dir) && fs.mkdirSync(dir, { recursive: true });
 
 // endregion
 
@@ -143,7 +147,7 @@ function getConfig(packageDir: string) {
     persist: false,
     modules: {},
     ...fileData,
-    version: fileData.version || require('../../package.json').version,
+    version: fileData.version || tspPackageJSON.version,
     file: configFile,
     save() { saveConfig(this) }
   };
