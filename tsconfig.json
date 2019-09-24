@@ -1,5 +1,6 @@
 {
   "include": ["src"],
+  "exclude": ["src/patch", "test"],
 
   "compilerOptions": {
     "strict": true,
@@ -10,7 +11,7 @@
     "lib": ["es2019"],
     "outDir": "dist",
     "target": "es5",
-    "module":"commonjs",
+    "module":"CommonJS",
     "moduleResolution": "node",
     "removeComments": true,
 

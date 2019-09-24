@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "build": "rimraf dist && tsc --inlineSourceMap false",
+    "build": "rimraf dist && tsc --inlineSourceMap false && rollup -c",
     "postbuild": "node src/postbuild.js",
     "compile": "tsc",
     "test": "mocha --timeout 10000 -r ts-node/register ./test/**/*.test.ts",
@@ -48,6 +48,8 @@
     "mocha": "^6.2.0",
     "rewire": "^4.0.1",
     "rimraf": "^3.0.0",
+    "rollup": "^1.21.4",
+    "rollup-plugin-typescript2": "^0.24.2",
     "sinon": "^7.4.2",
     "sinon-chai": "^3.3.0",
     "test-console": "^1.1.0",

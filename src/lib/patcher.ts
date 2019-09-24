@@ -12,20 +12,16 @@ import { TSModule, TSPackage } from './file-utils';
  * Generate insertion code for module-patch
  * Note: Regex removes esModule exports line and sourceMap data
  */
-const generatePatch = (isTSC: boolean) => `
-  var tsPatch;
-  (function (tsPatch) {
-    var isTSC = ${isTSC};
-    ${fs
-      .readFileSync(path.resolve(appRoot, tspPackageJSON.directories.resources, 'module-patch.js'), 'utf-8')
-      .replace(/(^Object.defineProperty\(exports.+?;)|(\/\/#\ssourceMappingURL.+?$)/gm, '')
-    }
-  })(tsPatch || (tsPatch = {}));
-  tsPatch.originalCreateProgram = ts.createProgram;
-  tsPatch.version = '${tspPackageJSON.version}';
-  ts.createProgram = tsPatch.createProgram;
-  ${isTSC ? `ts.executeCommandLine(ts.sys.args);` : ''}
-`;
+const generatePatch = (isTSC: boolean) =>
+  fs
+    .readFileSync(path.resolve(appRoot, tspPackageJSON.directories.resources, 'module-patch.js'), 'utf-8')
+    .replace(
+      /(exports.PluginCreator[\s\S]+return exports;)/,
+      `exports.version = '${tspPackageJSON.version}';\r\n` +
+      `exports.isTSC = ${isTSC};\r\n` +
+      `$1`
+    ) +
+  (isTSC ? `ts.executeCommandLine(ts.sys.args);` : '');
 
 /**
  * Validate TSModule and TSPackage before patching
