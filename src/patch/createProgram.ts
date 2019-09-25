@@ -5,23 +5,17 @@
 
 import { transformerErrors } from './shared';
 import * as TS from 'typescript';
-import { PluginConfig, PluginCreator } from './plugin';
+import * as TSPlus from './types';
+import { PluginConfig } from './types';
+import { PluginCreator } from './plugin';
 
 
 /* ********************************************************************************************************************
  * Declarations
  * ********************************************************************************************************************/
-// region Declarations
 
-declare const ts: typeof TS;
-declare const tsPatch: {
-  isTSC: boolean;
-  originalCreateProgram: typeof createProgram,
-  createProgram: typeof createProgram
-};
-
-// endregion
-
+declare const ts: typeof TS & typeof TSPlus;
+declare const isTSC: boolean;
 
 /* ********************************************************************************************************************
  * Helpers
@@ -105,7 +99,7 @@ export function createProgram(
   }
 
   /* Get Config */
-  if (tsPatch.isTSC) {
+  if (isTSC) {
     const info = getConfig(options, rootNames, projectDir);
     options = info.compilerOptions;
 
@@ -116,8 +110,8 @@ export function createProgram(
 
   /* Invoke TS createProgram */
   const program: TS.Program = createOpts ?
-    tsPatch.originalCreateProgram(createOpts) :
-    tsPatch.originalCreateProgram(rootNames, options, host, oldProgram, configFileParsingDiagnostics);
+    ts.originalCreateProgram(createOpts) :
+    ts.originalCreateProgram(rootNames, options, host, oldProgram, configFileParsingDiagnostics);
 
   /* Prepare Plugins */
   const plugins = preparePluginsFromCompilerOptions(options.plugins);

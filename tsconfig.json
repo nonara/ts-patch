@@ -1,6 +1,6 @@
 {
   "include": ["src"],
-  "exclude": ["src/patch", "test"],
+  "exclude": ["src/patch", "test", "dist"],
 
   "compilerOptions": {
     "strict": true,

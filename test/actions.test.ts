@@ -7,9 +7,9 @@ import {
   SRC_FILES, BACKUP_DIRNAME, check, parseFiles, enablePersistence, disablePersistence
 } from '../src/lib/actions';
 import {
-  backupDir, createFakeTSInstallation, destDir, installFakePackage, installTSPatch, libDir, removeFakeInstallation,
+  backupDir, createTSInstallation, destDir, installFakePackage, installTSPatch, libDir, removeTSInstallation,
   removeTSPatch, tmpDir
-} from './lib';
+} from './lib/helpers';
 
 
 /* ********************************************************************************************************************
@@ -38,7 +38,7 @@ function checkModules(
 }
 
 const callPatch = (files: any, tsVersion?: string) => {
-  createFakeTSInstallation(tsVersion);
+  createTSInstallation(tsVersion);
   patch(files, TSP_OPTIONS);
 };
 
@@ -50,13 +50,23 @@ describe(`Actions`, () => {
 
   describe(`Install`, () => {
     before(() => {
-      createFakeTSInstallation();
+      createTSInstallation();
       install(TSP_OPTIONS);
     });
 
-    it(`Original files backed up`, () => checkModules(undefined, backupDir));
+    it(`Original modules backed up`, () => checkModules(undefined, backupDir));
 
-    it(`All files patched`, () => checkModules(tspVersion, libDir));
+    it(`All modules patched`, () => checkModules(tspVersion, libDir));
+
+    it(`Backs up and patches typescript.d.ts`, () => {
+      const backupSrc = fs.readFileSync(path.join(backupDir, 'typescript.d.ts'));
+      expect(backupSrc).to.match(/declare\snamespace\sts\s{/);
+      expect(backupSrc).to.not.match(/const\stspVersion:/);
+
+      const patchSrc = fs.readFileSync(path.join(libDir, 'typescript.d.ts'));
+      expect(patchSrc).to.match(/declare\snamespace\sts\s{/);
+      expect(patchSrc).to.match(/const\stspVersion:/);
+    });
 
     it(`Config file is correct`, () => {
       const file = path.join(destDir, 'ts-patch.json');
@@ -87,11 +97,17 @@ describe(`Actions`, () => {
 
   describe(`Uninstall`, () => {
     before(() => uninstall(TSP_OPTIONS));
-    after(removeFakeInstallation);
+    after(removeTSInstallation);
 
     it(`Removes backup directory`, () => expect(fs.existsSync(path.join(destDir, BACKUP_DIRNAME))).to.be.false);
 
-    it(`Restores original files`, () => checkModules(undefined, libDir));
+    it(`Restores original modules`, () => checkModules(undefined, libDir));
+
+    it(`Restores typescript.d.ts`, () => {
+      const patchSrc = fs.readFileSync(path.join(libDir, 'typescript.d.ts'));
+      expect(patchSrc).to.match(/declare\snamespace\sts\s{/);
+      expect(patchSrc).to.not.match(/const\stspVersion:/);
+    });
 
     it(`check() is accurate`, () => {
       const modules = check(SRC_FILES);
@@ -103,7 +119,7 @@ describe(`Actions`, () => {
   });
 
   describe(`Patch`, () => {
-    afterEach(removeFakeInstallation);
+    afterEach(removeTSInstallation);
 
     it(`Patches single file`, () => {
       callPatch(SRC_FILES[0]);
@@ -116,7 +132,7 @@ describe(`Actions`, () => {
     });
 
     it(`Patches glob`, () => {
-      callPatch(path.join(libDir,'*.*'));
+      callPatch(path.join(libDir,'*.js'));
       checkModules(tspVersion, libDir);
     });
 
@@ -129,12 +145,12 @@ describe(`Actions`, () => {
 
   describe(`Persistence`, () => {
     before(() => {
-      createFakeTSInstallation();
+      createTSInstallation();
       install(TSP_OPTIONS);
       installTSPatch();
       enablePersistence();
     });
-    after(removeFakeInstallation);
+    after(removeTSInstallation);
 
     describe(`Enable`, () => {
       it(`Copies hooks`, () => {

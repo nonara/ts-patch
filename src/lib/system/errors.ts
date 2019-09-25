@@ -11,21 +11,21 @@ export class PersistenceError extends Error { name = 'PersistenceError' }
 export class OptionsError extends Error { name = 'OptionsError' }
 
 export class RestoreError extends Error {
-  constructor(public filename: string, public message: string) {
-    super(`Error restoring ${filename}${message ? ' - '+message : ''}`);
+  constructor(public filename: string, message: string) {
+    super(`Error restoring: ${filename}${message ? ' - '+message : ''}`);
     this.name = 'RestoreError';
   }
 }
 
 export class BackupError extends Error {
-  constructor(public filename: string, public message: string) {
+  constructor(public filename: string, message: string) {
     super(`Error backing up ${filename}${message ? ' - '+message : ''}`);
     this.name = 'BackupError';
   }
 }
 
 export class FileWriteError extends Error {
-  constructor(filename: string, message:string) {
+  constructor(public filename: string, message:string) {
     super(`Error while trying to write to ${filename}${message && `: ${message}`}`);
   }
 }

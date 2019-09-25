@@ -16,9 +16,9 @@ const generatePatch = (isTSC: boolean) =>
   fs
     .readFileSync(path.resolve(appRoot, tspPackageJSON.directories.resources, 'module-patch.js'), 'utf-8')
     .replace(
-      /(exports.PluginCreator[\s\S]+return exports;)/,
-      `exports.version = '${tspPackageJSON.version}';\r\n` +
-      `exports.isTSC = ${isTSC};\r\n` +
+      /(^\s*Object\.assign\(ts,\s*{[\s\S]*tspVersion,[\s\S]+?}\);?$)/m,
+      `var tspVersion = '${tspPackageJSON.version}';\r\n` +
+      `var isTSC = ${isTSC};\r\n` +
       `$1`
     ) +
   (isTSC ? `ts.executeCommandLine(ts.sys.args);` : '');
@@ -57,7 +57,7 @@ function validate(tsModule?: TSModule, tsPackage?: TSPackage) {
 export function patchTSModule(tsModule: TSModule, tsPackage: TSPackage) {
   validate(tsModule, tsPackage);
 
-  const { filename, file, moduleSrc } = tsModule;
+  const { filename, file, moduleSrc, dir } = tsModule;
 
   /* Install patch */
   const isTSC = (filename === 'tsc.js');
@@ -71,4 +71,15 @@ export function patchTSModule(tsModule: TSModule, tsPackage: TSPackage) {
   } catch (e) {
     throw new FileWriteError(filename, e.message);
   }
+
+  /* Patch d.ts with types (if module is typescript.ts) */
+  if (filename === 'typescript.js')
+    try {
+      fs.appendFileSync(
+        path.join(dir, 'typescript.d.ts'),
+        fs.readFileSync(path.resolve(appRoot, tspPackageJSON.directories.resources, 'module-patch.d.ts'))
+      )
+    } catch (e) {
+      throw new FileWriteError(filename, e.message);
+    }
 }

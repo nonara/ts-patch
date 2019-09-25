@@ -1,31 +1,23 @@
-import { createProgram as patchedCreateProgram } from './createProgram';
+import { createProgram } from './createProgram';
 import * as TS from 'typescript';
+import { PluginCreator } from './plugin';
 
 
 /* ********************************************************************************************************************
  * Declarations
  * ********************************************************************************************************************/
 
-declare const ts: typeof TS & { executeCommandLine(args: any[]): void };
+declare const ts: typeof TS;
+declare const tspVersion: string;
 
 
 /* ********************************************************************************************************************
- * Exports
+ * External (link to ts)
  * ********************************************************************************************************************/
 
-/** Is current module TSC */
-export declare const isTSC: boolean;
-
-/** ts-patch version */
-export declare const version: string;
-
-/** Exposed PluginCreator class */
-export { PluginCreator } from './plugin';
-
-
-/* ********************************************************************************************************************
- * Patch createProgram
- * ********************************************************************************************************************/
-
-export const originalCreateProgram = ts.createProgram;
-ts.createProgram = patchedCreateProgram;
+Object.assign(ts, {
+  tspVersion,
+  PluginCreator,
+  originalCreateProgram: ts.createProgram,
+  createProgram
+});

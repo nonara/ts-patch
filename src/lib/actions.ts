@@ -60,6 +60,10 @@ function backup(tsModule: TSModule, tsPackage: TSPackage) {
 
   if (shell.cp(tsModule.file, backupDir) && shell.error())
     throw new BackupError(tsModule.filename, shell.error());
+
+  if (tsModule.filename === 'typescript.js')
+    if (shell.cp(path.join(tsModule.dir, 'typescript.d.ts'), backupDir) && shell.error())
+      throw new BackupError('typescript.d.ts', shell.error());
 }
 
 /**
@@ -67,15 +71,19 @@ function backup(tsModule: TSModule, tsPackage: TSPackage) {
  */
 function restore(currentModule: TSModule, tsPackage: TSPackage) {
   const backupDir = path.join(tsPackage.packageDir, BACKUP_DIRNAME);
-  const {file, filename, canPatch, patchVersion} = getTSModule(path.join(backupDir, currentModule.filename));
+  const {file, filename, canPatch, patchVersion, dir} = getTSModule(path.join(backupDir, currentModule.filename));
 
   /* Verify backup file */
   if (!canPatch) throw new RestoreError(filename, `Backup file is not a valid typescript module!`);
   if (patchVersion) throw new RestoreError(filename, `Backup file is not an unpatched ts module`);
 
-  // Move backup file
+  /* Restore files */
   if (shell.mv(file, tsPackage.libDir) && shell.error())
-    throw new RestoreError(filename, `Couldn't move file - ${shell.error()}`);
+    throw new RestoreError(filename, `Couldn't restore file - ${shell.error()}`);
+
+  if (filename === 'typescript.js')
+    if (shell.mv(path.join(dir, 'typescript.d.ts'), tsPackage.libDir) && shell.error())
+      throw new RestoreError(filename, `Couldn't restore file - ${shell.error()}`);
 
   /* Verify restored file */
   const restoredModule = getTSModule(currentModule.file);
@@ -198,7 +206,7 @@ export function unpatch(fileOrFilesOrGlob: string | string[], opts?: Partial<TSP
   }
 
   /* Restore files */
-  const errors:RestoreError[] = [];
+  const errors: Record<string, Error> = {};
   for (let tsModule of modules.alreadyPatched) {
     const {file, filename} = tsModule;
     Log(['~', `Restoring ${chalk.blueBright(filename)} in ${chalk.blueBright(path.dirname(file))}`], Log.verbose);
@@ -209,7 +217,7 @@ export function unpatch(fileOrFilesOrGlob: string | string[], opts?: Partial<TSP
 
       Log(['+', chalk.green(`Successfully restored ${chalk.bold.yellow(filename)}.\r\n`)], Log.verbose);
     } catch (e) {
-      errors.push(e);
+      errors[filename] = e;
     }
   }
 
@@ -218,15 +226,15 @@ export function unpatch(fileOrFilesOrGlob: string | string[], opts?: Partial<TSP
   else shell.rm('-rf', tsPackage.config.file);
 
   /* Handle errors */
-  if (errors.length > 0)  {
-    errors.forEach(e => {
+  if (Object.keys(errors).length > 0) {
+    Object.values(errors).forEach(e => {
       if (!instanceIsCLI) console.warn(e);
       else Log(['!', e.message], Log.verbose)
     });
 
     Log('');
     throw new RestoreError(
-      `[${errors.map((e => e.filename)).join(', ')}]`,
+      `[${Object.keys(errors).join(', ')}]`,
       'Try reinstalling typescript via npm.' +
       (!verbose ? ' (Or, run uninstall again with --verbose for specific error detail)' : '')
     );

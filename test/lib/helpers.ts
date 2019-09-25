@@ -1,11 +1,11 @@
 import path from "path";
-import os from "os";
-import { BACKUP_DIRNAME, SRC_FILES } from '../../src/lib/actions';
 import fs from "fs";
-import resolve from 'resolve';
 import shell from 'shelljs';
+import { BACKUP_DIRNAME, SRC_FILES } from '../../src/lib/actions';
 import { getModuleAbsolutePath, mkdirIfNotExist } from '../../src/lib/file-utils';
 import { appRoot } from '../../src/lib/system';
+import os from "os";
+import resolve from 'resolve';
 
 
 /* ********************************************************************************************************************
@@ -19,14 +19,17 @@ export const libDir = path.join(destDir, 'lib');
 export const backupDir = path.join(destDir, BACKUP_DIRNAME);
 const fakePkgDir = path.resolve(tmpDir,'fake-pkg');
 
-const files = SRC_FILES.map(f => getModuleAbsolutePath(f, path.join(srcDir, 'lib')));
+const files = [
+  ...SRC_FILES.map(f => getModuleAbsolutePath(f, path.join(srcDir, 'lib'))),
+  path.join(path.join(srcDir, 'lib'), 'typescript.d.ts')
+];
 
 
 /* ********************************************************************************************************************
- * Fake Installation
+ * Fake TS
  * ********************************************************************************************************************/
 
-export function createFakeTSInstallation(tsVersion: string = '2.7.1') {
+export function createTSInstallation(tsVersion: string = '2.7.1', fullInstall: boolean = false) {
   const pkgJSON = `{ 
     "name": "fake-module", 
     "version": "1.0.0", 
@@ -34,30 +37,40 @@ export function createFakeTSInstallation(tsVersion: string = '2.7.1') {
   }`;
 
   /* Setup temp dir */
-  removeFakeInstallation();
+  removeTSInstallation();
   try { mkdirIfNotExist(path.join(destDir,'lib')) }
   catch (e) { throw new Error(`Could not create temp directory! ${e.message}`); }
 
   // Write fake module package JSON file
   fs.writeFileSync(path.join(tmpDir, 'package.json'), pkgJSON);
 
-  // Write typescript package JSON file
-  fs.writeFileSync(path.join(destDir, 'package.json'), shell.sed(
-    /(?<="version":\s*?").+?(?=")/,
-    tsVersion,
-    path.join(srcDir,'package.json')
-  ));
+  /* Install TS Module */
+  if (fullInstall) {
+    shell.exec(`cd ${tmpDir} && npm i`);
+  } else {
+    // Write typescript package JSON file
+    fs.writeFileSync(path.join(destDir, 'package.json'), shell.sed(
+      /(?<="version":\s*?").+?(?=")/,
+      tsVersion,
+      path.join(srcDir,'package.json')
+    ));
 
-  // Copy relevant typescript files
-  for (let srcFile of files) {
-    if (shell.cp(srcFile, libDir) && shell.error())
-      throw new Error(`Error copying file ${path.basename(srcFile)}. ${shell.error()}`);
+    // Copy relevant typescript files
+    for (let srcFile of files) {
+      if (shell.cp(srcFile, libDir) && shell.error())
+        throw new Error(`Error copying file ${path.basename(srcFile)}. ${shell.error()}`);
+    }
   }
 }
 
-export function removeFakeInstallation() {
+export function removeTSInstallation() {
   if (shell.rm('-rf', tmpDir) && shell.error()) throw Error(`Could not remove tmpDir! ${shell.error()}`);
 }
+
+
+/* ********************************************************************************************************************
+ * Fake Package
+ * ********************************************************************************************************************/
 
 export function installFakePackage() {
   const pkgJSON = `{ "name": "fake-pkg", "version": "1.0.0" }`;
@@ -80,12 +93,17 @@ export function removeFakePackage() {
   if (shell.rm('-rf', fakePkgDir) && shell.error()) throw Error(`Could not remove fake package dir! ${shell.error()}`);
 }
 
+
+/* ********************************************************************************************************************
+ * TS Patch
+ * ********************************************************************************************************************/
+
 export function installTSPatch() {
   const tspDir = path.join(tmpDir, 'ts-patch');
 
   /* Create package dir */
- try { mkdirIfNotExist(tspDir) }
- catch (e) { throw new Error(`Could not create ts-patch package directory! ${e.message}`) }
+  try { mkdirIfNotExist(tspDir) }
+  catch (e) { throw new Error(`Could not create ts-patch package directory! ${e.message}`) }
 
   // Copy dist files
   if (shell.cp('-R', path.join(appRoot, 'dist/*'), tspDir) && shell.error())

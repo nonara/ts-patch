@@ -105,7 +105,7 @@ export function getTSModule(file: string, includeSrc: boolean = false): TSModule
   const canPatch = Boolean(fileData.match(/^\(function\s\(ts\)\s?{[\s\S]+?\(ts\s?\|\|\s?\(ts\s?=\s?{}\)\);?$/m));
   const patchVersion =
     canPatch &&
-    (fileData.match(/(?<=^\s*?var\s+?tsPatch\s+?=[\s\S]+exports.version\s?=\s?['"`])\S+?(?=['"`])/m) || [])[0];
+    (fileData.match(/(?<=^\s*?var\stspVersion\s?=\s?['"`])(\S+?)(?=['"`])/m) || [])[0];
 
   return { file, filename, canPatch, dir, patchVersion, ...(includeSrc && canPatch && {moduleSrc: fileData}) };
 }

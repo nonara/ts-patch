@@ -4,92 +4,29 @@
  */
 
 import * as TS from 'typescript';
+import * as TSPlus from './types';
 import { never } from './shared';
 import { addDiagnosticFactory } from './shared';
+import {
+  CompilerOptionsPattern,
+  ConfigPattern,
+  LSPattern,
+  PluginConfig,
+  PluginFactory,
+  ProgramPattern,
+  RawPattern,
+  TransformerBasePlugin,
+  TransformerList,
+  TransformerPlugin,
+  TypeCheckerPattern
+} from './types';
 
 
 /* ********************************************************************************************************************
  * Declarations
  * ********************************************************************************************************************/
 
-declare const ts: typeof TS;
-
-
-/* ********************************************************************************************************************
- * Types
- * ********************************************************************************************************************/
-// region Types
-
-export interface PluginConfig {
-  /**
-   * Language Server TypeScript Plugin name
-   */
-  name?: string;
-  /**
-   * Path to transformer or transformer module name
-   */
-  transform?: string;
-
-  /**
-   * The optional name of the exported transform plugin in the transform module.
-   */
-  import?: string;
-
-  /**
-   * Plugin entry point format type, default is program
-   */
-  type?: 'ls' | 'program' | 'config' | 'checker' | 'raw' | 'compilerOptions';
-
-  /**
-   * Should transformer applied after all ones
-   */
-  after?: boolean;
-
-  /**
-   * Should transformer applied for d.ts files, supports from TS2.9
-   */
-  afterDeclarations?: boolean;
-}
-
-export interface TransformerBasePlugin {
-  before?: TS.TransformerFactory<TS.SourceFile>;
-  after?: TS.TransformerFactory<TS.SourceFile>;
-  afterDeclarations?: TS.TransformerFactory<TS.SourceFile | TS.Bundle>;
-}
-
-export type TransformerList = Required<TS.CustomTransformers>;
-
-export type TransformerPlugin = TransformerBasePlugin | TS.TransformerFactory<TS.SourceFile>;
-
-export type LSPattern = (ls: TS.LanguageService, config: {}) => TransformerPlugin;
-
-export type ProgramPattern = (
-  program: TS.Program,
-  config: {},
-  helpers?: { ts: typeof TS; addDiagnostic: (diag: TS.Diagnostic) => void }
-) => TransformerPlugin;
-
-export type CompilerOptionsPattern = (compilerOpts: TS.CompilerOptions, config: {}) => TransformerPlugin;
-
-export type ConfigPattern = (config: {}) => TransformerPlugin;
-
-export type TypeCheckerPattern = (checker: TS.TypeChecker, config: {}) => TransformerPlugin;
-
-export type RawPattern = (
-  context: TS.TransformationContext,
-  program: TS.Program,
-  config: {}
-) => TS.Transformer<TS.SourceFile>;
-
-export type PluginFactory =
-  | LSPattern
-  | ProgramPattern
-  | ConfigPattern
-  | CompilerOptionsPattern
-  | TypeCheckerPattern
-  | RawPattern;
-
-// endregion
+declare const ts: typeof TS & typeof TSPlus;
 
 
 /* ********************************************************************************************************************
