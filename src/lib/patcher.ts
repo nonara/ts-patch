@@ -77,7 +77,7 @@ export function patchTSModule(tsModule: TSModule, tsPackage: TSPackage) {
     try {
       fs.appendFileSync(
         path.join(dir, 'typescript.d.ts'),
-        fs.readFileSync(path.resolve(appRoot, tspPackageJSON.directories.resources, 'module-patch.d.ts'))
+        '\r\n' + fs.readFileSync(path.resolve(appRoot, tspPackageJSON.directories.resources, 'module-patch.d.ts'))
       )
     } catch (e) {
       throw new FileWriteError(filename, e.message);

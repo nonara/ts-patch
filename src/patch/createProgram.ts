@@ -6,8 +6,7 @@
 import { transformerErrors } from './shared';
 import * as TS from 'typescript';
 import * as TSPlus from './types';
-import { PluginConfig } from './types';
-import { PluginCreator } from './plugin';
+import { PluginConfig, PluginCreator } from './plugin';
 
 
 /* ********************************************************************************************************************

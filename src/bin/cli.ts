@@ -11,6 +11,7 @@ import { getTSPackage } from '..';
 /* ********************************************************************************************************************
  * Commands & Options
  * ********************************************************************************************************************/
+// region Commands & Options
 
 type MenuData = Record<string, { short?: string, caption: string, paramCaption?: string, inverse?: boolean }>;
 
@@ -41,6 +42,8 @@ const cliCommands:MenuData = {
   version: { short: 'v', caption: 'Show version' },
   help: { short: '/?', caption: 'Show help menu' },
 };
+
+// endregion
 
 
 /* ********************************************************************************************************************

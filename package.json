@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "build": "rimraf dist && tsc --inlineSourceMap false && rollup -c",
-    "postbuild": "node src/postbuild.js",
+    "postbuild": "node scripts/postbuild.js",
     "compile": "tsc",
     "test": "mocha --timeout 10000 -r ts-node/register ./test/**/*.test.ts",
     "reinstall TS": "rimraf node_modules/typescript && npm i typescript"
@@ -50,6 +50,7 @@
     "rewire": "^4.0.1",
     "rimraf": "^3.0.0",
     "rollup": "^1.21.4",
+    "rollup-plugin-dts": "^1.1.7",
     "rollup-plugin-typescript2": "^0.24.2",
     "sinon": "^7.4.2",
     "sinon-chai": "^3.3.0",
