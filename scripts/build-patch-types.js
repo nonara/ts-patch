@@ -1,5 +1,5 @@
 /*
- * Rollup plugin to build patch types (appended to typescript.d.ts)
+ * Rollup plugin to build patch types (see rollup.config.js)
  */
 const { tsquery } = require('@phenomnomnominal/tsquery');
 

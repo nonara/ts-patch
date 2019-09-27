@@ -1,3 +1,6 @@
+/*
+ * Note: This file is used to generate module-patch.js (see rollup.config.js)
+ */
 import { createProgram } from './createProgram';
 import * as TS from 'typescript';
 import { PluginCreator } from './plugin';
@@ -12,7 +15,7 @@ declare const tspVersion: string;
 
 
 /* ********************************************************************************************************************
- * External (link to ts)
+ * Link to ts object
  * ********************************************************************************************************************/
 
 Object.assign(ts, {

@@ -161,7 +161,7 @@ function getConfig(packageDir: string) {
 
 function saveConfig(config: TSPConfig) {
   try {
-    fs.writeFileSync(config.file, JSON.stringify(config));
+    fs.writeFileSync(config.file, JSON.stringify(config, null, 2));
   } catch (e) {
     throw new FileWriteError(config.file, e.message);
   }

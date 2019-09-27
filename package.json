@@ -3,11 +3,13 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "build": "rimraf dist && tsc --inlineSourceMap false && rollup -c",
-    "postbuild": "node scripts/postbuild.js",
+    "build": "rimraf dist && tsc --inlineSourceMap false && npm run build:patch",
+    "build:patch": "rollup -c",
     "compile": "tsc",
-    "test": "mocha --timeout 10000 -r ts-node/register ./test/**/*.test.ts",
-    "reinstall TS": "rimraf node_modules/typescript && npm i typescript"
+    "test": "mocha ./test/**/*.test.ts",
+    "reinstall TS": "rimraf node_modules/typescript && npm i typescript",
+    "---------------": "----------------",
+    "postbuild": "node scripts/postbuild.js"
   },
   "keywords": [],
   "author": "Ron S.",
@@ -46,6 +48,8 @@
     "@types/sinon-chai": "^3.2.3",
     "@types/test-console": "^1.1.0",
     "chai": "^4.2.0",
+    "graphql": "^14.0.2",
+    "graphql-tag": "^2.10.0",
     "mocha": "^6.2.0",
     "rewire": "^4.0.1",
     "rimraf": "^3.0.0",
@@ -55,7 +59,14 @@
     "sinon": "^7.4.2",
     "sinon-chai": "^3.3.0",
     "test-console": "^1.1.0",
+    "ts-nameof": "^2.0.0",
     "ts-node": "^8.3.0",
+    "ts-transform-css-modules": "^0.3.3",
+    "ts-transform-graphql-tag": "^0.2.1",
+    "ts-transform-img": "^0.3.2",
+    "ts-transform-react-intl": "^0.4.0",
+    "ts-transformer-enumerate": "^0.3.1",
+    "ts-transformer-keys": "^0.3.4",
     "typescript": "^3.6.3"
   },
   "directories": {

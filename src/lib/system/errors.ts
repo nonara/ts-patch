@@ -9,6 +9,7 @@ export class PackageError extends Error { name = 'PackageError'  }
 export class PatchError extends Error { name = 'PatchError' }
 export class PersistenceError extends Error { name = 'PersistenceError' }
 export class OptionsError extends Error { name = 'OptionsError' }
+export class NPMError extends Error { name = 'NPMError' }
 
 export class RestoreError extends Error {
   constructor(public filename: string, message: string) {

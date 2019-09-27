@@ -33,7 +33,10 @@ export function createTSInstallation(tsVersion: string = '2.7.1', fullInstall: b
   const pkgJSON = `{ 
     "name": "fake-module", 
     "version": "1.0.0", 
-    "dependencies": { "typescript": "${tsVersion}", "ts-patch": "file:ts-patch" } 
+    "dependencies": { 
+      "typescript": "${tsVersion}", 
+      "ts-patch": "file:ts-patch"
+    } 
   }`;
 
   /* Setup temp dir */
@@ -46,7 +49,7 @@ export function createTSInstallation(tsVersion: string = '2.7.1', fullInstall: b
 
   /* Install TS Module */
   if (fullInstall) {
-    shell.exec(`cd ${tmpDir} && npm i`);
+    installTSPatch();
   } else {
     // Write typescript package JSON file
     fs.writeFileSync(path.join(destDir, 'package.json'), shell.sed(
@@ -85,7 +88,7 @@ export function installFakePackage() {
   fs.writeFileSync(path.join(fakePkgDir, 'package.json'), pkgJSON);
 
   // Install package
-  return shell.exec(`cd ${tmpDir} && npm i ${fakePkgDir}`);
+  return shell.exec(`npm i ${fakePkgDir}`, { cwd: tmpDir });
 }
 
 
@@ -110,9 +113,9 @@ export function installTSPatch() {
     throw new Error(`Error copying tsp files. ${shell.error()}`);
 
   // Install dependencies
-  return shell.exec(`cd ${tmpDir} && npm i`);
+  return shell.exec(`npm i`, { cwd: tmpDir });
 }
 
 export function removeTSPatch() {
-  return shell.exec(`cd ${tmpDir} && npm uninstall ts-patch`);
+  return shell.exec(`npm uninstall ts-patch`, { cwd: tmpDir });
 }

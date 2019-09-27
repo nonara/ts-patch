@@ -12,6 +12,7 @@ import {
 
 declare const ts: typeof TS & { originalCreateProgram: typeof TS.createProgram };
 
+
 /* ********************************************************************************************************************
  * Types
  * ********************************************************************************************************************/
@@ -155,14 +156,14 @@ export class PluginCreator {
    * ***********************************************************/
 
   private resolveFactory(transform: string, importKey: string = 'default'): PluginFactory | undefined {
-    /* Look for ts-node */
-    if (
-      !tsNodeIncluded &&
-      transform.match(/\.ts$/) &&
-      (module.parent!.parent === null ||
-        module.parent!.parent!.parent === null ||
-        module.parent!.parent!.parent!.id.split(/[\/\\]/).indexOf('ts-node') === -1)
-    ) {
+    /* Look for ts-node, require if not found */
+    const hasTSNode = (nodeModule: NodeModule | null): Boolean => {
+      if (nodeModule === null) return false;
+      if (nodeModule.id.split(/[\/\\]/).indexOf('ts-node')) return true;
+      return (nodeModule.parent === null) ? false : hasTSNode(nodeModule.parent);
+    };
+
+    if (!tsNodeIncluded && transform.match(/\.ts$/) && !hasTSNode(module.parent)) {
       require('ts-node').register({
         transpileOnly: true,
         skipProject: true,
@@ -213,7 +214,8 @@ export class PluginCreator {
     program: Program;
     ls?: LanguageService;
   }):
-    TransformerBasePlugin {
+    TransformerBasePlugin
+  {
     const { transform, after, afterDeclarations, name, type, ...cleanConfig } = config;
 
     if (!transform) throw new Error('Not a valid config entry: "transform" key not found');
@@ -221,7 +223,7 @@ export class PluginCreator {
     let ret: TransformerPlugin;
     switch (config.type) {
       case 'ls':
-        if (!ls) throw new Error(`Plugin ${transform} need a LanguageService`);
+        if (!ls) throw new Error(`Plugin ${transform} needs a LanguageService`);
         ret = (factory as LSPattern)(ls, cleanConfig);
         break;
 

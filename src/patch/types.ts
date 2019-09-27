@@ -1,10 +1,11 @@
 /*
- * Note: This file is used to generate module-patch.d.ts -- Final file will only include 'namespace ts' declarations
+ * Note: This file is used to generate module-patch.d.ts (see rollup.config.js)
  */
 import { createProgram } from 'typescript';
 
+
 /* ********************************************************************************************************************
- * ts-patch types
+ * Exports
  * ********************************************************************************************************************/
 
 export declare const tspVersion: string;

@@ -7,8 +7,9 @@ import { patchTSModule } from './patcher';
 import { getModuleAbsolutePath, getTSModule, getTSPackage, mkdirIfNotExist, TSModule, TSPackage } from './file-utils';
 import {
   TSPOptions, Log, parseOptions, PatchError, RestoreError, resetOptions, defineProperties, BackupError,
-  PersistenceError, tspPackageJSON, appRoot
+  PersistenceError, tspPackageJSON, appRoot, NPMError
 } from './system';
+import resolve = require('resolve');
 
 
 /* ********************************************************************************************************************
@@ -99,6 +100,63 @@ function restore(currentModule: TSModule, tsPackage: TSPackage) {
     Log(['!', `Error deleting backup directory` + chalk.grey(`[${backupDir}]`)], Log.verbose);
 }
 
+/**
+ * Remove tsNode from dependencies in typescript's package.json
+ */
+function removeTSNode(tsPackage: TSPackage) {
+  const pkgFile = path.join(tsPackage.packageDir, 'package.json');
+
+  try {
+    const pkgData:any = JSON.parse(fs.readFileSync(pkgFile, 'utf8'));
+
+    delete pkgData.dependencies['ts-node'];
+
+    fs.writeFileSync(pkgFile, JSON.stringify(pkgData, null, 2));
+  } catch (e) {
+    throw new PatchError(e.message);
+  }
+}
+
+/**
+ * Add tsNode to typescript's dependencies
+ */
+function addTSNode(tsPackage: TSPackage) {
+  const pkgFile = path.join(tsPackage.packageDir, 'package.json');
+
+  /* Read TS package json */
+  let pkgData:any;
+  try { pkgData = JSON.parse(fs.readFileSync(pkgFile, 'utf8')); }
+  catch (e) { throw new PatchError(e.message); }
+
+  /* Check for local TSNode */
+  let tsNodeVersion: string | undefined;
+  try {
+    const location = resolve.sync('ts-node/package.json', { basedir: tsPackage.packageDir });
+    tsNodeVersion = require(location).version;
+  } catch (e) {
+    tsNodeVersion = tspPackageJSON.dependencies['ts-node'];
+  }
+
+  /* Handle existing ts-node package */
+  if (tsNodeVersion) {
+    if (pkgData.dependencies['ts-node']) return;
+  } else {
+    Log(['~', `Installing ts-node (via npm)...`], Log.verbose);
+
+    // Run npm install
+    if (shell.exec(`npm i ts-node`, { cwd: path.resolve(tsPackage.packageDir, '..') }) && shell.error())
+      throw new NPMError(`Error installing ts-node dependency: ${shell.error()}`);
+
+    tsNodeVersion = require(resolve.sync('ts-node/package.json', { basedir: tsPackage.packageDir })).version;
+  }
+
+  /* Write ts-node version to TS dependencies */
+  pkgData.dependencies['ts-node'] = `^${tsNodeVersion}`;
+
+  try { fs.writeFileSync(pkgFile, JSON.stringify(pkgData, null, 2)) }
+  catch (e) { throw new PatchError(e.message) }
+}
+
 // endregion
 
 
@@ -181,6 +239,7 @@ export function patch(fileOrFilesOrGlob: string | string[], opts?: Partial<TSPOp
   }
 
   tsPackage.config.save();
+  addTSNode(tsPackage);
 
   if (modules.unPatchable.length > 1) {
     Log(['!',
@@ -221,9 +280,15 @@ export function unpatch(fileOrFilesOrGlob: string | string[], opts?: Partial<TSP
     }
   }
 
-  /* Save config, or remove if empty */
+  /* Save config, or handle if no patched files left */
   if (Object.keys(tsPackage.config.modules).length > 0) tsPackage.config.save();
-  else shell.rm('-rf', tsPackage.config.file);
+  else {
+    // Remove ts-patch.json file
+    shell.rm('-rf', tsPackage.config.file);
+
+    // Remove ts-node from package.json
+    removeTSNode(tsPackage);
+  }
 
   /* Handle errors */
   if (Object.keys(errors).length > 0) {
@@ -247,8 +312,8 @@ export function unpatch(fileOrFilesOrGlob: string | string[], opts?: Partial<TSP
  * Enable persistence hooks
  */
 export function enablePersistence(opts?: Partial<TSPOptions>) {
-  const {basedir} = parseOptions(opts);
-  const {config, packageDir} = getTSPackage(basedir);
+  const { basedir } = parseOptions(opts);
+  const { config, packageDir } = getTSPackage(basedir);
 
   Log(['~', `Enabling persistence in ${chalk.blueBright(packageDir)}`], Log.verbose);
 
@@ -264,6 +329,23 @@ export function enablePersistence(opts?: Partial<TSPOptions>) {
 
   if (shell.cp(hooksFiles, hooksDir) && shell.error())
     throw new PersistenceError(`Error trying to copy persistence hooks: ${shell.error()}`);
+
+  /* Write absolute path to ts-patch in hooks */
+  let tspPath;
+  try { tspPath = path.dirname(resolve.sync('ts-patch/package.json', { basedir: packageDir })) }
+  catch (e) { }
+
+  if (tspPath)
+    for (let file of hooksFiles.map(f => path.join(hooksDir, path.basename(f)))) {
+      shell.sed('-i',
+        /(?<=^(@SET\s)?tspdir\s*=\s*").+?(?="$)/m,
+        tspPath.split(path.sep).join((path.extname(file) === '.cmd') ? '\\' : '/'),
+        file
+      );
+
+      if (shell.error())
+        throw new PersistenceError(`Error writing to hooks file '${path.basename(file)}': ${shell.error()}`);
+    }
 
   Log(['+', chalk.green(`Enabled persistence for ${chalk.blueBright(packageDir)}`)]);
 }

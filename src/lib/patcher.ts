@@ -1,7 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import { FileNotFound, PatchError, FileWriteError, WrongTSVersion, tspPackageJSON, appRoot } from './system';
-import { TSModule, TSPackage } from './file-utils';
+import { getTSModule, TSModule, TSPackage } from './file-utils';
+import { BACKUP_DIRNAME } from './actions';
 
 
 /* ********************************************************************************************************************
@@ -20,8 +21,7 @@ const generatePatch = (isTSC: boolean) =>
       `var tspVersion = '${tspPackageJSON.version}';\r\n` +
       `var isTSC = ${isTSC};\r\n` +
       `$1`
-    ) +
-  (isTSC ? `ts.executeCommandLine(ts.sys.args);` : '');
+    );
 
 /**
  * Validate TSModule and TSPackage before patching
@@ -64,8 +64,26 @@ export function patchTSModule(tsModule: TSModule, tsPackage: TSPackage) {
   const patchSrc = generatePatch(isTSC);
 
   try {
-    if (isTSC)
-      fs.writeFileSync(file, moduleSrc!.replace(/ts.executeCommandLine\(ts.sys.args\);/, '') + patchSrc);
+    if (isTSC) {
+      /* Select non-patched typescript.js */
+      const tsFile =
+        [
+          path.join(tsPackage.packageDir, BACKUP_DIRNAME, 'typescript.js'),
+          path.join(tsPackage.libDir, 'typescript.js')
+        ]
+        .filter(f => fs.existsSync(f))[0];
+
+      /* Expand TSC with full typescript library (splice tsc part on top of typescript.ts code) */
+      fs.writeFileSync(file,
+        Buffer.concat([
+          fs.readFileSync(tsFile),
+          Buffer.from(!getTSModule(tsFile).patchVersion ? patchSrc : ''),
+          Buffer.from(
+            moduleSrc!.replace(/^[\s\S]+(\(function \(ts\) {\s+function countLines[\s\S]+)$/, '$1')
+          )
+        ])
+      );
+    }
     else
       fs.appendFileSync(file, patchSrc);
   } catch (e) {

@@ -10,6 +10,7 @@ import {
   backupDir, createTSInstallation, destDir, installFakePackage, installTSPatch, libDir, removeTSInstallation,
   removeTSPatch, tmpDir
 } from './lib/helpers';
+import resolve = require('resolve');
 
 
 /* ********************************************************************************************************************
@@ -93,6 +94,14 @@ describe(`Actions`, () => {
       expect(modules.patchable.length).to.eql(0);
       expect(modules.alreadyPatched.length).to.eql(SRC_FILES.length);
     });
+
+    it(`Installs ts-node`, () => {
+      const { packageFile, libDir } = getTSPackage(destDir);
+      delete require.cache[require.resolve(packageFile)];
+
+      expect(() => resolve.sync('ts-node', { basedir: libDir })).to.not.throw;
+      expect(require(packageFile).dependencies).to.include.keys('ts-node');
+    });
   });
 
   describe(`Uninstall`, () => {
@@ -115,6 +124,12 @@ describe(`Actions`, () => {
       expect(modules.alreadyPatched.length).to.eql(0);
       expect(modules.unPatchable.length).to.eql(0);
       expect(modules.patchable.length).to.eql(SRC_FILES.length);
+    });
+
+    it(`Removes ts-node from TS dependencies`, () => {
+      const pkgFile = getTSPackage(destDir).packageFile;
+      delete require.cache[require.resolve(pkgFile)];
+      expect(require(pkgFile).dependencies).to.not.include.keys('ts-node');
     });
   });
 
@@ -143,7 +158,7 @@ describe(`Actions`, () => {
     });
   });
 
-  describe(`Persistence`, () => {
+  describe(`Persistence (takes longer, due to npm)`, () => {
     before(() => {
       createTSInstallation();
       install(TSP_OPTIONS);
@@ -156,6 +171,17 @@ describe(`Actions`, () => {
       it(`Copies hooks`, () => {
         expect(fs.existsSync(path.join(tmpDir, 'node_modules/.hooks/postinstall'))).to.be.true;
         expect(fs.existsSync(path.join(tmpDir, 'node_modules/.hooks/postinstall.cmd'))).to.be.true;
+      });
+
+      it(`Hooks have direct path to persist.js`, () => {
+        const tspDir = path.join(tmpDir, 'node_modules/ts-patch');
+        const regex = /(?<=^(@SET\s)?tspdir\s*=\s*").+?(?="$)/m;
+
+        const unixSrc = fs.readFileSync(path.join(tmpDir, 'node_modules/.hooks/postinstall')).toString();
+        const winSrc = fs.readFileSync(path.join(tmpDir, 'node_modules/.hooks/postinstall.cmd')).toString();
+
+        expect(unixSrc.match(regex)).to.include(tspDir.split(path.sep).join('/'));
+        expect(winSrc.match(regex)).to.include(tspDir.split(path.sep).join('\\'));
       });
 
       it(`Config file shows persist=true`, () => expect(getTSPackage(destDir).config.persist).to.be.true);
