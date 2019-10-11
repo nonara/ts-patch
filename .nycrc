@@ -1,0 +1,14 @@
+{
+  "extension": [ ".ts" ],
+  "exclude": [
+    "**/d.ts",
+    "src/lib/system/errors.ts"
+  ],
+  "include": [
+    "src/bin/**/*.ts",
+    "src/lib/**/*.ts",
+    "src/patch/plugin.ts"
+  ],
+  "reporter": [ "html" ],
+  "all": true
+}

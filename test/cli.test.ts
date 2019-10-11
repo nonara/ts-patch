@@ -125,8 +125,18 @@ describe(`CLI`, () => {
     });
 
     it(`Global`, () => {
-      expect(run('v', '-g')!.options).to.include({ basedir: getGlobalTSDir() });
-      expect(run('v', '--global')!.options).to.include({ basedir: getGlobalTSDir() });
+      const globalTSDir = (() => { try { return getGlobalTSDir(); } catch (e) { return undefined } })();
+
+      if (globalTSDir) {
+        expect(run('v', '-g')!.options).to.include({ basedir: globalTSDir });
+        expect(run('v', '--global')!.options).to.include({ basedir: globalTSDir });
+      } else {
+        run('v', '-g');
+        expect(logSpy.lastCall.args.join(' ')).to.match(/Could not find global TypeScript installation!/);
+        logSpy.resetHistory();
+        run('v', '--global');
+        expect(logSpy.lastCall.args.join(' ')).to.match(/Could not find global TypeScript installation!/);
+      }
 
       // Throw with both global and basedir
       run('v', '-g -d /file/path');

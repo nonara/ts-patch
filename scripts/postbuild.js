@@ -19,8 +19,12 @@ const DIST_DIR = path.resolve('./dist');
 
 /* Build package.json */
 const pkgJSON = JSON.parse(fs.readFileSync(path.join(BASE_DIR, 'package.json'), 'utf8'));
+
 delete pkgJSON.scripts;
+delete pkgJSON.private;
 delete pkgJSON.devDependencies;
+
+// Write & remove ./dist
 fs.writeFileSync(
   path.join(DIST_DIR, 'package.json'),
   JSON.stringify(pkgJSON, null, 2).replace(/(?<=['"].*?)dist\//g, '')

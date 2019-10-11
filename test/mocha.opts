@@ -1,2 +1,5 @@
 --require ts-node/register
---timeout 45000
+--require source-map-support/register
+--timeout 60000
+
+./test/**/*.test.ts

@@ -17,12 +17,13 @@ export default function buildPatchTypes() {
         `:matches(ImportDeclaration, ExportDeclaration, VariableStatement:has(VariableDeclaration>Identifier[name="ts"]))`
       );
 
-      // Remove selected nodes from final source and format for ambient context
       return omit
+        // Remove selected nodes from final source
         .reduce(
           (p, {end}, i) => p.concat(code.slice(end, ((i + 1) < omit.length) ? omit[i + 1].pos : void 0)),
           code.slice(0, omit[0].pos)
         )
+        // Format for ambient context (remove 'declare')
         .replace(/^\s*declare\s(?!namespace)/gm, '')
     }
   }

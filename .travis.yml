@@ -1,0 +1,11 @@
+language: node_js
+node_js:
+  - stable
+install:
+  - npm install
+script:
+  - npm run test:nyc
+before_script:
+  - npm run ci
+# Update Coveralls
+after_success: npm run coverage

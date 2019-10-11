@@ -144,7 +144,7 @@ function addTSNode(tsPackage: TSPackage) {
     Log(['~', `Installing ts-node (via npm)...`], Log.verbose);
 
     // Run npm install
-    if (shell.exec(`npm i ts-node`, { cwd: path.resolve(tsPackage.packageDir, '..') }) && shell.error())
+    if (shell.exec(`npm i ts-node@latest`, { cwd: path.resolve(tsPackage.packageDir, '..') }) && shell.error())
       throw new NPMError(`Error installing ts-node dependency: ${shell.error()}`);
 
     tsNodeVersion = require(resolve.sync('ts-node/package.json', { basedir: tsPackage.packageDir })).version;
