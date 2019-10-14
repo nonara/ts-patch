@@ -166,7 +166,7 @@ function addTSNode(tsPackage: TSPackage) {
 // region Actions
 
 /**
- * Set app options (super-imposes opts onto defaultOptions)
+ * Set app options (superimposes opts onto defaultOptions)
  */
 export const setOptions = (opts?: Partial<TSPOptions>) => resetOptions(opts);
 
@@ -175,7 +175,7 @@ export const setOptions = (opts?: Partial<TSPOptions>) => resetOptions(opts);
  */
 export function install(opts?: Partial<TSPOptions>) {
   const ret = patch(SRC_FILES, opts);
-  Log(['+', chalk.green(`ts-patch installed!`)]);
+  if (ret) Log(['+', chalk.green(`ts-patch installed!`)]);
   return ret;
 }
 
@@ -184,7 +184,7 @@ export function install(opts?: Partial<TSPOptions>) {
  */
 export function uninstall(opts?: Partial<TSPOptions>) {
   const ret = unpatch(SRC_FILES, opts);
-  Log(['-', chalk.green(`ts-patch removed!`)]);
+  if (ret) Log(['-', chalk.green(`ts-patch removed!`)]);
   return ret;
 }
 
@@ -261,7 +261,7 @@ export function unpatch(fileOrFilesOrGlob: string | string[], opts?: Partial<TSP
 
   if (modules.alreadyPatched.length < 1) {
     Log(['!', `No patched files detected. For details, run: `+ chalk.bgBlackBright('ts-patch check')]);
-    return true;
+    return false;
   }
 
   /* Restore files */

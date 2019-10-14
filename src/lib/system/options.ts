@@ -18,7 +18,7 @@ export const defaultOptions = {
   instanceIsCLI: false
 };
 
-/* App-wide options storage */
+/** App-wide options storage */
 export let appOptions = {...defaultOptions};
 
 

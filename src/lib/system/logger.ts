@@ -8,7 +8,7 @@ import stripAnsi from 'strip-ansi';
  * ********************************************************************************************************************/
 
 /**
- * Output log message if not silent
+ * Output log message
  */
 export function Log(msg: string | [string, string], logLevel: typeof Log[keyof typeof Log] = Log.normal) {
   if (logLevel > appOptions.logLevel) return;

@@ -1,6 +1,6 @@
 {
   "name": "ts-patch",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Patch typescript to support custom transformers in tsconfig.json",
   "main": "./dist/index.js",
   "scripts": {
@@ -28,7 +28,7 @@
     "ast"
   ],
   "author": "Ron S.",
-  "license": "ISC",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/nonara/ts-patch.git"

@@ -20,11 +20,11 @@ const cliOptions:MenuData = {
   global: { short: 'g', caption: 'Target global TypeScript installation' },
   verbose: { short: 'v', caption: 'Chat it up' },
   basedir: { short: 'd', paramCaption: '<dir>', caption: 'Base directory to resolve package from' },
-  color: { inverse: true, caption: 'Strip ansi colours from output' },
   persist: { caption:
       'Enable automatic persistence. (If TypeScript is updated/reinstalled, it will automatically re-patch)'
   },
-  'no-persist': { caption: 'Disable automatic persistence.' }
+  'no-persist': { caption: 'Disable automatic persistence.' },
+  color: { inverse: true, caption: 'Strip ansi colours from output' }
 };
 
 const cliCommands:MenuData = {

@@ -11,7 +11,6 @@ import { BACKUP_DIRNAME } from './actions';
 
 /**
  * Generate insertion code for module-patch
- * Note: Regex removes esModule exports line and sourceMap data
  */
 const generatePatch = (isTSC: boolean) =>
   fs
