@@ -33,5 +33,8 @@ fs.writeFileSync(
 /* Copy postinstall hooks */
 shell.cp(path.join(SRC_DIR, 'resources', 'postinstall*'), path.join(DIST_DIR, 'resources/'));
 
+/* Copy Readme */
+shell.cp(path.resolve('./README.md'), DIST_DIR);
+
 
 // TODO - Copy config dir (holds travis config, etc) & README
