@@ -48,7 +48,7 @@
     "ts-patch": "./dist/bin/cli.js"
   },
   "peerDependencies": {
-    "typescript": "^3.6.2"
+    "typescript": ">2.7.0"
   },
   "devDependencies": {
     "@phenomnomnominal/tsquery": "^3.0.0",
@@ -85,7 +85,7 @@
     "ts-transform-react-intl": "^0.4.0",
     "ts-transformer-enumerate": "^0.3.1",
     "ts-transformer-keys": "^0.3.4",
-    "typescript": "^3.6.3"
+    "typescript": "^3.6.4"
   },
   "directories": {
     "resources": "./dist/resources"

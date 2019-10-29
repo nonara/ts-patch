@@ -5,10 +5,6 @@ export default function (program: ts.Program) {
   const checker = program.getTypeChecker();
   return (ctx: ts.TransformationContext) => (sourceFile: ts.SourceFile) => {
     function visitor(node: ts.Node): ts.Node {
-      // if (ts.isCallExpression(node) && ts.isIdentifier(node.expression)) {
-      //   let g = node;
-      //   console.log(g.expression, g.expression.getText);
-      // }
       if (
         ts.isCallExpression(node) &&
         ts.isIdentifier(node.expression) &&

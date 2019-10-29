@@ -3,7 +3,7 @@ import fs from "fs";
 import shell from 'shelljs';
 import { BACKUP_DIRNAME, SRC_FILES } from '../../src/lib/actions';
 import { getModuleAbsolutePath, mkdirIfNotExist } from '../../src/lib/file-utils';
-import { appRoot } from '../../src/lib/system';
+import { appRoot, tspPackageJSON } from '../../src/lib/system';
 import os from "os";
 import resolve from 'resolve';
 
@@ -29,7 +29,9 @@ const files = [
  * Fake TS
  * ********************************************************************************************************************/
 
-export function createTSInstallation(tsVersion: string = '2.7.1', fullInstall: boolean = false) {
+export function createTSInstallation(fullInstall: boolean = false, tsVersion?: string) {
+  if (!tsVersion) tsVersion = tspPackageJSON.devDependencies.typescript;
+
   const pkgJSON = `{ 
     "name": "fake-module", 
     "version": "1.0.0", 
@@ -54,7 +56,7 @@ export function createTSInstallation(tsVersion: string = '2.7.1', fullInstall: b
     // Write typescript package JSON file
     fs.writeFileSync(path.join(destDir, 'package.json'), shell.sed(
       /(?<="version":\s*?").+?(?=")/,
-      tsVersion,
+      tsVersion!.replace(/[^0-9.\-\w]/g, ''),
       path.join(srcDir,'package.json')
     ));
 

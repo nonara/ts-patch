@@ -39,7 +39,7 @@ function checkModules(
 }
 
 const callPatch = (files: any, tsVersion?: string) => {
-  createTSInstallation(tsVersion);
+  createTSInstallation(false, tsVersion);
   patch(files, TSP_OPTIONS);
 };
 
