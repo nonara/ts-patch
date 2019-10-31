@@ -6,6 +6,6 @@ install:
 script:
   - npm run test:nyc
 before_script:
-  - npm run ci
+  - npm run build
 # Update Coveralls
 after_success: npm run coverage

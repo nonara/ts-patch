@@ -12,11 +12,10 @@
     "test": "mocha",
     "test:nyc": "nyc --reporter html --reporter text mocha",
     "------------": "-------------",
-    "prepublishOnly": "npm run ci",
-    "preversion": "npm run ci",
     "postbuild": "node scripts/postbuild.js",
-    "coverage": "nyc report --reporter=text-lcov | coveralls",
-    "ci": "npm run build"
+    "prepublishOnly": "npm run build && npm run test",
+    "preversion": "npm run build && npm run test",
+    "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
   "private": true,
   "keywords": [
