@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import minimist from 'minimist';
 import chalk from 'chalk';
 import stripAnsi from 'strip-ansi';

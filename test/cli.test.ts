@@ -13,8 +13,7 @@ chai.use(sinonChai);
  * Rewire
  * ********************************************************************************************************************/
 
-const rewire = require('rewire');
-const cliModule = rewire('../src/bin/cli');
+const cliModule = require('rewire')('../src/bin/cli');
 
 const actions = {
   install: sinon.fake(),
