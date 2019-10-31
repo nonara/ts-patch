@@ -36,5 +36,9 @@ shell.cp(path.join(SRC_DIR, 'resources', 'postinstall*'), path.join(DIST_DIR, 'r
 /* Copy Readme */
 shell.cp(path.resolve('./README.md'), DIST_DIR);
 
+/* Add shebang line to cli */
+const cliPath = path.join(DIST_DIR, '/bin/cli.js');
+const cliSrc = fs.readFileSync(cliPath, 'utf8');
+fs.writeFileSync(cliPath, `#!/usr/bin/env node\r\n\r\n${cliSrc}`, 'utf8');
 
 // TODO - Copy config dir (holds travis config, etc) & README
