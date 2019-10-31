@@ -156,14 +156,8 @@ export class PluginCreator {
    * ***********************************************************/
 
   private resolveFactory(transform: string, importKey: string = 'default'): PluginFactory | undefined {
-    /* Look for ts-node, require if not found */
-    const hasTSNode = (nodeModule: NodeModule | null): Boolean => {
-      if (nodeModule === null) return false;
-      if (nodeModule.id.split(/[\/\\]/).indexOf('ts-node')) return true;
-      return (nodeModule.parent === null) ? false : hasTSNode(nodeModule.parent);
-    };
-
-    if (!tsNodeIncluded && transform.match(/\.ts$/) && !hasTSNode(module.parent)) {
+    /* Add support for TS transformers */
+    if (!tsNodeIncluded && transform.match(/\.ts$/)) {
       require('ts-node').register({
         transpileOnly: true,
         skipProject: true,
