@@ -13,7 +13,6 @@
     "test:nyc": "nyc --reporter html --reporter text mocha",
     "------------": "-------------",
     "postbuild": "node scripts/postbuild.js",
-    "prepublishOnly": "npm run build && npm run test",
     "preversion": "npm run build && npm run test",
     "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
