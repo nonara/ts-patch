@@ -4,7 +4,7 @@ import shell from 'shelljs';
 import { expect } from 'chai';
 import { getTSPackage, install, patch, setOptions, uninstall } from '../src';
 import {
-  SRC_FILES, BACKUP_DIRNAME, check, parseFiles, enablePersistence, disablePersistence
+  SRC_FILES, BACKUP_DIRNAME, check, parseFiles, enablePersistence, disablePersistence, tsDependencies
 } from '../src/lib/actions';
 import {
   backupDir, createTSInstallation, destDir, installFakePackage, installTSPatch, libDir, removeTSInstallation,
@@ -46,7 +46,7 @@ const callPatch = (files: any, tsVersion?: string) => {
 /* ********************************************************************************************************************
  * Tests
  * ********************************************************************************************************************/
-describe(`Actions`, () => {
+describe(`Actions (slow, mostly due to npm)`, () => {
   it(`Set Options`, () => expect(setOptions(TSP_OPTIONS)).to.include(TSP_OPTIONS));
 
   describe(`Install`, () => {
@@ -95,12 +95,12 @@ describe(`Actions`, () => {
       expect(modules.alreadyPatched.length).to.eql(SRC_FILES.length);
     });
 
-    it(`Installs ts-node`, () => {
+    it(`Installs dependencies`, () => {
       const { packageFile, libDir } = getTSPackage(destDir);
       delete require.cache[require.resolve(packageFile)];
 
       expect(() => resolve.sync('ts-node', { basedir: libDir })).to.not.throw;
-      expect(require(packageFile).dependencies).to.include.keys('ts-node');
+      expect(require(packageFile).dependencies).to.include.keys(tsDependencies);
     });
   });
 
@@ -126,10 +126,10 @@ describe(`Actions`, () => {
       expect(modules.patchable.length).to.eql(SRC_FILES.length);
     });
 
-    it(`Removes ts-node from TS dependencies`, () => {
+    it(`Removes dependencies`, () => {
       const pkgFile = getTSPackage(destDir).packageFile;
       delete require.cache[require.resolve(pkgFile)];
-      expect(require(pkgFile).dependencies).to.not.include.keys('ts-node');
+      expect(require(pkgFile).dependencies).to.not.include.keys(tsDependencies);
     });
   });
 
@@ -158,7 +158,7 @@ describe(`Actions`, () => {
     });
   });
 
-  describe(`Persistence (takes longer, due to npm)`, () => {
+  describe(`Persistence`, () => {
     before(() => {
       createTSInstallation();
       install(TSP_OPTIONS);

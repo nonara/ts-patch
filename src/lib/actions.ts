@@ -17,6 +17,8 @@ import resolve = require('resolve');
  * ********************************************************************************************************************/
 // region Config
 
+export const tsDependencies = ['ts-node', 'resolve'];
+
 shell.config.silent = true;
 
 export const SRC_FILES = ['tsc.js', 'tsserverlibrary.js', 'typescript.js', 'typescriptServices.js'];
@@ -103,13 +105,13 @@ function restore(currentModule: TSModule, tsPackage: TSPackage) {
 /**
  * Remove tsNode from dependencies in typescript's package.json
  */
-function removeTSNode(tsPackage: TSPackage) {
+function removeDependencies(tsPackage: TSPackage) {
   const pkgFile = path.join(tsPackage.packageDir, 'package.json');
 
   try {
     const pkgData:any = JSON.parse(fs.readFileSync(pkgFile, 'utf8'));
 
-    delete pkgData.dependencies['ts-node'];
+    for (const d of tsDependencies) delete pkgData.dependencies[d];
 
     fs.writeFileSync(pkgFile, JSON.stringify(pkgData, null, 2));
   } catch (e) {
@@ -120,7 +122,7 @@ function removeTSNode(tsPackage: TSPackage) {
 /**
  * Add tsNode to typescript's dependencies
  */
-function addTSNode(tsPackage: TSPackage) {
+function installDependencies(tsPackage: TSPackage) {
   const pkgFile = path.join(tsPackage.packageDir, 'package.json');
 
   /* Read TS package json */
@@ -128,30 +130,33 @@ function addTSNode(tsPackage: TSPackage) {
   try { pkgData = JSON.parse(fs.readFileSync(pkgFile, 'utf8')); }
   catch (e) { throw new PatchError(e.message); }
 
-  /* Check for local TSNode */
-  let tsNodeVersion: string | undefined;
-  try {
-    const location = resolve.sync('ts-node/package.json', { basedir: tsPackage.packageDir });
-    tsNodeVersion = require(location).version;
-  } catch (e) {
-    tsNodeVersion = tspPackageJSON.dependencies['ts-node'];
+  /* Find existing installations of dependencies */
+  const getDependenciesDetail = () =>
+    tsDependencies
+      .map(name => {
+        let location: string | undefined;
+        let version: string | undefined;
+        try {
+          location = resolve.sync(`${name}/package.json`, { basedir: tsPackage.packageDir });
+          version = require(location).version;
+        } catch (e) { }
+        return ({ name, location, version })
+      });
+
+  /* Install missing dependencies */
+  const missingDeps = getDependenciesDetail().filter(({version}) => !version);
+  if (missingDeps.length > 0) {
+    Log(['~', `Installing dependencies: ${missingDeps.map(({name}) => name).join(', ')} (via npm)...`], Log.verbose);
+
+    shell.exec(
+      `npm i ${missingDeps.map(({name}) => name).join(' ')}`,
+      { cwd: path.resolve(tsPackage.packageDir, '..') }
+    );
+    if (shell.error()) throw new NPMError(`Error while installing dependencies: ${shell.error()}`);
   }
 
-  /* Handle existing ts-node package */
-  if (tsNodeVersion) {
-    if (pkgData.dependencies['ts-node']) return;
-  } else {
-    Log(['~', `Installing ts-node (via npm)...`], Log.verbose);
-
-    // Run npm install
-    if (shell.exec(`npm i ts-node@latest`, { cwd: path.resolve(tsPackage.packageDir, '..') }) && shell.error())
-      throw new NPMError(`Error installing ts-node dependency: ${shell.error()}`);
-
-    tsNodeVersion = require(resolve.sync('ts-node/package.json', { basedir: tsPackage.packageDir })).version;
-  }
-
-  /* Write ts-node version to TS dependencies */
-  pkgData.dependencies['ts-node'] = `^${tsNodeVersion}`;
+  /* Write versions to TS dependencies */
+  for (const {name, version} of getDependenciesDetail()) pkgData.dependencies[name] = `^${version}`;
 
   try { fs.writeFileSync(pkgFile, JSON.stringify(pkgData, null, 2)) }
   catch (e) { throw new PatchError(e.message) }
@@ -239,7 +244,7 @@ export function patch(fileOrFilesOrGlob: string | string[], opts?: Partial<TSPOp
   }
 
   tsPackage.config.save();
-  addTSNode(tsPackage);
+  installDependencies(tsPackage);
 
   if (modules.unPatchable.length > 1) {
     Log(['!',
@@ -287,7 +292,7 @@ export function unpatch(fileOrFilesOrGlob: string | string[], opts?: Partial<TSP
     shell.rm('-rf', tsPackage.config.file);
 
     // Remove ts-node from package.json
-    removeTSNode(tsPackage);
+    removeDependencies(tsPackage);
   }
 
   /* Handle errors */
