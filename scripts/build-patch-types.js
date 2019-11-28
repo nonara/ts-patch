@@ -18,9 +18,9 @@ export default function buildPatchTypes() {
       );
 
       return omit
-        // Remove selected nodes from final source
+      // Remove selected nodes from final source
         .reduce(
-          (p, {end}, i) => p.concat(code.slice(end, ((i + 1) < omit.length) ? omit[i + 1].pos : void 0)),
+          (p, { end }, i) => p.concat(code.slice(end, ((i + 1) < omit.length) ? omit[i + 1].pos : void 0)),
           code.slice(0, omit[0].pos)
         )
         // Format for ambient context (remove 'declare')

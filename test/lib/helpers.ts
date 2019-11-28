@@ -1,10 +1,10 @@
-import path from "path";
-import fs from "fs";
+import path from 'path';
+import fs from 'fs';
 import shell from 'shelljs';
 import { BACKUP_DIRNAME, SRC_FILES } from '../../src/lib/actions';
 import { getModuleAbsolutePath, mkdirIfNotExist } from '../../src/lib/file-utils';
 import { appRoot, tspPackageJSON } from '../../src/lib/system';
-import os from "os";
+import os from 'os';
 import resolve from 'resolve';
 
 
@@ -17,7 +17,7 @@ export const srcDir = path.dirname(resolve.sync('typescript/package.json'));
 export const destDir = path.join(tmpDir, 'node_modules', 'typescript');
 export const libDir = path.join(destDir, 'lib');
 export const backupDir = path.join(destDir, BACKUP_DIRNAME);
-const fakePkgDir = path.resolve(tmpDir,'fake-pkg');
+const fakePkgDir = path.resolve(tmpDir, 'fake-pkg');
 
 const files = [
   ...SRC_FILES.map(f => getModuleAbsolutePath(f, path.join(srcDir, 'lib'))),
@@ -43,7 +43,7 @@ export function createTSInstallation(fullInstall: boolean = false, tsVersion?: s
 
   /* Setup temp dir */
   removeTSInstallation();
-  try { mkdirIfNotExist(path.join(destDir,'lib')) }
+  try { mkdirIfNotExist(path.join(destDir, 'lib')) }
   catch (e) { throw new Error(`Could not create temp directory! ${e.message}`); }
 
   // Write fake module package JSON file
@@ -57,7 +57,7 @@ export function createTSInstallation(fullInstall: boolean = false, tsVersion?: s
     fs.writeFileSync(path.join(destDir, 'package.json'), shell.sed(
       /(?<="version":\s*?").+?(?=")/,
       tsVersion!.replace(/[^0-9.\-\w]/g, ''),
-      path.join(srcDir,'package.json')
+      path.join(srcDir, 'package.json')
     ));
 
     // Copy relevant typescript files
@@ -90,7 +90,7 @@ export function installFakePackage() {
   fs.writeFileSync(path.join(fakePkgDir, 'package.json'), pkgJSON);
 
   // Install package
-  return shell.exec(`npm i ${fakePkgDir}`, { cwd: tmpDir });
+  return shell.exec(`npm i --no-audit ${fakePkgDir}`, { cwd: tmpDir });
 }
 
 
@@ -115,9 +115,9 @@ export function installTSPatch() {
     throw new Error(`Error copying tsp files. ${shell.error()}`);
 
   // Install dependencies
-  return shell.exec(`npm i`, { cwd: tmpDir });
+  shell.exec(`npm i --no-audit`, { cwd: tmpDir });
 }
 
 export function removeTSPatch() {
-  return shell.exec(`npm uninstall ts-patch`, { cwd: tmpDir });
+  shell.exec(`npm uninstall --no-audit ts-patch`, { cwd: tmpDir });
 }

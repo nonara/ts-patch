@@ -29,9 +29,9 @@ export default function suite() {
   it('Applies transformer from legacy config', () => {
     const res = ts.transpileModule(safelyCode, {
       compilerOptions: {
-        plugins: [{
-          customTransformers: { before: [path.join(__dirname, '../transforms/safely.ts')] },
-        }] as any,
+        plugins: [ {
+          customTransformers: { before: [ path.join(__dirname, '../transforms/safely.ts') ] },
+        } ] as any,
       },
     });
 
@@ -41,9 +41,9 @@ export default function suite() {
   it('Applies transformer from default config', () => {
     const res = ts.transpileModule(safelyCode, {
       compilerOptions: {
-        plugins: [{
+        plugins: [ {
           transform: path.join(__dirname, '../transforms/safely.ts'),
-        }] as any,
+        } ] as any,
       },
     });
 
@@ -51,15 +51,15 @@ export default function suite() {
   });
 
   it('Merges transformers', () => {
-    const customTransformer = sinon.spy((sf:any) => sf);
+    const customTransformer = sinon.spy((sf: any) => sf);
 
     const res = ts.transpileModule(safelyCode, {
       compilerOptions: {
-        plugins: [{
+        plugins: [ {
           transform: path.join(__dirname, '../transforms/safely.ts'),
-        }] as any,
+        } ] as any,
       },
-      transformers: { before: [() => customTransformer] },
+      transformers: { before: [ () => customTransformer ] },
     });
 
     expect(res.outputText).to.match(safelyExpected);
@@ -87,7 +87,7 @@ export default function suite() {
   it('Skips ts plugin without errors', () => {
     const res = ts.transpileModule(basicCode, {
       compilerOptions: {
-        plugins: [{ name: 'foobar' }],
+        plugins: [ { name: 'foobar' } ],
       },
     });
     expect(res.outputText).to.match(basicExpected)

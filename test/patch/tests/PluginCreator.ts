@@ -39,7 +39,7 @@ export default function suite() {
     expect(createTransformers(config)).to.eql({
       after: [],
       afterDeclarations: [],
-      before: [simpleTransformer],
+      before: [ simpleTransformer ],
     });
   });
 
@@ -47,7 +47,7 @@ export default function suite() {
     const config: PluginConfig[] = [ { transform: '../transforms/transform-simple.ts', after: true } ];
 
     expect(createTransformers(config)).to.eql({
-      after: [simpleTransformer],
+      after: [ simpleTransformer ],
       afterDeclarations: [],
       before: [],
     });
@@ -57,17 +57,17 @@ export default function suite() {
     const config: PluginConfig[] = [ { transform: '../transforms/transform-advanced.ts' } ];
 
     expect(createTransformers(config)).to.eql({
-      after: [advancedTransformer],
+      after: [ advancedTransformer ],
       afterDeclarations: [],
       before: [],
     });
   });
 
   it('should provide custom config', () => {
-    const config: PluginConfig[] = [{ transform: '../transforms/transform-advanced.ts', some: 1, bla: 2 } as any];
+    const config: PluginConfig[] = [ { transform: '../transforms/transform-advanced.ts', some: 1, bla: 2 } as any ];
 
     expect(createTransformers(config)).to.eql({
-      after: [advancedTransformer],
+      after: [ advancedTransformer ],
       afterDeclarations: [],
       before: [],
     });

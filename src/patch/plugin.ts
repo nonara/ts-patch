@@ -3,12 +3,12 @@
  * Credit & thanks go to cevek (https://github.com/cevek) for the incredible work!
  */
 
-import { never } from './shared';
-import { addDiagnosticFactory } from './shared';
+import { addDiagnosticFactory, never } from './shared';
 import {
-  TransformerFactory, SourceFile, Bundle, CustomTransformers, LanguageService, Program, Diagnostic, CompilerOptions,
-  TypeChecker, TransformationContext, Transformer, default as TS
+  Bundle, CompilerOptions, CustomTransformers, default as TS, Diagnostic, LanguageService, Program, SourceFile,
+  TransformationContext, Transformer, TransformerFactory, TypeChecker
 } from 'typescript';
+
 
 declare const ts: typeof TS & { originalCreateProgram: typeof TS.createProgram };
 
@@ -16,6 +16,7 @@ declare const ts: typeof TS & { originalCreateProgram: typeof TS.createProgram }
 /* ********************************************************************************************************************
  * Types
  * ********************************************************************************************************************/
+
 // region Types
 
 export interface PluginConfig {
@@ -116,7 +117,7 @@ export class PluginCreator {
   }
 
   public mergeTransformers(into: TransformerList, source: CustomTransformers | TransformerBasePlugin) {
-    const slice = <T>(input: T | T[]) => (Array.isArray(input) ? input.slice() : [input]);
+    const slice = <T>(input: T | T[]) => (Array.isArray(input) ? input.slice() : [ input ]);
 
     if (source.before) into.before.push(...slice(source.before));
     if (source.after) into.after.push(...slice(source.after));
@@ -131,7 +132,7 @@ export class PluginCreator {
   ) {
     const chain: TransformerList = { before: [], after: [], afterDeclarations: [] };
 
-    const [ls, program] = ('ls' in params) ? [params.ls, params.ls.getProgram()!] : [void 0, params.program];
+    const [ ls, program ] = ('ls' in params) ? [ params.ls, params.ls.getProgram()! ] : [ void 0, params.program ];
 
     for (const config of this.configs) {
       if (!config.transform) continue;
@@ -184,13 +185,13 @@ export class PluginCreator {
     if (!factory)
       throw new Error(
         `tsconfig.json > plugins: "${transform}" does not have an export "${importKey}": ` +
-        require("util").inspect(factoryModule)
+        require('util').inspect(factoryModule)
       );
 
     if (typeof factory !== 'function') {
       throw new Error(
         `tsconfig.json > plugins: "${transform}" export "${importKey}" is not a plugin: ` +
-        require("util").inspect(factory)
+        require('util').inspect(factory)
       );
     }
 
@@ -208,8 +209,7 @@ export class PluginCreator {
     program: Program;
     ls?: LanguageService;
   }):
-    TransformerBasePlugin
-  {
+    TransformerBasePlugin {
     const { transform, after, afterDeclarations, name, type, ...cleanConfig } = config;
 
     if (!transform) throw new Error('Not a valid config entry: "transform" key not found');
@@ -251,8 +251,8 @@ export class PluginCreator {
 
     if (typeof ret === 'function')
       return after ? ({ after: ret }) :
-        afterDeclarations ? ({ afterDeclarations: ret as TransformerFactory<SourceFile | Bundle> }) :
-          { before: ret };
+             afterDeclarations ? ({ afterDeclarations: ret as TransformerFactory<SourceFile | Bundle> }) :
+               { before: ret };
 
     return ret;
   }

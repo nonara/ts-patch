@@ -1,5 +1,5 @@
-import path from "path";
-import fs from "fs";
+import path from 'path';
+import fs from 'fs';
 
 
 /* ********************************************************************************************************************
@@ -34,20 +34,18 @@ export function pick<T, K extends keyof T>(obj: T, ...keys: K[]): Pick<T, K> {
  */
 export const getKeys = <T>(obj: T): Array<keyof T> => Object.keys(obj) as Array<keyof T>;
 
-type GetDescriptorType<T extends PropertyDescriptor & { initializer?: (...args:any[]) => any }> =
+type GetDescriptorType<T extends PropertyDescriptor & { initializer?: (...args: any[]) => any }> =
   'value' extends keyof T ? T['value'] :
   T['get'] extends Function ? ReturnType<T['get']> :
   T['set'] extends Function ? Parameters<T['set']>[0] :
   T['initializer'] extends Function ? ReturnType<T['initializer']> :
-    never;
+  never;
 
 /**
  * Fully typed Object.defineProperties
  */
-export function defineProperties
-<TObj, TProps extends Record<PropertyKey, PropertyDescriptor>>(obj: TObj, properties: TProps):
-  TObj & { [K in keyof TProps]: GetDescriptorType<TProps[K]> }
-{
+export function defineProperties<TObj, TProps extends Record<PropertyKey, PropertyDescriptor>>(obj: TObj, properties: TProps):
+  TObj & { [K in keyof TProps]: GetDescriptorType<TProps[K]> } {
   return Object.defineProperties(obj, properties);
 }
 

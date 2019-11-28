@@ -17,14 +17,14 @@ import resolve = require('resolve');
  * ********************************************************************************************************************/
 // region Config
 
-export const tsDependencies = ['ts-node', 'resolve'];
+export const tsDependencies = [ 'ts-node', 'resolve' ];
 
 shell.config.silent = true;
 
-export const SRC_FILES = ['tsc.js', 'tsserverlibrary.js', 'typescript.js', 'typescriptServices.js'];
+export const SRC_FILES = [ 'tsc.js', 'tsserverlibrary.js', 'typescript.js', 'typescriptServices.js' ];
 export const BACKUP_DIRNAME = 'lib-backup';
 export const RESOURCES_PATH = path.join(appRoot, tspPackageJSON.directories.resources);
-export const HOOKS_FILES = ['postinstall', 'postinstall.cmd'];
+export const HOOKS_FILES = [ 'postinstall', 'postinstall.cmd' ];
 
 // endregion
 
@@ -40,8 +40,8 @@ export const HOOKS_FILES = ['postinstall', 'postinstall.cmd'];
 export function parseFiles(fileOrFilesOrGlob: string | string[], dir: string, includeSrc: boolean = false) {
   const files =
     Array.isArray(fileOrFilesOrGlob) ? fileOrFilesOrGlob :
-    fs.existsSync(getModuleAbsolutePath(fileOrFilesOrGlob, dir)) ? [fileOrFilesOrGlob] :
-      glob.sync(fileOrFilesOrGlob);
+    fs.existsSync(getModuleAbsolutePath(fileOrFilesOrGlob, dir)) ? [ fileOrFilesOrGlob ] :
+    glob.sync(fileOrFilesOrGlob);
 
   const ret = files.map(f => getTSModule(getModuleAbsolutePath(f, dir), includeSrc));
 
@@ -74,7 +74,7 @@ function backup(tsModule: TSModule, tsPackage: TSPackage) {
  */
 function restore(currentModule: TSModule, tsPackage: TSPackage) {
   const backupDir = path.join(tsPackage.packageDir, BACKUP_DIRNAME);
-  const {file, filename, canPatch, patchVersion, dir} = getTSModule(path.join(backupDir, currentModule.filename));
+  const { file, filename, canPatch, patchVersion, dir } = getTSModule(path.join(backupDir, currentModule.filename));
 
   /* Verify backup file */
   if (!canPatch) throw new RestoreError(filename, `Backup file is not a valid typescript module!`);
@@ -99,7 +99,7 @@ function restore(currentModule: TSModule, tsPackage: TSPackage) {
 
   // Remove backup dir if empty
   if ((fs.readdirSync(backupDir).length < 1) && shell.rm('-rf', backupDir) && shell.error())
-    Log(['!', `Error deleting backup directory` + chalk.grey(`[${backupDir}]`)], Log.verbose);
+    Log([ '!', `Error deleting backup directory` + chalk.grey(`[${backupDir}]`) ], Log.verbose);
 }
 
 /**
@@ -109,12 +109,13 @@ function removeDependencies(tsPackage: TSPackage) {
   const pkgFile = path.join(tsPackage.packageDir, 'package.json');
 
   try {
-    const pkgData:any = JSON.parse(fs.readFileSync(pkgFile, 'utf8'));
+    const pkgData: any = JSON.parse(fs.readFileSync(pkgFile, 'utf8'));
 
     for (const d of tsDependencies) delete pkgData.dependencies[d];
 
     fs.writeFileSync(pkgFile, JSON.stringify(pkgData, null, 2));
-  } catch (e) {
+  }
+  catch (e) {
     throw new PatchError(e.message);
   }
 }
@@ -126,7 +127,7 @@ function installDependencies(tsPackage: TSPackage) {
   const pkgFile = path.join(tsPackage.packageDir, 'package.json');
 
   /* Read TS package json */
-  let pkgData:any;
+  let pkgData: any;
   try { pkgData = JSON.parse(fs.readFileSync(pkgFile, 'utf8')); }
   catch (e) { throw new PatchError(e.message); }
 
@@ -139,15 +140,16 @@ function installDependencies(tsPackage: TSPackage) {
         try {
           location = resolve.sync(`${name}/package.json`, { basedir: tsPackage.packageDir });
           version = require(location).version;
-        } catch (e) { }
+        }
+        catch (e) { }
         return ({ name, location, version })
       });
 
   /* Install missing dependencies */
-  const missingDeps = getDependenciesDetail().filter(({version}) => !version);
+  const missingDeps = getDependenciesDetail().filter(({ version }) => !version);
 
   if (missingDeps.length > 0) {
-    Log(['~', `Installing dependencies: ${missingDeps.map(({name}) => name).join(', ')} (via npm)...`], Log.verbose);
+    Log([ '~', `Installing dependencies: ${missingDeps.map(({ name }) => name).join(', ')} (via npm)...` ], Log.verbose);
 
     /*
      * Note: The environment variable is used here to compensate for an issue within istanbuljs/spawn-wrap
@@ -157,12 +159,12 @@ function installDependencies(tsPackage: TSPackage) {
      *  This workaround will be replaced shortly.
      */
     shell.exec(
-      `npm i --no-audit ${ process.platform === 'win32' ? '%PACKAGES%' : '$PACKAGES' }`,
+      `npm i --no-audit ${process.platform === 'win32' ? '%PACKAGES%' : '$PACKAGES'}`,
       {
         cwd: path.resolve(tsPackage.packageDir, '..'),
         env: {
           ...process.env,
-          PACKAGES: missingDeps.map(({name}) => name).join(' ')
+          PACKAGES: missingDeps.map(({ name }) => name).join(' ')
         }
       }
     );
@@ -171,7 +173,7 @@ function installDependencies(tsPackage: TSPackage) {
   }
 
   /* Write versions to TS dependencies */
-  for (const {name, version} of getDependenciesDetail()) pkgData.dependencies[name] = `^${version}`;
+  for (const { name, version } of getDependenciesDetail()) pkgData.dependencies[name] = `^${version}`;
 
   try { fs.writeFileSync(pkgFile, JSON.stringify(pkgData, null, 2)) }
   catch (e) { throw new PatchError(e.message) }
@@ -195,7 +197,7 @@ export const setOptions = (opts?: Partial<TSPOptions>) => resetOptions(opts);
  */
 export function install(opts?: Partial<TSPOptions>) {
   const ret = patch(SRC_FILES, opts);
-  if (ret) Log(['+', chalk.green(`ts-patch installed!`)]);
+  if (ret) Log([ '+', chalk.green(`ts-patch installed!`) ]);
   return ret;
 }
 
@@ -204,7 +206,7 @@ export function install(opts?: Partial<TSPOptions>) {
  */
 export function uninstall(opts?: Partial<TSPOptions>) {
   const ret = unpatch(SRC_FILES, opts);
-  if (ret) Log(['-', chalk.green(`ts-patch removed!`)]);
+  if (ret) Log([ '-', chalk.green(`ts-patch removed!`) ]);
   return ret;
 }
 
@@ -212,18 +214,18 @@ export function uninstall(opts?: Partial<TSPOptions>) {
  * Check if files can be patched
  */
 export function check(fileOrFilesOrGlob: string | string[] = SRC_FILES, opts?: Partial<TSPOptions>) {
-  const {basedir} = parseOptions(opts);
-  const {libDir, packageDir, version} = getTSPackage(basedir);
+  const { basedir } = parseOptions(opts);
+  const { libDir, packageDir, version } = getTSPackage(basedir);
 
   Log(`Checking TypeScript ${chalk.blueBright(`v${version}`)} installation in ${chalk.blueBright(packageDir)}\r\n`);
 
   const modules = parseFiles(fileOrFilesOrGlob, libDir);
-  for (const {filename, patchVersion, canPatch} of modules) {
+  for (const { filename, patchVersion, canPatch } of modules) {
     if (patchVersion) Log(
-      ['+', `${chalk.blueBright(filename)} is patched with ts-patch version ${chalk.blueBright(patchVersion)}.`]
+      [ '+', `${chalk.blueBright(filename)} is patched with ts-patch version ${chalk.blueBright(patchVersion)}.` ]
     );
-    else if (canPatch) Log(['-', `${chalk.blueBright(filename)} is not patched.`]);
-    else Log(['-', chalk.red(`${chalk.redBright(filename)} is not patched and cannot be patched!`)]);
+    else if (canPatch) Log([ '-', `${chalk.blueBright(filename)} is not patched.` ]);
+    else Log([ '-', chalk.red(`${chalk.redBright(filename)} is not patched and cannot be patched!`) ]);
 
     Log('', Log.verbose);
   }
@@ -236,33 +238,33 @@ export function check(fileOrFilesOrGlob: string | string[] = SRC_FILES, opts?: P
  */
 export function patch(fileOrFilesOrGlob: string | string[], opts?: Partial<TSPOptions>) {
   if (!fileOrFilesOrGlob) throw new PatchError(`Must provide a file path, array of files, or glob.`);
-  const {basedir} = parseOptions(opts);
+  const { basedir } = parseOptions(opts);
 
   const tsPackage = getTSPackage(basedir);
   const modules = parseFiles(fileOrFilesOrGlob, tsPackage.libDir, true);
 
   if (modules.alreadyPatched.length >= modules.length) {
-    Log(['!', `Files already patched. For details, run: `+ chalk.bgBlackBright('ts-patch check')]);
+    Log([ '!', `Files already patched. For details, run: ` + chalk.bgBlackBright('ts-patch check') ]);
     return true;
   }
 
   /* Patch files */
   for (let m of modules.patchable) {
-    const {file, filename} = m;
-    Log(['~', `Patching ${chalk.blueBright(filename)} in ${chalk.blueBright(path.dirname(file))}`], Log.verbose);
+    const { file, filename } = m;
+    Log([ '~', `Patching ${chalk.blueBright(filename)} in ${chalk.blueBright(path.dirname(file))}` ], Log.verbose);
 
     backup(m, tsPackage);
     patchTSModule(m, tsPackage);
     tsPackage.config.modules[filename] = fs.statSync(file).mtimeMs;
 
-    Log(['+', chalk.green(`Successfully patched ${chalk.bold.yellow(filename)}.\r\n`)], Log.verbose);
+    Log([ '+', chalk.green(`Successfully patched ${chalk.bold.yellow(filename)}.\r\n`) ], Log.verbose);
   }
 
   tsPackage.config.save();
   installDependencies(tsPackage);
 
   if (modules.unPatchable.length > 1) {
-    Log(['!',
+    Log([ '!',
       `Some files can't be patched! Try updating to a newer version of ts-patch. The following files are unable to be ` +
       `patched. [${modules.unPatchable.map(f => f.filename).join(', ')}]`
     ]);
@@ -274,28 +276,29 @@ export function patch(fileOrFilesOrGlob: string | string[], opts?: Partial<TSPOp
 
 export function unpatch(fileOrFilesOrGlob: string | string[], opts?: Partial<TSPOptions>) {
   if (!fileOrFilesOrGlob) throw new PatchError(`Must provide a file path, array of files, or glob.`);
-  const {basedir, verbose, instanceIsCLI} = parseOptions(opts);
+  const { basedir, verbose, instanceIsCLI } = parseOptions(opts);
 
   const tsPackage = getTSPackage(basedir);
   const modules = parseFiles(fileOrFilesOrGlob, tsPackage.libDir, true);
 
   if (modules.alreadyPatched.length < 1) {
-    Log(['!', `No patched files detected. For details, run: `+ chalk.bgBlackBright('ts-patch check')]);
+    Log([ '!', `No patched files detected. For details, run: ` + chalk.bgBlackBright('ts-patch check') ]);
     return false;
   }
 
   /* Restore files */
   const errors: Record<string, Error> = {};
   for (let tsModule of modules.alreadyPatched) {
-    const {file, filename} = tsModule;
-    Log(['~', `Restoring ${chalk.blueBright(filename)} in ${chalk.blueBright(path.dirname(file))}`], Log.verbose);
+    const { file, filename } = tsModule;
+    Log([ '~', `Restoring ${chalk.blueBright(filename)} in ${chalk.blueBright(path.dirname(file))}` ], Log.verbose);
 
     try {
       restore(tsModule, tsPackage);
       delete tsPackage.config.modules[filename];
 
-      Log(['+', chalk.green(`Successfully restored ${chalk.bold.yellow(filename)}.\r\n`)], Log.verbose);
-    } catch (e) {
+      Log([ '+', chalk.green(`Successfully restored ${chalk.bold.yellow(filename)}.\r\n`) ], Log.verbose);
+    }
+    catch (e) {
       errors[filename] = e;
     }
   }
@@ -314,7 +317,7 @@ export function unpatch(fileOrFilesOrGlob: string | string[], opts?: Partial<TSP
   if (Object.keys(errors).length > 0) {
     Object.values(errors).forEach(e => {
       if (!instanceIsCLI) console.warn(e);
-      else Log(['!', e.message], Log.verbose)
+      else Log([ '!', e.message ], Log.verbose)
     });
 
     Log('');
@@ -335,7 +338,7 @@ export function enablePersistence(opts?: Partial<TSPOptions>) {
   const { basedir } = parseOptions(opts);
   const { config, packageDir } = getTSPackage(basedir);
 
-  Log(['~', `Enabling persistence in ${chalk.blueBright(packageDir)}`], Log.verbose);
+  Log([ '~', `Enabling persistence in ${chalk.blueBright(packageDir)}` ], Log.verbose);
 
   config.persist = true;
   config.save();
@@ -367,17 +370,17 @@ export function enablePersistence(opts?: Partial<TSPOptions>) {
         throw new PersistenceError(`Error writing to hooks file '${path.basename(file)}': ${shell.error()}`);
     }
 
-  Log(['+', chalk.green(`Enabled persistence for ${chalk.blueBright(packageDir)}`)]);
+  Log([ '+', chalk.green(`Enabled persistence for ${chalk.blueBright(packageDir)}`) ]);
 }
 
 /**
  * Disable persistence hooks
  */
 export function disablePersistence(opts?: Partial<TSPOptions>) {
-  const {basedir} = parseOptions(opts);
-  const {config, packageDir} = getTSPackage(basedir);
+  const { basedir } = parseOptions(opts);
+  const { config, packageDir } = getTSPackage(basedir);
 
-  Log(['~', `Disabling persistence in ${chalk.blueBright(packageDir)}`], Log.verbose);
+  Log([ '~', `Disabling persistence in ${chalk.blueBright(packageDir)}` ], Log.verbose);
 
   config.persist = false;
   config.save();
@@ -389,7 +392,7 @@ export function disablePersistence(opts?: Partial<TSPOptions>) {
   if (shell.rm('-rf', hooksFiles) && shell.error())
     throw new PersistenceError(`Error trying to remove persistence hooks: ${shell.error()}`);
 
-  Log(['-', chalk.green(`Disabled persistence for ${chalk.blueBright(packageDir)}`)]);
+  Log([ '-', chalk.green(`Disabled persistence for ${chalk.blueBright(packageDir)}`) ]);
 }
 
 // endregion

@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { FileNotFound, PatchError, FileWriteError, WrongTSVersion, tspPackageJSON, appRoot } from './system';
+import { appRoot, FileNotFound, FileWriteError, PatchError, tspPackageJSON, WrongTSVersion } from './system';
 import { getTSModule, TSModule, TSPackage } from './file-utils';
 import { BACKUP_DIRNAME } from './actions';
 
@@ -27,7 +27,7 @@ const generatePatch = (isTSC: boolean) =>
  */
 function validate(tsModule?: TSModule, tsPackage?: TSPackage) {
   if (tsModule) {
-    const {file, filename, dir, patchVersion, canPatch} = tsModule;
+    const { file, filename, dir, patchVersion, canPatch } = tsModule;
 
     if (!fs.existsSync(file)) throw new FileNotFound(`Could not find module ${filename} in ${dir + path.sep}`);
 
@@ -36,9 +36,9 @@ function validate(tsModule?: TSModule, tsPackage?: TSPackage) {
   }
 
   if (tsPackage) {
-    const {version} = tsPackage;
+    const { version } = tsPackage;
 
-    const [major, minor] = version.split('.');
+    const [ major, minor ] = version.split('.');
     if (+major < 3 && +minor < 7) throw new WrongTSVersion(`ts-patch requires TypeScript v2.7 or higher.`);
   }
 
@@ -70,7 +70,7 @@ export function patchTSModule(tsModule: TSModule, tsPackage: TSPackage) {
           path.join(tsPackage.packageDir, BACKUP_DIRNAME, 'typescript.js'),
           path.join(tsPackage.libDir, 'typescript.js')
         ]
-        .filter(f => fs.existsSync(f))[0];
+          .filter(f => fs.existsSync(f))[0];
 
       /* Expand TSC with full typescript library (splice tsc part on top of typescript.ts code) */
       fs.writeFileSync(file,
@@ -82,10 +82,10 @@ export function patchTSModule(tsModule: TSModule, tsPackage: TSPackage) {
           )
         ])
       );
-    }
-    else
+    } else
       fs.appendFileSync(file, patchSrc);
-  } catch (e) {
+  }
+  catch (e) {
     throw new FileWriteError(filename, e.message);
   }
 
@@ -96,7 +96,8 @@ export function patchTSModule(tsModule: TSModule, tsPackage: TSPackage) {
         path.join(dir, 'typescript.d.ts'),
         '\r\n' + fs.readFileSync(path.resolve(appRoot, tspPackageJSON.directories.resources, 'module-patch.d.ts'))
       )
-    } catch (e) {
+    }
+    catch (e) {
       throw new FileWriteError(filename, e.message);
     }
 }

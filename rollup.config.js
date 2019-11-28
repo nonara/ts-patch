@@ -16,18 +16,18 @@ const tsOptions = {
 const config = [
   {
     input: 'src/patch/main.ts',
-    output: [{
-        file: path.join(pkg.directories.resources, 'module-patch.js'),
-        format: 'iife',
-        globals: [ 'ts' ]
-    }],
+    output: [ {
+      file: path.join(pkg.directories.resources, 'module-patch.js'),
+      format: 'iife',
+      globals: [ 'ts' ]
+    } ],
     plugins: [ typescript(tsOptions) ]
   },
   {
     input: 'src/patch/types.ts',
-    output: [{
+    output: [ {
       file: path.join(pkg.directories.resources, 'module-patch.d.ts')
-    }],
+    } ],
     plugins: [ dts(), buildPatchTypes() ]
   }
 ];

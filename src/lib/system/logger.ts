@@ -10,22 +10,22 @@ import stripAnsi from 'strip-ansi';
 /**
  * Output log message
  */
-export function Log(msg: string | [string, string], logLevel: typeof Log[keyof typeof Log] = Log.normal) {
+export function Log(msg: string | [ string, string ], logLevel: typeof Log[keyof typeof Log] = Log.normal) {
   if (logLevel > appOptions.logLevel) return;
   const { color, instanceIsCLI } = appOptions;
 
   /* Handle Icon */
-  const printIcon = (icon:string) => chalk.bold.cyanBright(`[${ icon }] `);
+  const printIcon = (icon: string) => chalk.bold.cyanBright(`[${icon}] `);
 
   let icon: string = '';
   if (Array.isArray(msg)) {
     icon = msg[0];
     msg = (icon === '!') ? printIcon(chalk.bold.yellow(icon)) + chalk.yellow(msg[1]) :
-      (icon === '~') ? printIcon(chalk.bold.cyanBright(icon)) + msg[1] :
-      (icon === '=') ? printIcon(chalk.bold.greenBright(icon)) + msg[1] :
-      (icon === '+') ? printIcon(chalk.bold.green(icon)) + msg[1] :
-      (icon === '-') ? printIcon(chalk.bold.white(icon)) + msg[1] :
-        msg[1];
+          (icon === '~') ? printIcon(chalk.bold.cyanBright(icon)) + msg[1] :
+          (icon === '=') ? printIcon(chalk.bold.greenBright(icon)) + msg[1] :
+          (icon === '+') ? printIcon(chalk.bold.green(icon)) + msg[1] :
+          (icon === '-') ? printIcon(chalk.bold.white(icon)) + msg[1] :
+          msg[1];
   }
   const isError = (icon === '!');
 

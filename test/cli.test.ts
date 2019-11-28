@@ -27,8 +27,8 @@ const actions = {
 
 cliModule.__set__('actions', actions);
 
-const commands:any = cliModule.__get__('cliCommands');
-const options:any = cliModule.__get__('cliOptions');
+const commands: any = cliModule.__get__('cliCommands');
+const options: any = cliModule.__get__('cliOptions');
 
 
 /* ********************************************************************************************************************
@@ -36,7 +36,10 @@ const options:any = cliModule.__get__('cliOptions');
  * ********************************************************************************************************************/
 const opts = { color: false };
 
-const run = (...args:any[]) => { setOptions(opts); return cliModule.run(args.join(' ')) as ReturnType<typeof runFn> };
+const run = (...args: any[]) => {
+  setOptions(opts);
+  return cliModule.run(args.join(' ')) as ReturnType<typeof runFn>
+};
 const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 
@@ -45,7 +48,7 @@ const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
  * ********************************************************************************************************************/
 
 describe(`CLI`, () => {
-  let logSpy:SinonSpy;
+  let logSpy: SinonSpy;
   before(() => logSpy = sinon.stub(console, 'log'));
   after(() => logSpy.restore());
   afterEach(() => logSpy.resetHistory());
@@ -53,17 +56,41 @@ describe(`CLI`, () => {
   describe(`Action commands run`, () => {
     afterEach(sinon.resetHistory);
 
-    it(`Install`, () => { run('install'); expect(actions['install']).to.be.calledOnce});
-    it(`Uninstall`, () => { run('uninstall'); expect(actions['uninstall']).to.be.calledOnce});
-    it(`Patch`, () => { run('patch'); expect(actions['patch']).to.be.calledOnce});
-    it(`Unpatch`, () => { run('unpatch'); expect(actions['unpatch']).to.be.calledOnce});
-    it(`Check`, () => { run('check'); expect(actions['check']).to.be.calledOnce});
-    it(`--persist`, () => { run('--persist'); expect(actions['enablePersistence']).to.be.calledOnce});
-    it(`--no-persist`, () => { run('--no-persist'); expect(actions['disablePersistence']).to.be.calledOnce});
+    it(`Install`, () => {
+      run('install');
+      expect(actions['install']).to.be.calledOnce
+    });
+    it(`Uninstall`, () => {
+      run('uninstall');
+      expect(actions['uninstall']).to.be.calledOnce
+    });
+    it(`Patch`, () => {
+      run('patch');
+      expect(actions['patch']).to.be.calledOnce
+    });
+    it(`Unpatch`, () => {
+      run('unpatch');
+      expect(actions['unpatch']).to.be.calledOnce
+    });
+    it(`Check`, () => {
+      run('check');
+      expect(actions['check']).to.be.calledOnce
+    });
+    it(`--persist`, () => {
+      run('--persist');
+      expect(actions['enablePersistence']).to.be.calledOnce
+    });
+    it(`--no-persist`, () => {
+      run('--no-persist');
+      expect(actions['disablePersistence']).to.be.calledOnce
+    });
   });
 
   describe(`Log commands output`, () => {
-    it(`Version`, () => { run('version'); expect(/ts-patch:/g.test(logSpy.lastCall.args.join(' '))).to.be.true });
+    it(`Version`, () => {
+      run('version');
+      expect(/ts-patch:/g.test(logSpy.lastCall.args.join(' '))).to.be.true
+    });
 
     it(`Invalid command`, () => {
       run('notACommand_');
@@ -81,7 +108,7 @@ describe(`CLI`, () => {
       it(`Header appears`, () => expect(/^\s*ts-patch \[command]/m.test(output)).to.be.true);
 
       it(`All commands appear`, () => {
-        for (let [cmd, {short, caption, paramCaption}] of (Object.entries(commands) as [string, any])) {
+        for (let [ cmd, { short, caption, paramCaption } ] of (Object.entries(commands) as [ string, any ])) {
           caption = stripAnsi(caption);
           paramCaption = stripAnsi(paramCaption);
 
@@ -92,12 +119,12 @@ describe(`CLI`, () => {
             escape(caption) +
             `$`;
 
-          expect({ [cmd]: new RegExp(regexStr,'m').test(output) }).to.eql({ [cmd]: true });
+          expect({ [cmd]: new RegExp(regexStr, 'm').test(output) }).to.eql({ [cmd]: true });
         }
       });
 
       it(`All args appear`, () => {
-        for (let [arg, {short, caption, paramCaption, inverse}] of (Object.entries(options) as [string, any])) {
+        for (let [ arg, { short, caption, paramCaption, inverse } ] of (Object.entries(options) as [ string, any ])) {
           caption = stripAnsi(caption);
           paramCaption = stripAnsi(paramCaption);
           if (inverse) arg = `no-${arg}`;
@@ -110,7 +137,7 @@ describe(`CLI`, () => {
             escape(caption) +
             `$`;
 
-          expect({ [arg]: new RegExp(regexStr,'m').test(output) }).to.eql({ [arg]: true });
+          expect({ [arg]: new RegExp(regexStr, 'm').test(output) }).to.eql({ [arg]: true });
         }
       });
     });
@@ -124,7 +151,10 @@ describe(`CLI`, () => {
     });
 
     it(`Global`, () => {
-      const globalTSDir = (() => { try { return getGlobalTSDir(); } catch (e) { return undefined } })();
+      const globalTSDir = (() => {
+        try { return getGlobalTSDir(); }
+        catch (e) { return undefined }
+      })();
 
       if (globalTSDir) {
         expect(run('v', '-g')!.options).to.include({ basedir: globalTSDir });

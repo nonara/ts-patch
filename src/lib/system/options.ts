@@ -19,7 +19,7 @@ export const defaultOptions = {
 };
 
 /** App-wide options storage */
-export let appOptions = {...defaultOptions};
+export let appOptions = { ...defaultOptions };
 
 
 /* ********************************************************************************************************************
@@ -41,10 +41,10 @@ export const parseOptions = (options?: Partial<TSPOptions>): TSPOptions => {
   Object.assign(appOptions, pick(options, ...getKeys(defaultOptions)));
 
   appOptions.logLevel =
-      (appOptions.silent) ? Log.system :
-      (appOptions.verbose) ? Log.verbose :
-      (appOptions.instanceIsCLI) ? Log.normal :
-        defaultOptions.logLevel;
+    (appOptions.silent) ? Log.system :
+    (appOptions.verbose) ? Log.verbose :
+    (appOptions.instanceIsCLI) ? Log.normal :
+    defaultOptions.logLevel;
 
   return appOptions;
 };

@@ -1,9 +1,9 @@
-import path from "path";
-import fs from "fs";
-import resolve = require('resolve');
+import path from 'path';
+import fs from 'fs';
 import {
-  FileNotFound, PackageError, isAbsolute, Log, appOptions, defineProperties, FileWriteError, tspPackageJSON
+  appOptions, defineProperties, FileNotFound, FileWriteError, isAbsolute, Log, PackageError, tspPackageJSON
 } from './system';
+import resolve = require('resolve');
 
 
 /* ********************************************************************************************************************
@@ -17,7 +17,13 @@ import {
 export const getGlobalTSDir = () => {
   const errors = [];
   const basedir = require('global-prefix');
-  const check = (dir: string) => { try { return getTSPackage(dir) } catch (e) { errors.push(e); return <any>{}; } };
+  const check = (dir: string) => {
+    try { return getTSPackage(dir) }
+    catch (e) {
+      errors.push(e);
+      return <any>{};
+    }
+  };
 
   const { packageDir } = (check(basedir) || check(path.join(basedir, 'lib')));
 
@@ -45,9 +51,16 @@ export const mkdirIfNotExist = (dir: string) => !fs.existsSync(dir) && fs.mkdirS
 /* ********************************************************************************************************************
  * TS Package
  * ********************************************************************************************************************/
+
 // region TS Package
 
-export interface TSPackage { version: string, packageFile: string, packageDir: string, config: TSPConfig, libDir: string }
+export interface TSPackage {
+  version: string,
+  packageFile: string,
+  packageDir: string,
+  config: TSPConfig,
+  libDir: string
+}
 
 /**
  * Get TypeScript package info - Resolve from basedir, throws if not cannot find TS package
@@ -59,11 +72,12 @@ export function getTSPackage(basedir: string = process.cwd()): TSPackage {
   if (!packageDir) throw new PackageError(`Could not find typescript package in ${packageDir}`);
 
   /* Parse package.json data */
-  const packageFile = path.join(packageDir,'package.json');
-  const {name, version} = (() => {
+  const packageFile = path.join(packageDir, 'package.json');
+  const { name, version } = (() => {
     try {
       return JSON.parse(fs.readFileSync(packageFile, 'utf8'));
-    } catch (e) {
+    }
+    catch (e) {
       throw new PackageError(`Could not parse json data in ${packageFile}`);
     }
   })();
@@ -72,7 +86,7 @@ export function getTSPackage(basedir: string = process.cwd()): TSPackage {
   if (name !== 'typescript')
     throw new PackageError(`The package in ${packageDir} is not TypeScript. Found: ${name}.`);
 
-  return {version, packageFile, packageDir, config: getConfig(packageDir), libDir: path.join(packageDir, 'lib')};
+  return { version, packageFile, packageDir, config: getConfig(packageDir), libDir: path.join(packageDir, 'lib') };
 }
 
 // endregion
@@ -81,6 +95,7 @@ export function getTSPackage(basedir: string = process.cwd()): TSPackage {
 /* ********************************************************************************************************************
  * TS Module
  * ********************************************************************************************************************/
+
 // region TS Module
 
 export interface TSModule {
@@ -95,8 +110,7 @@ export interface TSModule {
 /**
  * Get TypeScript module info
  */
-export function getTSModule(file: string, includeSrc: boolean = false): TSModule
-{
+export function getTSModule(file: string, includeSrc: boolean = false): TSModule {
   if (!fs.existsSync(file)) throw new FileNotFound(`Could not find file ${file}.`);
 
   const filename = path.basename(file);
@@ -107,7 +121,7 @@ export function getTSModule(file: string, includeSrc: boolean = false): TSModule
     canPatch &&
     (fileData.match(/(?<=^\s*?var\stspVersion\s?=\s?['"`])(\S+?)(?=['"`])/m) || [])[0];
 
-  return { file, filename, canPatch, dir, patchVersion, ...(includeSrc && canPatch && {moduleSrc: fileData}) };
+  return { file, filename, canPatch, dir, patchVersion, ...(includeSrc && canPatch && { moduleSrc: fileData }) };
 }
 
 // endregion
@@ -116,13 +130,14 @@ export function getTSModule(file: string, includeSrc: boolean = false): TSModule
 /* ********************************************************************************************************************
  * TSP Config
  * ********************************************************************************************************************/
+
 // region TSP Config
 
 export interface TSPConfig {
   readonly file: string,
   readonly version: string,
   persist: boolean,
-  modules: { [x:string]: number }
+  modules: { [x: string]: number }
 
   save: Function;
 }
@@ -138,13 +153,14 @@ function getConfig(packageDir: string) {
   if (fs.existsSync(configFile)) {
     try {
       fileData = JSON.parse(fs.readFileSync(configFile, 'utf8'));
-    } catch (e) {
+    }
+    catch (e) {
       if (appOptions.instanceIsCLI) console.warn(e);
-      else Log(['!', e.message], Log.verbose)
+      else Log([ '!', e.message ], Log.verbose)
     }
   }
 
-  const config:TSPConfig = {
+  const config: TSPConfig = {
     persist: false,
     modules: {},
     ...fileData,
@@ -162,7 +178,8 @@ function getConfig(packageDir: string) {
 function saveConfig(config: TSPConfig) {
   try {
     fs.writeFileSync(config.file, JSON.stringify(config, null, 2));
-  } catch (e) {
+  }
+  catch (e) {
     throw new FileWriteError(config.file, e.message);
   }
 }

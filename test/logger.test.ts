@@ -3,7 +3,7 @@ import { setOptions } from '../src';
 import chai, { expect } from 'chai';
 import sinonChai from 'sinon-chai';
 import sinon from 'sinon';
-import { stdout, stderr } from 'test-console';
+import { stderr, stdout } from 'test-console';
 
 chai.use(sinonChai);
 
@@ -12,8 +12,8 @@ chai.use(sinonChai);
  * Helpers
  * ********************************************************************************************************************/
 
-function log(opt?: Partial<TSPOptions>, msg: string | [string, string] = ['=', 'test']) {
-  const {instanceIsCLI} = setOptions(opt);
+function log(opt?: Partial<TSPOptions>, msg: string | [ string, string ] = [ '=', 'test' ]) {
+  const { instanceIsCLI } = setOptions(opt);
   const logSpy = sinon.stub(console, 'log');
   const inspectOut = stdout.inspect();
   const inspectErr = stderr.inspect();
@@ -27,15 +27,15 @@ function log(opt?: Partial<TSPOptions>, msg: string | [string, string] = ['=', '
       expect(logSpy).to.not.be.called;
       if (isError) expect(inspectOut.output.length < 1 && inspectErr.output.length >= 1).to.be.true;
       else expect(inspectOut.output.length >= 1 && inspectErr.output.length < 1).to.be.true;
-    }
-    else expect(inspectOut.output.length < 1 && inspectErr.output.length < 1).to.be.true;
+    } else expect(inspectOut.output.length < 1 && inspectErr.output.length < 1).to.be.true;
 
     return {
       console: !instanceIsCLI ? logSpy.lastCall.args.join(' ') : '',
       stderr: inspectErr.output.toString(),
       stdout: inspectOut.output.toString()
     };
-  } finally {
+  }
+  finally {
     logSpy.restore();
     inspectOut.restore();
     inspectErr.restore();
@@ -57,10 +57,10 @@ describe(`Logger`, () => {
 
   describe(`CLI Mode`, () => {
     it(`Log goes to stdout`, () =>
-      expect(/std_out/g.test(log({ instanceIsCLI: true },['=','std_out']).stdout)).to.be.true
+      expect(/std_out/g.test(log({ instanceIsCLI: true }, [ '=', 'std_out' ]).stdout)).to.be.true
     );
     it(`Error goes to stderr`, () =>
-      expect(/std_err/g.test(log({ instanceIsCLI: true },['!','std_err']).stderr)).to.be.true
+      expect(/std_err/g.test(log({ instanceIsCLI: true }, [ '!', 'std_err' ]).stderr)).to.be.true
     );
   });
 });

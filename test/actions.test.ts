@@ -4,12 +4,12 @@ import shell from 'shelljs';
 import { expect } from 'chai';
 import { getTSPackage, install, patch, setOptions, uninstall } from '../src';
 import {
-  SRC_FILES, BACKUP_DIRNAME, check, parseFiles, enablePersistence, disablePersistence, tsDependencies
-} from '../src/lib/actions';
-import {
   backupDir, createTSInstallation, destDir, installFakePackage, installTSPatch, libDir, removeTSInstallation,
   removeTSPatch, tmpDir
 } from './lib/helpers';
+import {
+  BACKUP_DIRNAME, check, disablePersistence, enablePersistence, parseFiles, SRC_FILES, tsDependencies
+} from '../src/lib/actions';
 import resolve = require('resolve');
 
 
@@ -34,8 +34,8 @@ function checkModules(
 ) {
   const modules = parseFiles(filenames, dir);
   expect(modules.map(m => m.filename)).to.eql(filenames);
-  for (let {canPatch, patchVersion} of modules)
-    expect({canPatch, patchVersion}).to.eql({ canPatch: true, patchVersion: expectedPatchVersion });
+  for (let { canPatch, patchVersion } of modules)
+    expect({ canPatch, patchVersion }).to.eql({ canPatch: true, patchVersion: expectedPatchVersion });
 }
 
 const callPatch = (files: any, tsVersion?: string) => {
@@ -79,7 +79,7 @@ describe(`Actions (slow, mostly due to npm)`, () => {
 
       expect(Object
         .entries(config.modules)
-        .filter(([filename, timestamp]) =>
+        .filter(([ filename, timestamp ]) =>
           SRC_FILES.includes(filename) &&         // Filename must be valid
           !isNaN(parseFloat(<any>timestamp))    // Timestamp must be valid
         )
@@ -89,7 +89,7 @@ describe(`Actions (slow, mostly due to npm)`, () => {
 
     it(`check() is accurate`, () => {
       const modules = check(SRC_FILES);
-      expect(modules.map(({filename}) => filename)).to.eql(SRC_FILES);
+      expect(modules.map(({ filename }) => filename)).to.eql(SRC_FILES);
       expect(modules.unPatchable.length).to.eql(0);
       expect(modules.patchable.length).to.eql(0);
       expect(modules.alreadyPatched.length).to.eql(SRC_FILES.length);
@@ -138,7 +138,7 @@ describe(`Actions (slow, mostly due to npm)`, () => {
 
     it(`Patches single file`, () => {
       callPatch(SRC_FILES[0]);
-      checkModules(tspVersion, libDir, [SRC_FILES[0]]);
+      checkModules(tspVersion, libDir, [ SRC_FILES[0] ]);
     });
 
     it(`Patches array of files`, () => {
@@ -147,13 +147,14 @@ describe(`Actions (slow, mostly due to npm)`, () => {
     });
 
     it(`Patches glob`, () => {
-      callPatch(path.join(libDir,'*.js'));
+      callPatch(path.join(libDir, '*.js'));
       checkModules(tspVersion, libDir);
     });
 
     it(`Throws with TS version < 2.7`, () => {
       let err: Error | undefined;
-      try { callPatch(SRC_FILES, '2.6.0'); } catch (e) { err = e; }
+      try { callPatch(SRC_FILES, '2.6.0'); }
+      catch (e) { err = e; }
       expect(err && err.name).to.eq('WrongTSVersion');
     });
   });
@@ -198,7 +199,7 @@ describe(`Actions (slow, mostly due to npm)`, () => {
         expect(modules.patchable.length).to.eq(modules.length);
 
         /* Mark one to skip */
-        const {config} = getTSPackage(destDir);
+        const { config } = getTSPackage(destDir);
         skippedFilename = modules[0].filename;
         config.modules[skippedFilename] += 5 * (60000);
         config.save();
@@ -214,7 +215,7 @@ describe(`Actions (slow, mostly due to npm)`, () => {
       );
 
       it(`Re-patches modules after hook invoked`, () =>
-        expect(modules.alreadyPatched.length >= modules.length-1).to.true
+        expect(modules.alreadyPatched.length >= modules.length - 1).to.true
       );
 
       it(`Skips patching non-modified module`, () => {
