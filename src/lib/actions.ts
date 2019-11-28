@@ -6,8 +6,8 @@ import * as shell from 'shelljs';
 import { patchTSModule } from './patcher';
 import { getModuleAbsolutePath, getTSModule, getTSPackage, mkdirIfNotExist, TSModule, TSPackage } from './file-utils';
 import {
-  TSPOptions, Log, parseOptions, PatchError, RestoreError, resetOptions, defineProperties, BackupError,
-  PersistenceError, tspPackageJSON, appRoot, NPMError
+  appRoot, BackupError, defineProperties, Log, NPMError, parseOptions, PatchError, PersistenceError, resetOptions,
+  RestoreError, TSPOptions, tspPackageJSON
 } from './system';
 import resolve = require('resolve');
 
@@ -145,13 +145,28 @@ function installDependencies(tsPackage: TSPackage) {
 
   /* Install missing dependencies */
   const missingDeps = getDependenciesDetail().filter(({version}) => !version);
+
   if (missingDeps.length > 0) {
     Log(['~', `Installing dependencies: ${missingDeps.map(({name}) => name).join(', ')} (via npm)...`], Log.verbose);
 
+    /*
+     * Note: The environment variable is used here to compensate for an issue within istanbuljs/spawn-wrap
+     *  When nyc coverage is run, spawn-wrap replaces any instance of the word 'node' in command string with an absolute
+     *  path to its node installation. As a result, ts-node cannot install.
+     *
+     *  This workaround will be replaced shortly.
+     */
     shell.exec(
-      `npm i ${missingDeps.map(({name}) => name).join(' ')}`,
-      { cwd: path.resolve(tsPackage.packageDir, '..') }
+      `npm i --no-audit ${ process.platform === 'win32' ? '%PACKAGES%' : '$PACKAGES' }`,
+      {
+        cwd: path.resolve(tsPackage.packageDir, '..'),
+        env: {
+          ...process.env,
+          PACKAGES: missingDeps.map(({name}) => name).join(' ')
+        }
+      }
     );
+
     if (shell.error()) throw new NPMError(`Error while installing dependencies: ${shell.error()}`);
   }
 
