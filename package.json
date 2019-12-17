@@ -46,11 +46,11 @@
     "ts-patch": "./dist/bin/cli.js"
   },
   "peerDependencies": {
-    "typescript": ">3.7.2"
+    "typescript": ">3.7.3"
   },
   "devDependencies": {
     "@phenomnomnominal/tsquery": "^4.0.0",
-    "@types/chai": "^4.2.5",
+    "@types/chai": "^4.2.7",
     "@types/expect": "^24.3.0",
     "@types/istanbul": "^0.4.30",
     "@types/minimist": "^1.2.0",
@@ -68,14 +68,14 @@
     "nyc": "^14.1.1",
     "rewire": "^4.0.1",
     "rimraf": "^3.0.0",
-    "rollup": "^1.27.5",
-    "rollup-plugin-dts": "^1.1.12",
-    "rollup-plugin-typescript2": "^0.25.2",
+    "rollup": "^1.27.13",
+    "rollup-plugin-dts": "^1.1.13",
+    "rollup-plugin-typescript2": "^0.25.3",
     "sinon": "^7.5.0",
     "sinon-chai": "^3.3.0",
     "source-map-support": "^0.5.16",
     "test-console": "^1.1.0",
-    "ts-nameof": "^4.2.0",
+    "ts-nameof": "^4.2.2",
     "ts-node": "^8.5.4",
     "ts-transform-css-modules": "^0.3.3",
     "ts-transform-graphql-tag": "^0.2.1",
