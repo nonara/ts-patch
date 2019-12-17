@@ -9,7 +9,7 @@ insert_final_newline = true
 max_line_length = 120
 ij_visual_guides = 120
 ij_wrap_on_typing = false
-
+end_of_line = lf
 
 [*.md]
 trim_trailing_whitespace = false

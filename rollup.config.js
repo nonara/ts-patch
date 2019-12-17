@@ -4,11 +4,13 @@ import buildPatchTypes from "./scripts/build-patch-types";
 import pkg from './package.json';
 import path from 'path';
 
+
 const tsOptions = {
   typescript: require('typescript'),
   tsconfigOverride: {
     compilerOptions: {
-      module: 'ESNext'
+      module: 'ESNext',
+      newLine: 'LF',
     }
   }
 };
