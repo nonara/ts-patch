@@ -4,6 +4,12 @@ Notable changes are documented in this file.
 
 Project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.0.5] - 2019-12-18
+
+### Fixed
+- Converted EOL to LF (MacOS support)
+  _(Fixes [#3](https://github.com/nonara/ts-patch/issues/3) [#4](https://github.com/nonara/ts-patch/issues/4))_
+  
 ## [1.0.4] - 2019-10-31
 
 ### Fixed
@@ -34,6 +40,7 @@ Project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 - Initial project release
 
+[1.0.5]: https://github.com/nonara/ts-patch/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/nonara/ts-patch/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/nonara/ts-patch/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/nonara/ts-patch/compare/v1.0.1...v1.0.2
