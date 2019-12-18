@@ -14,7 +14,8 @@
     "------------": "-------------",
     "postbuild": "node scripts/postbuild.js",
     "preversion": "npm run build && npm run test",
-    "coverage": "nyc report --reporter=text-lcov | coveralls"
+    "coverage": "nyc report --reporter=text-lcov | coveralls",
+    "version": "git add package.json"
   },
   "private": true,
   "keywords": [
