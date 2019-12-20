@@ -34,8 +34,9 @@ fs.writeFileSync(
 /* Copy postinstall hooks */
 shell.cp(path.join(SRC_DIR, 'resources', 'postinstall*'), path.join(DIST_DIR, 'resources/'));
 
-/* Copy Readme */
+/* Copy Readme & Changelog */
 shell.cp(path.resolve('./README.md'), DIST_DIR);
+shell.cp(path.resolve('./CHANGELOG.md'), DIST_DIR);
 
 /* Add shebang line to cli */
 const cliPath = path.join(DIST_DIR, '/bin/cli.js');
