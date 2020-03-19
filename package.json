@@ -47,10 +47,13 @@
     "ts-patch": "./dist/bin/cli.js"
   },
   "peerDependencies": {
-    "typescript": ">3.7.3"
+    "typescript": ">2.7.0"
   },
   "devDependencies": {
     "@phenomnomnominal/tsquery": "^4.0.0",
+    "@rollup/plugin-commonjs": "^11.0.2",
+    "@rollup/plugin-json": "^4.0.2",
+    "@rollup/plugin-node-resolve": "^7.1.1",
     "@types/chai": "^4.2.7",
     "@types/expect": "^24.3.0",
     "@types/istanbul": "^0.4.30",
@@ -67,10 +70,12 @@
     "graphql-tag": "^2.10.1",
     "mocha": "^6.2.2",
     "nyc": "^14.1.1",
+    "resolve": "^1.15.1",
     "rewire": "^4.0.1",
     "rimraf": "^3.0.0",
     "rollup": "^1.27.13",
     "rollup-plugin-dts": "^1.1.13",
+    "rollup-plugin-shim": "^1.0.0",
     "rollup-plugin-typescript2": "^0.25.3",
     "sinon": "^7.5.0",
     "sinon-chai": "^3.3.0",
@@ -84,7 +89,7 @@
     "ts-transform-react-intl": "^0.4.1",
     "ts-transformer-enumerate": "^0.5.1",
     "ts-transformer-keys": "^0.4.1",
-    "typescript": "^3.7.2"
+    "typescript": "^3.8.3"
   },
   "directories": {
     "resources": "./dist/resources"

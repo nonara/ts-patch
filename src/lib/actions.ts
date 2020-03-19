@@ -17,7 +17,7 @@ import resolve = require('resolve');
  * ********************************************************************************************************************/
 // region Config
 
-export const tsDependencies = [ 'ts-node', 'resolve' ];
+export const tsDependencies = [ 'ts-node' ];
 
 shell.config.silent = true;
 

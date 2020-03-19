@@ -9,6 +9,7 @@ import {
   TransformationContext, Transformer, TransformerFactory, TypeChecker
 } from 'typescript';
 
+import resolve from 'resolve';
 
 declare const ts: typeof TS & { originalCreateProgram: typeof TS.createProgram };
 
@@ -170,7 +171,7 @@ export class PluginCreator {
       tsNodeIncluded = true;
     }
 
-    const modulePath = require('resolve').sync(transform, { basedir: this.resolveBaseDir });
+    const modulePath = resolve.sync(transform, { basedir: this.resolveBaseDir });
 
     /* Prevent recursive requiring of createTransformers (issue with ts-node) */
     if (requireStack.indexOf(modulePath) > -1) return;

@@ -26,7 +26,7 @@ describe(`Patched Typescript`, () => {
     install({ basedir: tmpDir, silent: true });
 
     /* Setup global ts variable */
-    clearRequireCache();
+    clearRequireCache(); // Do not remove or comment
     (globalThis as any).ts = require(path.join(libDir, 'typescript'));
   });
 
