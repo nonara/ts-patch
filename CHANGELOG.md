@@ -4,6 +4,12 @@ Notable changes are documented in this file.
 
 Project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.0.6] - 2020-03-18
+
+### Fixed
+- Rolled `resolve` package into patch
+  _(Fixes [#5](https://github.com/nonara/ts-patch/issues/5))_
+  
 ## [1.0.5] - 2019-12-18
 
 ### Fixed
