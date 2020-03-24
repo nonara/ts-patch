@@ -4,6 +4,12 @@ Notable changes are documented in this file.
 
 Project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.0.7] - 2020-03-24
+
+### Fixed
+- Exposed & fixed `addDiagnostic` helper
+  _(Fixes [#6](https://github.com/nonara/ts-patch/issues/6))_
+  
 ## [1.0.6] - 2020-03-18
 
 ### Fixed
@@ -46,6 +52,8 @@ Project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 - Initial project release
 
+[1.0.7]: https://github.com/nonara/ts-patch/compare/v1.0.6...v1.0.7
+[1.0.6]: https://github.com/nonara/ts-patch/compare/v1.0.5...v1.0.6
 [1.0.5]: https://github.com/nonara/ts-patch/compare/v1.0.4...v1.0.5
 [1.0.4]: https://github.com/nonara/ts-patch/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/nonara/ts-patch/compare/v1.0.2...v1.0.3
