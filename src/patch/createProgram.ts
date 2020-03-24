@@ -126,7 +126,7 @@ export function createProgram(
     emitOnlyDtsFiles?: boolean,
     customTransformers?: TS.CustomTransformers
   ): TS.EmitResult {
-    /* Merge in our tranformers */
+    /* Merge in our transformers */
     const mergedTransformers = pluginCreator.createTransformers({ program }, customTransformers);
 
     /* Invoke TS emit */
@@ -138,7 +138,8 @@ export function createProgram(
       mergedTransformers
     );
 
-    result.diagnostics.concat(transformerErrors.get(program) || []);
+    result.diagnostics = [ ...(result.diagnostics || []), ...(transformerErrors.get(program) || []) ];
+
     return result;
   };
 
