@@ -58,11 +58,12 @@ _Note: `transform` can accept npm module or local file path (.ts or .js) relativ
 #### program (default)
 Factory signature (`program` as first argument):
 ```ts
-(program: ts.Program, config?: PluginConfig) => ts.TransformerFactory
+(program: ts.Program, config: PluginConfig | undefined, helpers: { ts: typeof ts, addDiagnostic: (diag: ts.Diagnostic) => void }) => ts.TransformerFactory
 where 
 ts.TransformerFactory = (context: ts.TransformationContext) => (sourceFile: ts.SourceFile) => ts.SourceFile
 ```
 Config Example: `{ "transform": "transformer-module" }`.
+_Note: `addDiagnostic()` can only add `Diagnostic` entries to `EmitResult.diagnostic` It cannot be used to alter semantic diagnostics_
 
 #### config
 Signature with transformer's config:
