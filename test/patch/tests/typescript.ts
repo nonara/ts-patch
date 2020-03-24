@@ -3,6 +3,7 @@ import * as path from 'path';
 import chai, { expect } from 'chai';
 import sinonChai from 'sinon-chai';
 import sinon from 'sinon';
+import { ScriptTarget } from 'typescript/lib/tsserverlibrary';
 
 
 chai.use(sinonChai);
@@ -65,6 +66,20 @@ export default function suite() {
 
     expect(res.outputText).to.match(safelyExpected);
     expect(customTransformer.calledOnce).to.be.true;
+  });
+
+  it('Custom Diagnostics Merge in EmitResult', () => {
+    const compilerOptions = {
+      target: ScriptTarget.ES5,
+      plugins: [ {
+        transform: path.join(__dirname, '../transforms/diagnostic.ts'),
+      } ] as any,
+    };
+
+    const program = ts.createProgram([], compilerOptions);
+    const res = program.emit(ts.createSourceFile('a', '', ScriptTarget.ES5), /* writeFile */ () => {});
+
+    expect(Boolean(res.diagnostics.find(({ code }) => code === 1337))).to.be.true;
   });
 
   it('Runs 3rd party transformers', () => {
