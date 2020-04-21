@@ -4,6 +4,12 @@ Notable changes are documented in this file.
 
 Project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.0.8] - 2020-04-21
+
+### Fixed
+- Adjusted ts-node compilerOptions to ES2018
+  _(Fixes [#7](https://github.com/nonara/ts-patch/issues/7))_
+  
 ## [1.0.7] - 2020-03-24
 
 ### Fixed
@@ -52,6 +58,7 @@ Project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 - Initial project release
 
+[1.0.8]: https://github.com/nonara/ts-patch/compare/v1.0.7...v1.0.8
 [1.0.7]: https://github.com/nonara/ts-patch/compare/v1.0.6...v1.0.7
 [1.0.6]: https://github.com/nonara/ts-patch/compare/v1.0.5...v1.0.6
 [1.0.5]: https://github.com/nonara/ts-patch/compare/v1.0.4...v1.0.5
