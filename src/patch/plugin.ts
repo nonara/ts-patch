@@ -164,7 +164,9 @@ export class PluginCreator {
         transpileOnly: true,
         skipProject: true,
         compilerOptions: {
-          target: 'es5',
+          target: 'ES2018',
+          jsx: 'react',
+          esModuleInterop: true,
           module: 'commonjs',
         },
       });
