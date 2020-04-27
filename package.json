@@ -40,7 +40,7 @@
     "chalk": "^3.0.0",
     "global-prefix": "^3.0.0",
     "minimist": "^1.2.5",
-    "shelljs": "^0.8.3",
+    "shelljs": "^0.8.4",
     "strip-ansi": "^6.0.0"
   },
   "bin": {
