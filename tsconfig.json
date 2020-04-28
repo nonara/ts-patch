@@ -13,7 +13,7 @@
     "target": "es5",
     "module":"CommonJS",
     "moduleResolution": "node",
-    "removeComments": true,
+    "declaration": true,
 
     "newLine": "LF",
     "allowJs": false,

@@ -3,6 +3,7 @@
   "version": "1.0.9",
   "description": "Patch typescript to support custom transformers in tsconfig.json",
   "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "clean": "rimraf dist coverage .nyc_output",
     "compile": "tsc",
@@ -15,7 +16,8 @@
     "postbuild": "node scripts/postbuild.js",
     "preversion": "npm run build && npm run test",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
-    "version": "git add package.json"
+    "version": "git add package.json",
+    "postversion": "node scripts/postbuild.js"
   },
   "private": true,
   "keywords": [

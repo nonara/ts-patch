@@ -15,6 +15,7 @@ const tsOptions = {
     compilerOptions: {
       module: 'ESNext',
       newLine: 'LF',
+      declaration: false
     }
   }
 };
