@@ -32,13 +32,13 @@ const files = [
 export function createTSInstallation(fullInstall: boolean = false, tsVersion?: string) {
   if (!tsVersion) tsVersion = tspPackageJSON.devDependencies.typescript;
 
-  const pkgJSON = `{ 
-    "name": "fake-module", 
-    "version": "1.0.0", 
-    "dependencies": { 
-      "typescript": "${tsVersion}", 
+  const pkgJSON = `{
+    "name": "fake-module",
+    "version": "1.0.0",
+    "dependencies": {
+      "typescript": "${tsVersion}",
       "ts-patch": "file:ts-patch"
-    } 
+    }
   }`;
 
   /* Setup temp dir */
@@ -58,7 +58,7 @@ export function createTSInstallation(fullInstall: boolean = false, tsVersion?: s
       /(?<="version":\s*?").+?(?=")/,
       tsVersion!.replace(/[^0-9.\-\w]/g, ''),
       path.join(srcDir, 'package.json')
-    ));
+    ).toString());
 
     // Copy relevant typescript files
     for (let srcFile of files) {
