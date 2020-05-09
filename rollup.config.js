@@ -13,6 +13,8 @@ const tsOptions = {
   typescript: require('typescript'),
   tsconfigOverride: {
     compilerOptions: {
+      target: 'ES5',
+      downlevelIteration: true,
       module: 'ESNext',
       newLine: 'LF',
       declaration: false

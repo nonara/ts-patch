@@ -6,15 +6,19 @@ ts-patch
 =======================================
 
 ## Description
-ts-patch is a tool which patches typescript to allow custom transformers (plugins) to be specified in tsconfig.json.
+ts-patch is a tool which directly patches a typescript installation to allow custom transformers (plugins). Plugins are specified in `tsconfig.json`, or provided programmatically in `CompilerOptions`.
 
-Its logic is based on [ttypescript](https://github.com/cevek/ttypescript). (Credit and thanks to [cevek](https://github.com/cevek) for the excellent work!)
+It now also supports 'transforming' the `Program` instance prior to emit. See [Transforming Program](#transforming-program) for more info!
+
+Logic based on [ttypescript](https://github.com/cevek/ttypescript). It is also fully compatible. 
+(Credit and thanks to [cevek](https://github.com/cevek) for the excellent work!)
 
 ## Features
 * Easy to patch or unpatch any version of typescript (2.7+)
 * One step setup - no complicated install process
 * Optionally, enable **persistence**, which re-patches typescript automatically if it is updated
 * Advanced options for patching individual files, specific locations, etc. (see `ts-patch /?`)
+* Can transform `Program` instance used for emit
 
 ## Installation
 ```
@@ -43,15 +47,17 @@ Add transformers to `compilerOptions` in `plugin` array:
 ```
 
 ### Plugin Options
+| Option                | Description |
+| --------------------- |  :----------- |
+| **transform**         | Module name or path to transformer _(*.ts or *.js)_ |
+| type              | Plugin entry point format _(see [Plugin Types](#plugin-types))_ |
+| import            | Name of exported transformer function _(defaults to `default` export)_ |
+| after             | Apply transformer after stock TS transformers. |
+| afterDeclarations | Apply transformer to declaration (*.d.ts) files _(TypeScript 2.9+)_. |
+| beforeEmit        | Transform `Program` before `program.emit()` is called _(See [Transforming Program](#transforming-program))_ |
+| _..._    |  Provide your own custom options, which will be passed to the transformer |
 
-* **transform** - path to transformer or module name
-* **type** (optional) - Plugin entry point format (see below for options)
-* **import** (optional) - Name of exported transform plugin in transformer module.
-* **after** (optional) - Apply transformer after all others
-* **afterDeclarations** (optional) - Apply transformer to d.ts files (supported in TypeScript 2.9+)
-* _[custom options]_ - Supply additional options to transformer
-
-_Note: `transform` can accept npm module or local file path (.ts or .js) relative to to `tsconfig.json` path_
+_Note: Required options are bold_
 
 ### Plugin Types
 
@@ -99,13 +105,56 @@ Config Example: `{ "transform": "transformer-module", type: "compilerOptions" }`
         "plugins": [
             { "transform": "transformer-module", "someOption1": 123, "someOption2": 321 },
             { "transform": "./transformers/my-transformer.ts" },
-            { "transform": "transformer-module", "after": true },
-            { "transform": "transformer-module", "afterDeclarations": true },
-            { "transform": "transformer-module", "type": "ls" }
+            { "transform": "transformer-module1", "after": true },
+            { "transform": "transformer-module2", "afterDeclarations": true },
+            { "transform": "transformer-module3", "type": "ls" },
+            { "transform": "transformer-module4", "beforeEmit": true }
         ]
     }
 }
 ```
+
+## Transforming Program
+
+There are some cases where a transformer isn't enough. Some of the biggest examples are if you're trying to:
+
+- TypeCheck code after it's been transformed
+- Add or remove emit files during transformation
+
+In order to do this, you'd normally have to create a custom build tool which manually creates `Program` and manipulates 
+or re-creates it as you need.
+
+The good news is, you can now integrate this into standard tsc behaviour via a `beforeEmit` plugin.
+
+### Export Signature
+
+`(program: ts.Program, host?: ts.CompilerHost, options?: PluginConfig) => ts.Program`
+
+### Notes
+
+- A Program transformer is not a TS transformer. The signature does not change, so the `type` config option is ignored!
+- The `before` and `after` config options also do not apply if `beforeEmit: true` is specified
+
+### Example
+```TypeScript
+/** 
+ * Add a file to Program
+ */
+import * as ts from 'typescript';
+import * as path from 'path';
+
+export const newFile = path.resolve(__dirname, 'added-file.ts');
+
+export default function (program: ts.Program, host?: ts.CompilerHost) {
+  return ts.createProgram(
+    /* rootNames */ program.getRootFileNames().concat([ newFile ]),
+    program.getCompilerOptions(),
+    host,
+    /* oldProgram */ program
+  );
+}
+```
+
 
 ## Transformers
 

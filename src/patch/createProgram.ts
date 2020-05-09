@@ -118,7 +118,10 @@ export function createProgram(
   const pluginCreator = new PluginCreator(plugins, projectDir);
 
   /* Hook TypeScript emit method */
+  // noinspection UnnecessaryLocalVariableJS
   const originalEmit = program.emit;
+  (program as any).originalEmit = originalEmit;
+
   program.emit = function newEmit(
     targetSourceFile?: TS.SourceFile,
     writeFile?: TS.WriteFileCallback,
@@ -127,15 +130,23 @@ export function createProgram(
     customTransformers?: TS.CustomTransformers
   ): TS.EmitResult {
     /* Merge in our transformers */
-    const mergedTransformers = pluginCreator.createTransformers({ program }, customTransformers);
+    const { programTransformers, transformers } = pluginCreator.createTransformers({ program }, customTransformers);
+
+    /* Transform Program */
+    let targetProgram:TS.Program = program;
+    // @ts-ignore - no iterator error
+    for (const [ programTransformer, config ] of programTransformers.entries()) {
+      const newProgram:any | undefined = programTransformer(targetProgram, host, config);
+      if (typeof newProgram?.['emit'] === 'function') targetProgram = newProgram;
+    }
 
     /* Invoke TS emit */
-    const result: TS.EmitResult = originalEmit(
+    const result: TS.EmitResult = ((targetProgram as any)['originalEmit'] || targetProgram.emit)(
       targetSourceFile,
       writeFile,
       cancellationToken,
       emitOnlyDtsFiles,
-      mergedTransformers
+      transformers
     );
 
     result.diagnostics = [ ...(result.diagnostics || []), ...(transformerErrors.get(program) || []) ];

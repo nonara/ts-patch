@@ -2,29 +2,27 @@
  * The logic in this file is based on TTypescript (https://github.com/cevek/ttypescript)
  * Credit & thanks go to cevek (https://github.com/cevek) for the incredible work!
  */
-
 import { addDiagnosticFactory, never } from './shared';
 import {
-  Bundle, CompilerOptions, CustomTransformers, default as TS, Diagnostic, LanguageService, Program, SourceFile,
+  Bundle, CompilerHost, CompilerOptions, CustomTransformers, default as TS, Diagnostic, LanguageService, Program,
+  SourceFile,
   TransformationContext, Transformer, TransformerFactory, TypeChecker
 } from 'typescript';
-
 import resolve from 'resolve';
 
+
+/* ****************************************************************************************************************** */
+// region: Types
+/* ****************************************************************************************************************** */
+
 declare const ts: typeof TS & { originalCreateProgram: typeof TS.createProgram };
-
-
-/* ********************************************************************************************************************
- * Types
- * ********************************************************************************************************************/
-
-// region Types
 
 export interface PluginConfig {
   /**
    * Language Server TypeScript Plugin name
    */
   name?: string;
+
   /**
    * Path to transformer or transformer module name
    */
@@ -49,7 +47,19 @@ export interface PluginConfig {
    * Should transformer applied for d.ts files, supports from TS2.9
    */
   afterDeclarations?: boolean;
+
+  /**
+   * Alter *Program* instance before emit() is called. (`type`, `after`, & `afterDeclarations` settings will not apply)
+   * Entry point must be (program: Program, host?: CompilerHost) => Program
+   */
+  beforeEmit?: boolean;
 }
+
+export type TransformerList = Required<CustomTransformers>;
+export type TransformerPlugin = TransformerBasePlugin | TransformerFactory<SourceFile>;
+
+export type PluginFactory =
+  LSPattern | ProgramPattern | ConfigPattern | CompilerOptionsPattern | TypeCheckerPattern | RawPattern;
 
 export interface TransformerBasePlugin {
   before?: TransformerFactory<SourceFile>;
@@ -57,11 +67,16 @@ export interface TransformerBasePlugin {
   afterDeclarations?: TransformerFactory<SourceFile | Bundle>;
 }
 
-export type TransformerList = Required<CustomTransformers>;
+export type ProgramTransformer = (program: Program, host?: CompilerHost, config?: PluginConfig) => Program;
 
-export type TransformerPlugin = TransformerBasePlugin | TransformerFactory<SourceFile>;
+/* ********************************************************* */
+// region: Patterns
+/* ********************************************************* */
 
 export type LSPattern = (ls: LanguageService, config: {}) => TransformerPlugin;
+export type CompilerOptionsPattern = (compilerOpts: CompilerOptions, config: {}) => TransformerPlugin;
+export type ConfigPattern = (config: {}) => TransformerPlugin;
+export type TypeCheckerPattern = (checker: TypeChecker, config: {}) => TransformerPlugin;
 
 export type ProgramPattern = (
   program: Program,
@@ -69,25 +84,13 @@ export type ProgramPattern = (
   helpers?: { ts: typeof ts; addDiagnostic: (diag: Diagnostic) => void }
 ) => TransformerPlugin;
 
-export type CompilerOptionsPattern = (compilerOpts: CompilerOptions, config: {}) => TransformerPlugin;
-
-export type ConfigPattern = (config: {}) => TransformerPlugin;
-
-export type TypeCheckerPattern = (checker: TypeChecker, config: {}) => TransformerPlugin;
-
 export type RawPattern = (
   context: TransformationContext,
   program: Program,
   config: {}
 ) => Transformer<SourceFile>;
 
-export type PluginFactory =
-  | LSPattern
-  | ProgramPattern
-  | ConfigPattern
-  | CompilerOptionsPattern
-  | TypeCheckerPattern
-  | RawPattern;
+// endregion
 
 // endregion
 
@@ -130,26 +133,29 @@ export class PluginCreator {
   public createTransformers(
     params: { program: Program } | { ls: LanguageService },
     customTransformers?: CustomTransformers
-  ) {
-    const chain: TransformerList = { before: [], after: [], afterDeclarations: [] };
+  ): { transformers: TransformerList, programTransformers: Map<ProgramTransformer, PluginConfig> } {
+    const transformers: TransformerList = { before: [], after: [], afterDeclarations: [] };
+    const programTransformers = new Map<ProgramTransformer, PluginConfig>();
 
     const [ ls, program ] = ('ls' in params) ? [ params.ls, params.ls.getProgram()! ] : [ void 0, params.program ];
 
     for (const config of this.configs) {
       if (!config.transform) continue;
+
       const factory = this.resolveFactory(config.transform, config.import);
+      if (factory === undefined) continue; // In case of recursion
 
-      // In case of recursion
-      if (factory === undefined) continue;
-
-      const transformer = PluginCreator.createTransformerFromPattern({ factory, config, program, ls });
-      this.mergeTransformers(chain, transformer);
+      if (config.beforeEmit) programTransformers.set(factory as ProgramTransformer, config);
+      else this.mergeTransformers(
+        transformers,
+        PluginCreator.createTransformerFromPattern({ factory: <PluginFactory>factory, config, program, ls })
+      );
     }
 
     // Chain custom transformers at the end
-    if (customTransformers) this.mergeTransformers(chain, customTransformers);
+    if (customTransformers) this.mergeTransformers(transformers, customTransformers);
 
-    return chain;
+    return { transformers, programTransformers };
   }
 
 
@@ -157,7 +163,9 @@ export class PluginCreator {
    * Helpers
    * ***********************************************************/
 
-  private resolveFactory(transform: string, importKey: string = 'default'): PluginFactory | undefined {
+  private resolveFactory(transform: string, importKey: string = 'default'):
+    PluginFactory | ProgramTransformer | undefined
+  {
     /* Add support for TS transformers */
     if (!tsNodeIncluded && transform.match(/\.ts$/)) {
       require('ts-node').register({
@@ -178,13 +186,14 @@ export class PluginCreator {
     /* Prevent recursive requiring of createTransformers (issue with ts-node) */
     if (requireStack.indexOf(modulePath) > -1) return;
 
+    /* Load plugin */
     requireStack.push(modulePath);
     const commonjsModule: PluginFactory | { [key: string]: PluginFactory } = require(modulePath);
     requireStack.pop();
 
     const factoryModule = (typeof commonjsModule === 'function') ? { default: commonjsModule } : commonjsModule;
-
     const factory = factoryModule[importKey];
+
     if (!factory)
       throw new Error(
         `tsconfig.json > plugins: "${transform}" does not have an export "${importKey}": ` +
@@ -213,9 +222,10 @@ export class PluginCreator {
     ls?: LanguageService;
   }):
     TransformerBasePlugin {
-    const { transform, after, afterDeclarations, name, type, ...cleanConfig } = config;
+    const { transform, after, afterDeclarations, name, type, beforeEmit, ...cleanConfig } = config;
 
     if (!transform) throw new Error('Not a valid config entry: "transform" key not found');
+
 
     let ret: TransformerPlugin;
     switch (config.type) {

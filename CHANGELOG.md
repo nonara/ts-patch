@@ -4,73 +4,26 @@ Notable changes are documented in this file.
 
 Project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
-## [1.0.9] - 2020-04-27
+## [1.1.0] (05-08-2020)
+
+### Added
+- Added `beforeEmit` option, which allows 'transforming' `Program` instance before `program.emit()` is called.
+
+## [1.0] (2019 - 2020)
 
 ### Fixed
 - Updated for Node v14
   _(Addresses [#7](https://github.com/nonara/ts-patch/issues/8), [shelljs/shelljs#991](https://github.com/shelljs/shelljs/issues/991))_  
-
-## [1.0.8] - 2020-04-21
-
-### Fixed
 - Adjusted ts-node compilerOptions to ES2018
   _(Fixes [#7](https://github.com/nonara/ts-patch/issues/7))_  
-  
-## [1.0.7] - 2020-03-24
-
-### Fixed
 - Exposed & fixed `addDiagnostic` helper
   _(Fixes [#6](https://github.com/nonara/ts-patch/issues/6))_
-  
-## [1.0.6] - 2020-03-18
-
-### Fixed
 - Rolled `resolve` package into patch
   _(Fixes [#5](https://github.com/nonara/ts-patch/issues/5))_
-  
-## [1.0.5] - 2019-12-18
-
-### Fixed
 - Converted EOL to LF (MacOS support)
   _(Fixes [#3](https://github.com/nonara/ts-patch/issues/3) [#4](https://github.com/nonara/ts-patch/issues/4))_
-  
-## [1.0.4] - 2019-10-31
-
-### Fixed
 - Edge cases occurred in which TypeScript based transformers using CommonJS were not being interpretted properly. 
   _(Should address [issue #1](https://github.com/nonara/ts-patch/issues/1))_
 
-## [1.0.3] - 2019-10-31
-
-### Added
-- Added changelog file
-
-### Changed
-- Updated rewire implementation in tests (broken with Node 13)
-- Locked Rollup to version 1.25.2 (Awaiting fix for [rollup-plugin-dts issue #64](https://github.com/Swatinem/rollup-plugin-dts/issues/64))
-
-## [1.0.2] - 2019-10-15
-
-### Changed 
-- Refactored patch tests to use package TS version
-
-## [1.0.1] - 2019-10-15
-
-### Fixed
-- Corrected a few docstring / comments for accuracy
-- Set license to MIT
-
-## [1.0.0] - 2019-10-14
-
-- Initial project release
-
-[1.0.9]: https://github.com/nonara/ts-patch/compare/v1.0.8...v1.0.9
-[1.0.8]: https://github.com/nonara/ts-patch/compare/v1.0.7...v1.0.8
-[1.0.7]: https://github.com/nonara/ts-patch/compare/v1.0.6...v1.0.7
-[1.0.6]: https://github.com/nonara/ts-patch/compare/v1.0.5...v1.0.6
-[1.0.5]: https://github.com/nonara/ts-patch/compare/v1.0.4...v1.0.5
-[1.0.4]: https://github.com/nonara/ts-patch/compare/v1.0.3...v1.0.4
-[1.0.3]: https://github.com/nonara/ts-patch/compare/v1.0.2...v1.0.3
-[1.0.2]: https://github.com/nonara/ts-patch/compare/v1.0.1...v1.0.2
-[1.0.1]: https://github.com/nonara/ts-patch/compare/v1.0.0...v1.0.1
-[1.0.0]: https://github.com/nonara/ts-patch/releases/tag/v1.0.0
+[1.1.0]: https://github.com/nonara/ts-patch/compare/v1.0.10...v1.1.0
+[1.0]: https://github.com/nonara/ts-patch/releases/tag/v1.0.0...v1.0.10

@@ -4,6 +4,7 @@ import chai, { expect } from 'chai';
 import sinonChai from 'sinon-chai';
 import sinon from 'sinon';
 import { ScriptTarget } from 'typescript/lib/tsserverlibrary';
+import { newFiles } from '../transforms/program-transformer';
 
 
 chai.use(sinonChai);
@@ -107,5 +108,46 @@ export default function suite() {
       },
     });
     expect(res.outputText).to.match(basicExpected)
+  });
+
+  it('beforeEmit transforms Program', () => {
+    const safelyFile = path.join(__dirname, '../assets/safely-code.ts');
+    const plugins: any[] = [
+      { transform: path.join(__dirname, '../transforms/program-transformer.ts'), beforeEmit: true, import: 'progTransformer1' },
+      { transform: path.join(__dirname, '../transforms/program-transformer.ts'), beforeEmit: true, import: 'progTransformer2' }
+    ];
+    const compilerOptions: ts.CompilerOptions = {
+      ...ts.getDefaultCompilerOptions(),
+      lib: undefined,
+      types: undefined,
+      noEmit: undefined,
+      noEmitOnError: undefined,
+      paths: undefined,
+      rootDirs: undefined,
+      composite: undefined,
+      declarationDir: undefined,
+      out: undefined,
+      outFile: undefined,
+      noResolve: true,
+      noLib: true
+    }
+    const file1 = newFiles[0].replace(/.ts$/, '.js');
+    const file2 = newFiles[1].replace(/.ts$/, '.js');
+
+    const outFiles = new Set<string>();
+    const writeFile = (fileName: string) => outFiles.add(fileName);
+
+    /* Transform once */
+    let program = ts.createProgram([ safelyFile ], { ...compilerOptions, plugins: plugins.slice(0, 1) });
+    program.emit(void 0, writeFile);
+    expect(outFiles.has(file1)).to.be.true;
+    expect(outFiles.has(file2)).to.be.false;
+    outFiles.clear();
+
+    /* Transform twice */
+    program = ts.createProgram([ safelyFile ], { ...compilerOptions, plugins: plugins });
+    program.emit(void 0, writeFile);
+    expect(outFiles.has(file1)).to.be.false;
+    expect(outFiles.has(file2)).to.be.true;
   });
 }
