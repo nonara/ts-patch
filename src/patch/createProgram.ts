@@ -134,8 +134,7 @@ export function createProgram(
 
     /* Transform Program */
     let targetProgram:TS.Program = program;
-    // @ts-ignore - no iterator error
-    for (const [ programTransformer, config ] of programTransformers.entries()) {
+    for (const [ programTransformer, config ] of programTransformers) {
       const newProgram:any | undefined = programTransformer(targetProgram, host, config);
       if (typeof newProgram?.['emit'] === 'function') targetProgram = newProgram;
     }

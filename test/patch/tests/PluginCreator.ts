@@ -11,7 +11,7 @@ import * as ts from 'typescript';
  * ********************************************************************************************************************/
 
 function createTransformers(config: PluginConfig[]):
-  { transformers: TransformerList, programTransformers: Map<ProgramTransformer, PluginConfig> }
+  { transformers: TransformerList, programTransformers: [ ProgramTransformer, PluginConfig ][] }
 {
   const pluginCreator = new PluginCreator(config, __dirname);
   const host = { program: {} as ts.Program };
@@ -82,7 +82,7 @@ export default function suite() {
       { transform: '../transforms/program-transformer.ts', beforeEmit: true, import: 'progTransformer2' }
     ];
 
-    const { programTransformers } = createTransformers(config);
+    const programTransformers = new Map(createTransformers(config).programTransformers);
     expect(programTransformers.get(progTransformer1)).to.eql(config[0]);
     expect(programTransformers.get(progTransformer2)).to.eql(config[1]);
   });

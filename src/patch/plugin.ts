@@ -133,9 +133,9 @@ export class PluginCreator {
   public createTransformers(
     params: { program: Program } | { ls: LanguageService },
     customTransformers?: CustomTransformers
-  ): { transformers: TransformerList, programTransformers: Map<ProgramTransformer, PluginConfig> } {
+  ): { transformers: TransformerList, programTransformers: [ ProgramTransformer, PluginConfig ][] } {
     const transformers: TransformerList = { before: [], after: [], afterDeclarations: [] };
-    const programTransformers = new Map<ProgramTransformer, PluginConfig>();
+    const programTransformers: [ ProgramTransformer, PluginConfig ][] = [];
 
     const [ ls, program ] = ('ls' in params) ? [ params.ls, params.ls.getProgram()! ] : [ void 0, params.program ];
 
@@ -145,7 +145,7 @@ export class PluginCreator {
       const factory = this.resolveFactory(config.transform, config.import);
       if (factory === undefined) continue; // In case of recursion
 
-      if (config.beforeEmit) programTransformers.set(factory as ProgramTransformer, config);
+      if (config.beforeEmit) programTransformers.push([ factory as ProgramTransformer, config ]);
       else this.mergeTransformers(
         transformers,
         PluginCreator.createTransformerFromPattern({ factory: <PluginFactory>factory, config, program, ls })
