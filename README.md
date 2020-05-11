@@ -65,10 +65,9 @@ _Note: Required options are bold_
 Factory signature (`program` as first argument):
 ```ts
 (program: ts.Program, config: PluginConfig | undefined, helpers: { ts: typeof ts, addDiagnostic: (diag: ts.Diagnostic) => void }) => ts.TransformerFactory
-where 
-ts.TransformerFactory = (context: ts.TransformationContext) => (sourceFile: ts.SourceFile) => ts.SourceFile
+// ts.TransformerFactory = (context: ts.TransformationContext) => (sourceFile: ts.SourceFile) => ts.SourceFile
 ```
-Config Example: `{ "transform": "transformer-module" }`.
+Config Example: `{ "transform": "transformer-module" }`.  
 _Note: `addDiagnostic()` can only add `Diagnostic` entries to `EmitResult.diagnostic` It cannot be used to alter semantic diagnostics_
 
 #### config
@@ -158,12 +157,12 @@ export default function (program: ts.Program, host?: ts.CompilerHost) {
 
 ## Transformers
 
-You can write transformers in TypeScript or JavaScript
+Transformers can be written in JS or TS.
 
 ```ts
 // transformer1-module
 import * as ts from 'typescript';
-export default function(program: ts.Program, pluginOptions: {}) {
+export default function(program: ts.Program, pluginOptions: any) {
     return (ctx: ts.TransformationContext) => {
         return (sourceFile: ts.SourceFile) => {
             function visitor(node: ts.Node): ts.Node {
@@ -179,46 +178,58 @@ export default function(program: ts.Program, pluginOptions: {}) {
 
 ```
 
+### Recommended Reading
+
+- [TypeScript Transformer Handbook](https://github.com/madou/typescript-transformer-handbook) (**must read**, whether new or experienced)
+- Article: [How to Write a TypeScript Transform (Plugin)](https://dev.doctorevidence.com/how-to-write-a-typescript-transform-plugin-fc5308fdd943)
+- Article: [Creating a TypeScript Transformer](https://43081j.com/2018/08/creating-a-typescript-transform?source=post_page-----731e2b0b66e6----------------------)
+
+### Recommended Tools
+
+| Tool | Type | Description |
+| ---- | ---- | ----------- |
+| [TS AST Viewer](https://ts-ast-viewer.com/) | Website | Allows you to see the `Node` structure of any TS/JS source, including Flags, `Type`, and `Symbol`. This is the go-to tool for all things TypeScript AST.
+| [ts-query](https://www.npmjs.com/package/@phenomnomnominal/tsquery) | NPM Module |  Perform fast CSS-like queries on AST to find specific nodes (by attribute, kind, name, etc)
+| [ts-query Playground](https://tsquery-playground.firebaseapp.com/) | Website | Test `ts-query` in realtime
+
 ### Example Transformers:
 
-[`{ "transform": "ts-optchain/transform" }`](https://github.com/rimeto/ts-optchain) 
+[`{ transform: "typescript-is/lib/transform-inline/transformer" }`](https://github.com/woutervh-/typescript-is) 
 
-[`{transform: "typescript-is/lib/transform-inline/transformer"}`](https://github.com/woutervh-/typescript-is) 
+[`{ transform: "ts-transformer-keys/transformer" }`](https://github.com/kimamula/ts-transformer-keys) 
 
-[`{transform: "ts-transformer-keys/transformer"}`](https://github.com/kimamula/ts-transformer-keys) 
+[`{ transform: "ts-transformer-enumerate/transformer" }`](https://github.com/kimamula/ts-transformer-enumerate)
 
-[`{transform: "ts-transformer-enumerate/transformer"}`](https://github.com/kimamula/ts-transformer-enumerate)
+[`{ transform: "ts-transform-graphql-tag/dist/transformer" }`](https://github.com/firede/ts-transform-graphql-tag) 
 
-[`{transform: "ts-transform-graphql-tag/dist/transformer"}`](https://github.com/firede/ts-transform-graphql-tag) 
+[`{ transform: "ts-transform-img/dist/transform", type: "config" }`](https://github.com/longlho/ts-transform-img) 
 
-[`{transform: "ts-transform-img/dist/transform", type: "config"}`](https://github.com/longlho/ts-transform-img) 
+[`{ transform: "ts-transform-css-modules/dist/transform", type: "config" }`](https://github.com/longlho/ts-transform-css-modules) 
 
-[`{transform: "ts-transform-css-modules/dist/transform", type: "config"}`](https://github.com/longlho/ts-transform-css-modules) 
+[`{ transform: "ts-transform-react-intl/dist/transform", import: "transform", type: "config" }`](https://github.com/longlho/ts-transform-react-intl) 
 
-[`{transform: "ts-transform-react-intl/dist/transform", import: "transform", type: "config"}`](https://github.com/longlho/ts-transform-react-intl) 
+[`{ transform: "ts-nameof", type: "raw" }`](https://github.com/dsherret/ts-nameof) 
 
-[`{transform: "ts-nameof", type: "raw"}`](https://github.com/dsherret/ts-nameof) 
+[`{ transform: "typescript-transform-jsx" }`](https://github.com/LeDDGroup/typescript-transform-jsx) 
 
-[`{transform: "typescript-transform-jsx" }`](https://github.com/LeDDGroup/typescript-transform-jsx) 
+[`{ transform: "typescript-transform-paths" }`](https://github.com/LeDDGroup/typescript-transform-paths) 
 
-[`{transform: "typescript-transform-paths" }`](https://github.com/LeDDGroup/typescript-transform-paths) 
+[`{ transform: "typescript-transform-macros" }`](https://github.com/LeDDGroup/typescript-transform-macros) 
 
-[`{transform: "typescript-transform-macros" }`](https://github.com/LeDDGroup/typescript-transform-macros) 
+[`{ transform: "ts-transformer-minify-privates" }`](https://github.com/timocov/ts-transformer-minify-privates) 
 
-[`{transform: "ts-transformer-minify-privates" }`](https://github.com/timocov/ts-transformer-minify-privates) 
+[`{ transform: "typescript-plugin-styled-components", type: "config" }`](https://github.com/Igorbek/typescript-plugin-styled-components#ttypescript-compiler)
 
-[`{transform: "typescript-plugin-styled-components", type: "config"}`](https://github.com/Igorbek/typescript-plugin-styled-components#ttypescript-compiler)
+### Credit
 
-[`{ "transform": "@zoltu/typescript-transformer-append-js-extension" }`](https://github.com/Zoltu/typescript-transformer-append-js-extension)
+* [Ron S.](https://twitter.com/Ron) `ts-patch`
+* [cevek](https://github.com/cevek) `ttypescript`
 
-### Helpful Links
-* [How to Write a TypeScript Transform (Plugin)](https://dev.doctorevidence.com/how-to-write-a-typescript-transform-plugin-fc5308fdd943)
-* [Creating a TypeScript Transformer](https://43081j.com/2018/08/creating-a-typescript-transform?source=post_page-----731e2b0b66e6----------------------)
+### HALP!!!
 
-### Authors
+If you understand the basics but get stuck, feel free to ask a question in Issues. I'll flag it as a usage question, and I (or a kind soul) will do what we can to answer!
 
-* [Ron S.](https://twitter.com/Ron)
-* [cevek](https://github.com/cevek) 
+If you're new to this sort of thing, please be sure to go through the [Recommended Reading](#recommended-reading) before posting.
 
 ### License
 
