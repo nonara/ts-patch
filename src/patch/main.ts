@@ -4,6 +4,7 @@
 import { createProgram } from './createProgram';
 import * as TS from 'typescript';
 import { PluginCreator } from './plugin';
+import { diagnosticMap } from './diagnostics';
 
 
 /* ********************************************************************************************************************
@@ -22,5 +23,6 @@ Object.assign(ts, {
   tspVersion,
   PluginCreator,
   originalCreateProgram: ts.createProgram,
-  createProgram
+  createProgram,
+  diagnosticMap
 });

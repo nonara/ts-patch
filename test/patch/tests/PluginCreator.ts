@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { PluginConfig, PluginCreator, ProgramTransformer, TransformerList } from '../../../src/patch/types';
+import { PluginConfig, PluginCreator, TransformerList } from '../../../src/patch/types';
 import { advancedTransformer } from '../transforms/transform-advanced';
 import { simpleTransformer } from '../transforms/transform-simple';
 import { progTransformer1, progTransformer2 } from '../transforms/program-transformer';
@@ -10,8 +10,7 @@ import * as ts from 'typescript';
  * Helpers
  * ********************************************************************************************************************/
 
-function createTransformers(config: PluginConfig[]):
-  { transformers: TransformerList, programTransformers: [ ProgramTransformer, PluginConfig ][] }
+function createTransformers(config: PluginConfig[]): TransformerList
 {
   const pluginCreator = new PluginCreator(config, __dirname);
   const host = { program: {} as ts.Program };
@@ -39,7 +38,7 @@ export default function suite() {
   it('should initialize default transformer in before group', () => {
     const config: PluginConfig[] = [ { transform: '../transforms/transform-simple.ts' } ];
 
-    expect(createTransformers(config).transformers).to.eql({
+    expect(createTransformers(config)).to.eql({
       after: [],
       afterDeclarations: [],
       before: [ simpleTransformer ],
@@ -49,7 +48,7 @@ export default function suite() {
   it('should initialize default transformer in after group', () => {
     const config: PluginConfig[] = [ { transform: '../transforms/transform-simple.ts', after: true } ];
 
-    expect(createTransformers(config).transformers).to.eql({
+    expect(createTransformers(config)).to.eql({
       after: [ simpleTransformer ],
       afterDeclarations: [],
       before: [],
@@ -59,7 +58,7 @@ export default function suite() {
   it('should initialize advanced transformer in after group', () => {
     const config: PluginConfig[] = [ { transform: '../transforms/transform-advanced.ts' } ];
 
-    expect(createTransformers(config).transformers).to.eql({
+    expect(createTransformers(config)).to.eql({
       after: [ advancedTransformer ],
       afterDeclarations: [],
       before: [],
@@ -69,7 +68,7 @@ export default function suite() {
   it('should provide custom config', () => {
     const config: PluginConfig[] = [ { transform: '../transforms/transform-advanced.ts', some: 1, bla: 2 } as any ];
 
-    expect(createTransformers(config).transformers).to.eql({
+    expect(createTransformers(config)).to.eql({
       after: [ advancedTransformer ],
       afterDeclarations: [],
       before: [],
@@ -78,11 +77,11 @@ export default function suite() {
 
   it('should initialize Program transformers', () => {
     const config: PluginConfig[] = [
-      { transform: '../transforms/program-transformer.ts', beforeEmit: true, import: 'progTransformer1' },
+      { transform: '../transforms/program-transformer.ts', transformProgram: true, import: 'progTransformer1' },
       { transform: '../transforms/program-transformer.ts', beforeEmit: true, import: 'progTransformer2' }
     ];
 
-    const programTransformers = new Map(createTransformers(config).programTransformers);
+    const programTransformers = new Map(new PluginCreator(config, __dirname).getProgramTransformers());
     expect(programTransformers.get(progTransformer1)).to.eql(config[0]);
     expect(programTransformers.get(progTransformer2)).to.eql(config[1]);
   });

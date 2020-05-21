@@ -11,15 +11,7 @@ import path from 'path';
 
 const tsOptions = {
   typescript: require('typescript'),
-  tsconfigOverride: {
-    compilerOptions: {
-      target: 'ES5',
-      downlevelIteration: true,
-      module: 'ESNext',
-      newLine: 'LF',
-      declaration: false
-    }
-  }
+  tsconfig: 'tsconfig.patch.json'
 };
 
 const shimOptions = {

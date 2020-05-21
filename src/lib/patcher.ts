@@ -45,6 +45,11 @@ function validate(tsModule?: TSModule, tsPackage?: TSPackage) {
   return true;
 }
 
+const patchModule = (src: string) => src.replace(
+  /(function emitFilesAndReportErrors[\s\S]+?)(\s*)(var emitResult =)/,
+  '$1\n$2ts.diagnosticMap.set(program, allDiagnostics);\n$2$3'
+);
+
 
 /* ********************************************************************************************************************
  * Patch
@@ -56,11 +61,14 @@ function validate(tsModule?: TSModule, tsPackage?: TSPackage) {
 export function patchTSModule(tsModule: TSModule, tsPackage: TSPackage) {
   validate(tsModule, tsPackage);
 
-  const { filename, file, moduleSrc, dir } = tsModule;
+  const { filename, file, dir } = tsModule;
 
   /* Install patch */
   const isTSC = (filename === 'tsc.js');
   const patchSrc = generatePatch(isTSC);
+
+  /* Add diagnostic modification support */
+  const moduleSrc = patchModule(tsModule.moduleSrc!);
 
   try {
     if (isTSC) {
@@ -75,15 +83,17 @@ export function patchTSModule(tsModule: TSModule, tsPackage: TSPackage) {
       /* Expand TSC with full typescript library (splice tsc part on top of typescript.ts code) */
       fs.writeFileSync(file,
         Buffer.concat([
-          fs.readFileSync(tsFile),
+          Buffer.from(patchModule(fs.readFileSync(tsFile, 'utf-8'))),
           Buffer.from(!getTSModule(tsFile).patchVersion ? patchSrc : ''),
           Buffer.from(
-            moduleSrc!.replace(/^[\s\S]+(\(function \(ts\) {\s+function countLines[\s\S]+)$/, '$1')
+            moduleSrc.replace(/^[\s\S]+(\(function \(ts\) {\s+function countLines[\s\S]+)$/, '$1')
           )
         ])
       );
-    } else
-      fs.appendFileSync(file, patchSrc);
+    } else fs.writeFileSync(file, Buffer.concat([
+      Buffer.from(moduleSrc),
+      Buffer.from(patchSrc)
+    ]));
   }
   catch (e) {
     throw new FileWriteError(filename, e.message);
