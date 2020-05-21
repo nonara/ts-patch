@@ -1,0 +1,17 @@
+{
+  "include": ["src/patch"],
+
+  "compilerOptions": {
+    "noEmit": true,
+    "strict": true,
+    "noUnusedLocals": false,
+    "noImplicitReturns": true,
+    "allowSyntheticDefaultImports": true,
+
+    "target": "ES5",
+    "downlevelIteration": true,
+    "module": "ESNext",
+    "newLine": "LF",
+    "declaration": false
+  }
+}

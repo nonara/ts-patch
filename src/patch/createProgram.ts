@@ -3,10 +3,11 @@
  * Credit & thanks go to cevek (https://github.com/cevek) for the incredible work!
  */
 
-import { transformerErrors } from './shared';
+import { diagnosticMap } from './diagnostics';
 import * as TS from 'typescript';
 import * as TSPlus from './types';
 import { PluginConfig, PluginCreator } from './plugin';
+import { Diagnostic } from 'typescript';
 
 
 /* ********************************************************************************************************************
@@ -109,7 +110,7 @@ export function createProgram(
   }
 
   /* Invoke TS createProgram */
-  const program: TS.Program = createOpts ?
+  let program: TS.Program = createOpts ?
     ts.originalCreateProgram(createOpts) :
     ts.originalCreateProgram(rootNames, options, host, oldProgram, configFileParsingDiagnostics);
 
@@ -117,10 +118,14 @@ export function createProgram(
   const plugins = preparePluginsFromCompilerOptions(options.plugins);
   const pluginCreator = new PluginCreator(plugins, projectDir);
 
+  /* Transform Program */
+  for (const [ programTransformer, config ] of pluginCreator.getProgramTransformers()) {
+    const newProgram:TS.Program | undefined = programTransformer(program, host, config);
+    if (typeof newProgram?.['emit'] === 'function') program = newProgram;
+  }
+
   /* Hook TypeScript emit method */
-  // noinspection UnnecessaryLocalVariableJS
   const originalEmit = program.emit;
-  (program as any).originalEmit = originalEmit;
 
   program.emit = function newEmit(
     targetSourceFile?: TS.SourceFile,
@@ -130,17 +135,10 @@ export function createProgram(
     customTransformers?: TS.CustomTransformers
   ): TS.EmitResult {
     /* Merge in our transformers */
-    const { programTransformers, transformers } = pluginCreator.createTransformers({ program }, customTransformers);
-
-    /* Transform Program */
-    let targetProgram:TS.Program = program;
-    for (const [ programTransformer, config ] of programTransformers) {
-      const newProgram:any | undefined = programTransformer(targetProgram, host, config);
-      if (typeof newProgram?.['emit'] === 'function') targetProgram = newProgram;
-    }
+    const transformers = pluginCreator.createTransformers({ program }, customTransformers);
 
     /* Invoke TS emit */
-    const result: TS.EmitResult = ((targetProgram as any)['originalEmit'] || targetProgram.emit)(
+    const result: TS.EmitResult = originalEmit(
       targetSourceFile,
       writeFile,
       cancellationToken,
@@ -148,7 +146,9 @@ export function createProgram(
       transformers
     );
 
-    result.diagnostics = [ ...(result.diagnostics || []), ...(transformerErrors.get(program) || []) ];
+    /* Merge in transformer diagnostics */
+    for (const diagnostic of diagnosticMap.get(program) || [])
+      if (!result.diagnostics.includes(diagnostic)) (<Diagnostic[]>result.diagnostics).push(diagnostic)
 
     return result;
   };

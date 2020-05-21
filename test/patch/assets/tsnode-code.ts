@@ -1,3 +1,4 @@
+type T2 = string['bad']
 
 function type<T>() {
     return '';

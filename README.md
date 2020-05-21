@@ -7,7 +7,6 @@ ts-patch
 Directly patch typescript installation to allow custom transformers (plugins).  
 
 - Plugins are specified in `tsconfig.json`, or provided programmatically in `CompilerOptions`.
-- _(New)_ Supports 'transforming' the `Program` instance prior to emit. (see: [Program Transformers](#program-transformers))
 - Logic based on [ttypescript](https://github.com/cevek/ttypescript) - 100% compatibility with `ttypescript` configuration + transformers.
 
 ## Features
@@ -15,36 +14,34 @@ Directly patch typescript installation to allow custom transformers (plugins).
 * One step setup - no complicated install process
 * Optionally, enable **persistence**, which re-patches typescript automatically if it is updated
 * Advanced options for patching individual files, specific locations, etc. (see `ts-patch /?`)
-* Can transform `Program` instance used for emit
+* _(New)_ Supports 'transforming' the `Program` instance during creation. (see: [Transforming Program](#transforming-program))
+* _(New)_ Add, remove, or modify diagnostics! (see: [Altering Diagnostics](#altering-diagnostics))
 
 ## Installation
 ```
-npm i ts-patch -D
-```
-
-## Usage
-```
-ts-patch install
+$ npm i ts-patch -D
+$ ts-patch install
 ```
 For more options, use: ```ts-patch /?```
 
 ## Table of Contents
-  * [Configuring](#configuring)
-    + [tsconfig.json](#tsconfigjson)
-    + [Plugin Options](#plugin-options)
-    + [Type Signatures](#type-signatures)
-    + [Examples](#examples)
-  * [Node Transformers](#node-transformers)
-    + [Example Node Transformers](#example-node-transformers)
-  * [Program Transformers](#program-transformers)
-    + [Signature](#signature)
-    + [Example Program Transformer](#example-program-transformer)
-  * [Resources](#resources)
-    + [Recommended Reading](#recommended-reading)
-    + [Recommended Tools](#recommended-tools)
-  * [Credit](#credit)
-  * [HALP!!!](#halp)
-  * [License](#license)
+  - [Configuring](#configuring)
+      - [tsconfig.json](#tsconfigjson)
+      - [Plugin Options](#plugin-options)
+      - [Type Signatures](#type-signatures)
+      - [Examples](#examples)
+  - [Usage](#usage)
+      - [Transforming AST Nodes](#transforming-ast-nodes)
+          - [Example Node Transformers](#example-node-transformers)
+      - [Transforming Program](#transforming-program)
+          - [Example Program Transformer](#example-program-transformer)
+      - [Altering Diagnostics](#altering-diagnostics)  
+  - [Resources](#resources)
+      - [Recommended Reading](#recommended-reading)
+      - [Recommended Tools](#recommended-tools)
+  - [Credit](#credit)
+  - [HALP!!!](#halp)
+  - [License](#license)
   
 ## Configuring
 ### tsconfig.json
@@ -68,17 +65,27 @@ Add transformers to `compilerOptions` in `plugin` array:
 | import            | Name of exported transformer function _(defaults to `default` export)_ |
 | after             | Apply transformer after stock TS transformers. |
 | afterDeclarations | Apply transformer to declaration (*.d.ts) files _(TypeScript 2.9+)_. |
-| beforeEmit        | Transform `Program` before `program.emit()` is called _(see: [Program Transformers](#program-transformers))_ |
+| transformProgram        | Transform `Program` before `program.emit()` is called _(see: [Transforming Program](#transforming-program))_ |
 | _..._    |  Provide your own custom options, which will be passed to the transformer |
 
 _Note: Required options are bold_
 
 ### Type Signatures
-`ts.TransformerFactory` >>> `(context: ts.TransformationContext) => (sourceFile: ts.SourceFile) => ts.SourceFile`
+`ts.TransformerFactory` >>> `(context: ts.TransformationContext) => (sourceFile: ts.SourceFile) => ts.SourceFile`  
+`TspExtras` >>> 
+```
+{  
+    ts: typeof ts;
+    addDiagnostic: (diag: Diagnostic) => number,
+    removeDiagnostic: (index: number) => void,
+    diagnostics: readonly Diagnostic[] 
+}
+```
+
 #### program (default)
 Signature with `ts.Program` instance:
 ```ts
-(program: ts.Program, config: PluginConfig | undefined) => ts.TransformerFactory
+(program: ts.Program, config: PluginConfig | undefined, extras: TspExtras) => ts.TransformerFactory
 ```
 
 #### config
@@ -106,7 +113,7 @@ Signature without `ts-patch` wrapper:
 ```
 
 ### Examples
-```json
+```jsonc
 {
     "compilerOptions": {
         "plugins": [
@@ -115,14 +122,15 @@ Signature without `ts-patch` wrapper:
             { "transform": "transformer-module1", "type": "config", "after": true },
             { "transform": "transformer-module2", "type": "checker", "afterDeclarations": true },
             { "transform": "transformer-module3", "type": "raw" },
-            { "transform": "transformer-module4", "type": "compilerOptions", "beforeEmit": true },
-            { "transform": "transformer-module4", "beforeEmit": true } // No type specified - beforeEmit has only one signature
+            { "transform": "transformer-module4", "type": "compilerOptions", "transformProgram": true },
+            { "transform": "transformer-module4", "transformProgram": true } // No type specified - transformProgram has only one signature
         ]
     }
 }
 ```
 
-## Node Transformers
+## Usage
+### Transforming AST Nodes
 
 Transformers can be written in JS or TS.
 
@@ -145,7 +153,7 @@ export default function(program: ts.Program, pluginOptions: any) {
 
 ```
 
-### Example Node Transformers
+#### Example Node Transformers
 
 [`{ transform: "typescript-is/lib/transform-inline/transformer" }`](https://github.com/woutervh-/typescript-is) 
 
@@ -173,7 +181,7 @@ export default function(program: ts.Program, pluginOptions: any) {
 
 [`{ transform: "typescript-plugin-styled-components", type: "config" }`](https://github.com/Igorbek/typescript-plugin-styled-components#ttypescript-compiler)
 
-## Program Transformers
+### Transforming Program
 
 There are some cases where a transformer isn't enough. Some of the biggest examples are if you're trying to:
 
@@ -183,9 +191,9 @@ There are some cases where a transformer isn't enough. Some of the biggest examp
 In order to do this, you'd normally have to create a custom build tool which manually creates `Program` and manipulates 
 or re-creates it as you need.
 
-The good news is, you can now integrate this into standard tsc behaviour via a `beforeEmit` plugin.
+Good news! `ts-patch` now supports this via a `transformProgram` plugin. The transform action takes place during `ts.createProgram`.
 
-### Signature
+#### Signature
 
 There is only one possible signature for a Program transformer.
 
@@ -193,7 +201,7 @@ There is only one possible signature for a Program transformer.
 (program: ts.Program, host?: ts.CompilerHost, options?: PluginConfig) => ts.Program
 ```
 
-### Example Program Transformer
+#### Example Program Transformer
 ```TypeScript
 /** 
  * Add a file to Program
@@ -213,11 +221,28 @@ export default function (program: ts.Program, host?: ts.CompilerHost) {
 }
 ```
 
-### Notes
-A Program transformer is _not_ a Node Transformer. This means the following options will not apply when `beforeEmit: true` is specified:
+#### Notes
+A Program transformer is _not_ a Node Transformer. This means the following options will not apply when `transformProgram: true` is specified:
 - `type` 
 - `before`
 - `after`
+
+### Altering Diagnostics
+
+To alter diagnostics, use the [program type signature](#program-default), and use the following from the `TspExtras` parameter
+
+| property | description |
+| -------- |----------- |
+| ts | Reference to `ts` instance
+| diagnostics | Reference to `Diagnostic[]` created during `ts.emitFilesAndReportErrors()` (works with tsc also)
+| addDiagnostic() | Directly add `Diagnostic` to `diagnostics` array |
+| removeDiagnostic() | Directly remove `Diagnostic` from `diagnostics` array (uses splice, for safe removal)
+
+#### Notes
+- This alters diagnostics during _emit only_. If you want to alter diagnostics in your IDE, create a LanguageService plugin
+- If an emit method other than `ts.emitFilesAndReportErrors()` is used, any diagnostics added via `addDiagnostic()` 
+will still be merged into the result of `program.emit() -> diagnostics`
+
 
 ## Resources
 
@@ -244,8 +269,9 @@ A Program transformer is _not_ a Node Transformer. This means the following opti
 ## HALP!!!
 
 - If you're new to this sort of thing, please be sure to go through the [Recommended Reading](#recommended-reading).
-- A good place to ask questions is [StackOverflow](https://stackoverflow.com/questions/tagged/typescript-compiler-api) (with the `#typescript-compiler-api` tag)
+- A good place to ask questions is [StackOverflow](https://stackoverflow.com/questions/tagged/typescript-compiler-api) (with the `#typescript-compiler-api` tag).
 - Read the handbook and still stuck? [Ask in Issues](https://github.com/nonara/ts-patch/issues), and I or someone else may help when they have some time!
+- Check out the `#compiler` room on the [TypeScript Discord Server](https://discord.com/invite/typescript).
 
 ## License
 

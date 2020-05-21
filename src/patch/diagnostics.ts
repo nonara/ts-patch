@@ -11,19 +11,18 @@ import { Diagnostic } from 'typescript';
  * Constants
  * ********************************************************************************************************************/
 
-export const transformerErrors = new WeakMap<TS.Program, Diagnostic[]>();
+export const diagnosticMap = new WeakMap<TS.Program, Diagnostic[]>();
 
 
 /* ********************************************************************************************************************
  * Helpers
  * ********************************************************************************************************************/
 
-export function addDiagnosticFactory(program: TS.Program) {
-  return (diag: TS.Diagnostic) => {
-    const arr = transformerErrors.get(program) || [];
-    arr.push(diag);
-    transformerErrors.set(program, arr);
-  };
-}
+export function diagnosticExtrasFactory(program: TS.Program) {
+  const diagnostics = diagnosticMap.get(program) || diagnosticMap.set(program, []).get(program)!;
 
-export function never(n: never): never { throw new Error('Unexpected type: ' + n); }
+  const addDiagnostic = (diag: TS.Diagnostic): number => diagnostics.push(diag);
+  const removeDiagnostic = (index: number) => { diagnostics.splice(index, 1) };
+
+  return { addDiagnostic, removeDiagnostic, diagnostics };
+}

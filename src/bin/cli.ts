@@ -110,7 +110,7 @@ export function run() {
         ...p,
         ...(args.hasOwnProperty(key) && { [key]: args[key] }),
         ...(short && args.hasOwnProperty(short) && { [key]: args[short] })
-      }), <TSPOptions>{});
+      }), <Partial<TSPOptions>>{});
 
     /* Handle special cases */
     if ((args.v) && (!cmd)) cmd = 'version';

@@ -149,7 +149,7 @@ function getConfig(packageDir: string) {
   const configFile = path.join(packageDir, 'ts-patch.json');
 
   /* Load config file */
-  let fileData = <TSPConfig>{};
+  let fileData = <Partial<TSPConfig>>{};
   if (fs.existsSync(configFile)) {
     try {
       fileData = JSON.parse(fs.readFileSync(configFile, 'utf8'));

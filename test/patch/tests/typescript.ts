@@ -73,7 +73,7 @@ export default function suite() {
     const compilerOptions = {
       target: ScriptTarget.ES5,
       plugins: [ {
-        transform: path.join(__dirname, '../transforms/diagnostic.ts'),
+        transform: path.join(__dirname, '../transforms/alter-diagnostics.ts'),
       } ] as any,
     };
 
@@ -110,7 +110,7 @@ export default function suite() {
     expect(res.outputText).to.match(basicExpected)
   });
 
-  it('beforeEmit transforms Program', () => {
+  it('transformProgram transforms Program', () => {
     const safelyFile = path.join(__dirname, '../assets/safely-code.ts');
     const plugins: any[] = [
       { transform: path.join(__dirname, '../transforms/program-transformer.ts'), beforeEmit: true, import: 'progTransformer1' },
@@ -131,23 +131,15 @@ export default function suite() {
       noResolve: true,
       noLib: true
     }
-    const file1 = newFiles[0].replace(/.ts$/, '.js');
-    const file2 = newFiles[1].replace(/.ts$/, '.js');
-
-    const outFiles = new Set<string>();
-    const writeFile = (fileName: string) => outFiles.add(fileName);
 
     /* Transform once */
     let program = ts.createProgram([ safelyFile ], { ...compilerOptions, plugins: plugins.slice(0, 1) });
-    program.emit(void 0, writeFile);
-    expect(outFiles.has(file1)).to.be.true;
-    expect(outFiles.has(file2)).to.be.false;
-    outFiles.clear();
+    expect(!!program.getSourceFile(newFiles[0])).to.be.true;
+    expect(!!program.getSourceFile(newFiles[1])).to.be.false;
 
     /* Transform twice */
-    program = ts.createProgram([ safelyFile ], { ...compilerOptions, plugins: plugins });
-    program.emit(void 0, writeFile);
-    expect(outFiles.has(file1)).to.be.false;
-    expect(outFiles.has(file2)).to.be.true;
+    program = ts.createProgram([ safelyFile ], { ...compilerOptions, plugins });
+    expect(!!program.getSourceFile(newFiles[0])).to.be.false;
+    expect(!!program.getSourceFile(newFiles[1])).to.be.true;
   });
 }

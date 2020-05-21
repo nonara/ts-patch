@@ -2,13 +2,13 @@
  * The logic in this file is based on TTypescript (https://github.com/cevek/ttypescript)
  * Credit & thanks go to cevek (https://github.com/cevek) for the incredible work!
  */
-import { addDiagnosticFactory, never } from './shared';
+import * as TS from 'typescript';
 import {
-  Bundle, CompilerHost, CompilerOptions, CustomTransformers, default as TS, Diagnostic, LanguageService, Program,
-  SourceFile,
+  Bundle, CompilerHost, CompilerOptions, CustomTransformers, Diagnostic, LanguageService, Program, SourceFile,
   TransformationContext, Transformer, TransformerFactory, TypeChecker
 } from 'typescript';
 import resolve from 'resolve';
+import { diagnosticExtrasFactory } from './diagnostics';
 
 
 /* ****************************************************************************************************************** */
@@ -39,18 +39,24 @@ export interface PluginConfig {
   type?: 'ls' | 'program' | 'config' | 'checker' | 'raw' | 'compilerOptions';
 
   /**
-   * Should transformer applied after all ones
+   * Apply transformer after internal TypeScript transformers
    */
   after?: boolean;
 
   /**
-   * Should transformer applied for d.ts files, supports from TS2.9
+   * Apply transformer on d.ts files TS2.9+
    */
   afterDeclarations?: boolean;
 
   /**
-   * Alter *Program* instance before emit() is called. (`type`, `after`, & `afterDeclarations` settings will not apply)
-   * Entry point must be (program: Program, host?: CompilerHost) => Program
+   * Transform *Program* instance (alters during createProgram()) (`type`, `after`, & `afterDeclarations` settings will
+   * not apply) Entry point must be (program: Program, host?: CompilerHost) => Program
+   */
+  transformProgram?: boolean;
+
+  /**
+   * Alias to transformProgram
+   * @deprecated
    */
   beforeEmit?: boolean;
 }
@@ -69,6 +75,13 @@ export interface TransformerBasePlugin {
 
 export type ProgramTransformer = (program: Program, host?: CompilerHost, config?: PluginConfig) => Program;
 
+export type TspExtras = {
+  ts: typeof ts;
+  addDiagnostic: (diag: Diagnostic) => number,
+  removeDiagnostic: (index: number) => void,
+  diagnostics: readonly Diagnostic[]
+}
+
 /* ********************************************************* */
 // region: Patterns
 /* ********************************************************* */
@@ -81,7 +94,7 @@ export type TypeCheckerPattern = (checker: TypeChecker, config: {}) => Transform
 export type ProgramPattern = (
   program: Program,
   config: {},
-  helpers?: { ts: typeof ts; addDiagnostic: (diag: Diagnostic) => void }
+  extras?: TspExtras
 ) => TransformerPlugin;
 
 export type RawPattern = (
@@ -118,6 +131,9 @@ export class PluginCreator {
     private resolveBaseDir: string = process.cwd()
   ) {
     PluginCreator.validateConfigs(configs);
+
+    // Support for deprecated 1.1 name
+    for (const config of configs) if (config['beforeEmit']) config.transformProgram = true;
   }
 
   public mergeTransformers(into: TransformerList, source: CustomTransformers | TransformerBasePlugin) {
@@ -133,20 +149,18 @@ export class PluginCreator {
   public createTransformers(
     params: { program: Program } | { ls: LanguageService },
     customTransformers?: CustomTransformers
-  ): { transformers: TransformerList, programTransformers: [ ProgramTransformer, PluginConfig ][] } {
+  ): TransformerList {
     const transformers: TransformerList = { before: [], after: [], afterDeclarations: [] };
-    const programTransformers: [ ProgramTransformer, PluginConfig ][] = [];
 
     const [ ls, program ] = ('ls' in params) ? [ params.ls, params.ls.getProgram()! ] : [ void 0, params.program ];
 
     for (const config of this.configs) {
-      if (!config.transform) continue;
+      if (!config.transform || config.transformProgram) continue;
 
       const factory = this.resolveFactory(config.transform, config.import);
-      if (factory === undefined) continue; // In case of recursion
+      if (factory === undefined) continue;
 
-      if (config.beforeEmit) programTransformers.push([ factory as ProgramTransformer, config ]);
-      else this.mergeTransformers(
+      this.mergeTransformers(
         transformers,
         PluginCreator.createTransformerFromPattern({ factory: <PluginFactory>factory, config, program, ls })
       );
@@ -155,7 +169,21 @@ export class PluginCreator {
     // Chain custom transformers at the end
     if (customTransformers) this.mergeTransformers(transformers, customTransformers);
 
-    return { transformers, programTransformers };
+    return transformers;
+  }
+
+  public getProgramTransformers(): [ ProgramTransformer, PluginConfig ][] {
+    const res:[ ProgramTransformer, PluginConfig ][] = [];
+    for (const config of this.configs) {
+      if (!config.transform || !config.transformProgram) continue;
+
+      const factory = this.resolveFactory(config.transform, config.import) as ProgramTransformer;
+      if (factory === undefined) continue;
+
+      res.push([ factory, config ]);
+    }
+
+    return res;
   }
 
 
@@ -222,7 +250,7 @@ export class PluginCreator {
     ls?: LanguageService;
   }):
     TransformerBasePlugin {
-    const { transform, after, afterDeclarations, name, type, beforeEmit, ...cleanConfig } = config;
+    const { transform, after, afterDeclarations, name, type, transformProgram, ...cleanConfig } = config;
 
     if (!transform) throw new Error('Not a valid config entry: "transform" key not found');
 
@@ -248,9 +276,13 @@ export class PluginCreator {
 
       case undefined:
       case 'program':
+        const { addDiagnostic, removeDiagnostic, diagnostics } = diagnosticExtrasFactory(program);
+
         ret = (factory as ProgramPattern)(program, cleanConfig, {
           ts,
-          addDiagnostic: addDiagnosticFactory(program),
+          addDiagnostic,
+          removeDiagnostic,
+          diagnostics
         });
         break;
 
@@ -259,7 +291,7 @@ export class PluginCreator {
         break;
 
       default:
-        return never(config.type);
+        throw new Error(`Invalid plugin type found in tsconfig.json: '${config.type}'`);
     }
 
     if (typeof ret === 'function')
