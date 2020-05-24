@@ -4,6 +4,18 @@ Notable changes are documented in this file.
 
 Project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.2.2] (05-23-2020)
+
+### Fixed
+- Possible recursion issue with program transformer
+- Older TS versions, tsc wasn't passing diagnostics array
+
+### Added
+- Added 'library' to TspExtras
+
+### Code
+- Substantial re-design of certain parts (see release commit message for more)
+
 ## [1.2.0] (05-20-2020)
 
 ### Changed: `beforeEmit` -> `tranformProgram`
@@ -49,6 +61,7 @@ See `README.md` for full detail.
 - Edge cases occurred in which TypeScript based transformers using CommonJS were not being interpretted properly. 
   _(Should address [issue #1](https://github.com/nonara/ts-patch/issues/1))_
 
+[1.2.2]: https://github.com/nonara/ts-patch/compare/v1.1.0...v1.2.2
 [1.2.0]: https://github.com/nonara/ts-patch/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/nonara/ts-patch/compare/v1.0.10...v1.1.0
 [1.0]: https://github.com/nonara/ts-patch/releases/tag/v1.0.0...v1.0.10

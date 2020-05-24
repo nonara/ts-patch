@@ -1,5 +1,5 @@
 [![npm version](https://badge.fury.io/js/ts-patch.svg)](https://badge.fury.io/js/ts-patch)
-[![Build Status](https://travis-ci.org/nonara/ts-patch.svg?branch=master)](https://travis-ci.org/nonara/ts-patch)
+![Build Status](https://github.com/nonara/ts-patch/workflows/Build%20(CI)/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/nonara/ts-patch/badge.svg?branch=master)](https://coveralls.io/github/nonara/ts-patch?branch=master)
 
 ts-patch
@@ -75,10 +75,11 @@ _Note: Required options are bold_
 `TspExtras` >>> 
 ```
 {  
-    ts: typeof ts;
+    ts: typeof ts;          // The typescript instance
     addDiagnostic: (diag: Diagnostic) => number,
     removeDiagnostic: (index: number) => void,
-    diagnostics: readonly Diagnostic[] 
+    diagnostics: readonly Diagnostic[],
+    library: string         // Originating library ('tsc' | typescript' | 'tsserverlibrary' | 'tsserver')
 }
 ```
 
@@ -229,11 +230,10 @@ A Program transformer is _not_ a Node Transformer. This means the following opti
 
 ### Altering Diagnostics
 
-To alter diagnostics, use the [program type signature](#program-default), and use the following from the `TspExtras` parameter
+To alter diagnostics, use the [program type signature](#program-default), and use the following properties from the `TspExtras` parameter
 
 | property | description |
 | -------- |----------- |
-| ts | Reference to `ts` instance
 | diagnostics | Reference to `Diagnostic[]` created during `ts.emitFilesAndReportErrors()` (works with tsc also)
 | addDiagnostic() | Directly add `Diagnostic` to `diagnostics` array |
 | removeDiagnostic() | Directly remove `Diagnostic` from `diagnostics` array (uses splice, for safe removal)

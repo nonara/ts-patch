@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig.base.json",
+  "exclude": [ "assets" ],
+
+  "compilerOptions": {
+    "types": [ "jest" ],
+    "noEmit": true,
+    "target": "ES2018"
+  }
+}

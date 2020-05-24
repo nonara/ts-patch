@@ -1,9 +1,0 @@
-{
-  "compilerOptions": {
-    "target": "es5",
-    "lib": ["es2015"],
-    "module": "commonjs",
-    "plugins": [{ "transform": "../transforms/alter-diagnostics.ts" }],
-    "noEmit": true
-  }
-}

@@ -1,7 +1,85 @@
+# Yarn
+**/yarn.lock
+!/yarn.lock
+
+# Built
+*.d.ts
+*.js.map
+*.js
+generator.stats.json
 .nyc_output
-coverage
-node_modules
 dist
-.idea
+coverage
 package-lock.json
-/TODO.ts
+*.tsbuildinfo
+generated/
+
+# Extensions
+*.seed
+*.log
+*.csv
+*.dat
+*.out
+*.pid
+*.gz
+
+# Personal
+.env
+.vscode
+.idea/jsLibraryMappings.xml
+todo/
+TODO.ts
+
+# Junk
+temp/
+.DS_Store
+tmp
+node_modules
+
+
+### JetBrains ###
+# Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
+
+# User-specific stuff
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries
+.idea/**/shelf
+
+# Generated files
+.idea/**/contentModel.xml
+
+# Sensitive or high-churn files
+.idea/**/dataSources/
+.idea/**/dataSources.ids
+.idea/**/dataSources.local.xml
+.idea/**/sqlDataSources.xml
+.idea/**/dynamic.xml
+.idea/**/uiDesigner.xml
+.idea/**/dbnavigator.xml
+
+# Gradle
+.idea/**/gradle.xml
+.idea/**/libraries
+
+# Mongo Explorer plugin
+.idea/**/mongoSettings.xml
+
+# File-based project format
+*.iws
+
+# JIRA plugin
+atlassian-ide-plugin.xml
+
+# Cursive Clojure plugin
+.idea/replstate.xml
+
+# Crashlytics plugin (for Android Studio and IntelliJ)
+com_crashlytics_export_strings.xml
+crashlytics.properties
+crashlytics-build.properties
+fabric.properties
+
+# Editor-based Rest Client
+.idea/httpRequests

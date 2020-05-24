@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "noEmit": true,
+    "strict": true,
+    "noUnusedLocals": false,
+    "noImplicitReturns": true,
+    "allowSyntheticDefaultImports": true,
+
+    "target": "ES5",
+    "lib": [ "ES2019" ],
+    "downlevelIteration": true,
+    "module": "ES2015",
+    "newLine": "LF",
+    "declaration": false,
+    "moduleResolution": "node",
+    "esModuleInterop": true
+  }
+}

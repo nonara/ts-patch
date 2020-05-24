@@ -1,0 +1,98 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="DuplicatedCode" enabled="true" level="WEAK WARNING" enabled_by_default="true">
+      <Languages>
+        <language minSize="47" name="TypeScript" />
+      </Languages>
+    </inspection_tool>
+    <inspection_tool class="HtmlDeprecatedTag" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="JSEqualityComparisonWithCoercion.TS" enabled="true" level="WARNING" enabled_by_default="false">
+      <scope name="Source" level="WARNING" enabled="true" />
+    </inspection_tool>
+    <inspection_tool class="JSUnusedAssignment" enabled="true" level="WARNING" enabled_by_default="false">
+      <scope name="Source" level="WARNING" enabled="true" />
+    </inspection_tool>
+    <inspection_tool class="JSUnusedGlobalSymbols" enabled="true" level="WARNING" enabled_by_default="false">
+      <scope name="Source" level="WARNING" enabled="true" />
+    </inspection_tool>
+    <inspection_tool class="JSUnusedLocalSymbols" enabled="true" level="WARNING" enabled_by_default="false">
+      <scope name="Source" level="WARNING" enabled="true" />
+    </inspection_tool>
+    <inspection_tool class="Json5StandardCompliance" enabled="true" level="ERROR" enabled_by_default="false">
+      <scope name="Source" level="ERROR" enabled="true" />
+    </inspection_tool>
+    <inspection_tool class="JsonDuplicatePropertyKeys" enabled="true" level="WARNING" enabled_by_default="false">
+      <scope name="Source" level="WARNING" enabled="true" />
+    </inspection_tool>
+    <inspection_tool class="JsonSchemaCompliance" enabled="true" level="WARNING" enabled_by_default="false">
+      <scope name="Source" level="WARNING" enabled="true" />
+    </inspection_tool>
+    <inspection_tool class="JsonSchemaDeprecation" enabled="true" level="WEAK WARNING" enabled_by_default="false">
+      <scope name="Source" level="WEAK WARNING" enabled="true" />
+    </inspection_tool>
+    <inspection_tool class="JsonSchemaRefReference" enabled="true" level="WARNING" enabled_by_default="false">
+      <scope name="Source" level="WARNING" enabled="true" />
+    </inspection_tool>
+    <inspection_tool class="JsonStandardCompliance" enabled="true" level="ERROR" enabled_by_default="false">
+      <scope name="Source" level="ERROR" enabled="true" />
+    </inspection_tool>
+    <inspection_tool class="TypeScriptAbstractClassConstructorCanBeMadeProtected" enabled="true" level="WEAK WARNING" enabled_by_default="false">
+      <scope name="Source" level="WEAK WARNING" enabled="true" />
+    </inspection_tool>
+    <inspection_tool class="TypeScriptAccessibilityCheck" enabled="true" level="WEAK WARNING" enabled_by_default="false">
+      <scope name="Source" level="WEAK WARNING" enabled="true" />
+    </inspection_tool>
+    <inspection_tool class="TypeScriptCheckImport" enabled="true" level="ERROR" enabled_by_default="false">
+      <scope name="Source" level="ERROR" enabled="true" />
+    </inspection_tool>
+    <inspection_tool class="TypeScriptConfig" enabled="true" level="WARNING" enabled_by_default="false">
+      <scope name="Source" level="WARNING" enabled="true" />
+    </inspection_tool>
+    <inspection_tool class="TypeScriptDuplicateUnionOrIntersectionType" enabled="true" level="WARNING" enabled_by_default="false">
+      <scope name="Source" level="WARNING" enabled="true" />
+    </inspection_tool>
+    <inspection_tool class="TypeScriptExplicitMemberType" enabled="true" level="INFORMATION" enabled_by_default="false">
+      <scope name="Source" level="INFORMATION" enabled="true" />
+    </inspection_tool>
+    <inspection_tool class="TypeScriptFieldCanBeMadeReadonly" enabled="true" level="WEAK WARNING" enabled_by_default="false">
+      <scope name="Source" level="WEAK WARNING" enabled="true" />
+    </inspection_tool>
+    <inspection_tool class="TypeScriptLibrary" enabled="true" level="ERROR" enabled_by_default="false">
+      <scope name="Source" level="ERROR" enabled="true" />
+    </inspection_tool>
+    <inspection_tool class="TypeScriptMissingAugmentationImport" enabled="true" level="INFORMATION" enabled_by_default="false">
+      <scope name="Source" level="INFORMATION" enabled="true" />
+    </inspection_tool>
+    <inspection_tool class="TypeScriptMissingConfigOption" enabled="true" level="WARNING" enabled_by_default="false">
+      <scope name="Source" level="WARNING" enabled="true" />
+    </inspection_tool>
+    <inspection_tool class="TypeScriptRedundantGenericType" enabled="true" level="WEAK WARNING" enabled_by_default="false">
+      <scope name="Source" level="WEAK WARNING" enabled="true" />
+    </inspection_tool>
+    <inspection_tool class="TypeScriptSmartCast" enabled="true" level="WARNING" enabled_by_default="false">
+      <scope name="Source" level="WARNING" enabled="true" />
+    </inspection_tool>
+    <inspection_tool class="TypeScriptSuspiciousConstructorParameterAssignment" enabled="true" level="WARNING" enabled_by_default="false">
+      <scope name="Source" level="WARNING" enabled="true" />
+    </inspection_tool>
+    <inspection_tool class="TypeScriptUMDGlobal" enabled="true" level="WEAK WARNING" enabled_by_default="false">
+      <scope name="Source" level="WEAK WARNING" enabled="true" />
+    </inspection_tool>
+    <inspection_tool class="TypeScriptUnresolvedFunction" enabled="true" level="WEAK WARNING" enabled_by_default="false">
+      <scope name="Source" level="WEAK WARNING" enabled="true" />
+    </inspection_tool>
+    <inspection_tool class="TypeScriptUnresolvedVariable" enabled="true" level="WEAK WARNING" enabled_by_default="false">
+      <scope name="Source" level="WEAK WARNING" enabled="true" />
+    </inspection_tool>
+    <inspection_tool class="TypeScriptValidateGenericTypes" enabled="true" level="ERROR" enabled_by_default="false">
+      <scope name="Source" level="ERROR" enabled="true" />
+    </inspection_tool>
+    <inspection_tool class="TypeScriptValidateJSTypes" enabled="true" level="WEAK WARNING" enabled_by_default="false">
+      <scope name="Source" level="WEAK WARNING" enabled="true" />
+    </inspection_tool>
+    <inspection_tool class="TypeScriptValidateTypes" enabled="true" level="ERROR" enabled_by_default="false">
+      <scope name="Source" level="ERROR" enabled="true" />
+    </inspection_tool>
+  </profile>
+</component>

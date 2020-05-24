@@ -1,0 +1,9 @@
+{
+  "name": "module-ts27",
+  "version": "1.0.0",
+  "dependencies": {
+    "typescript": "2.7.2",
+    "ts-patch": "^1.2.1",
+    "ts-node": "^8.10.1"
+  }
+}

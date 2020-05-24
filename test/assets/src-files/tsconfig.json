@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "lib": [ "ES2015" ],
+    "module": "commonjs",
+    "noEmit": true,
+    "typeRoots": [ ],
+    "plugins": [{ "transform": "../transformers/before.ts" }]
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "strict": true,
+    "noUnusedLocals": false,
+    "noImplicitReturns": true,
+    "forceConsistentCasingInFileNames": true,
+
+    "lib": [ "es2019" ],
+    "outDir": "dist",
+    "target": "es5",
+    "module":"CommonJS",
+    "moduleResolution": "node",
+
+    "newLine": "LF",
+    "allowJs": false,
+    "allowSyntheticDefaultImports": true
+  }
+}
