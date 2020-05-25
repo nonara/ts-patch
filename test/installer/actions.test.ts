@@ -8,16 +8,18 @@ import {
 import { mockFs, resetFs, restoreFs } from '../lib/mock-utils';
 import resolve from 'resolve';
 import { tsInstallationDirs } from '../lib/config';
+import ts from 'typescript';
+import { tspPackageJSON } from '../../src/installer/lib/system';
 
 
 /* ****************************************************************************************************************** */
 // region: Config
 /* ****************************************************************************************************************** */
 
-const tspVersion = require('../../package.json').version;
 const baseDir = tsInstallationDirs.get('latest')!;
 
 export const destDir = path.join(baseDir, 'node_modules', 'typescript');
+export const tspDir = path.join(baseDir, 'node_modules', 'ts-patch');
 export const libDir = path.join(destDir, 'lib');
 export const backupDir = path.join(destDir, BACKUP_DIRNAME);
 
@@ -43,6 +45,12 @@ function checkModules(
     expect({ canPatch, patchVersion }).toEqual({ canPatch: true, patchVersion: expectedPatchVersion });
 }
 
+function updatePackageJson(pkgPath: string, cb: (pkgJson: any) => void) {
+  let pkgJson = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+  cb(pkgJson);
+  fs.writeFileSync(pkgPath, JSON.stringify(pkgJson, null, 2));
+}
+
 // endregion
 
 
@@ -52,32 +60,42 @@ function checkModules(
 describe(`Actions`, () => {
   let shellExecSpy: jest.SpyInstance;
   beforeAll(() => {
-    mockFs();
-
-    /* Remove dependencies */
-    const pkgPath = path.join(baseDir, 'package.json');
-    const pkgJson = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
-    delete pkgJson.dependencies?.['ts-node'];
-    fs.writeFileSync(pkgPath, JSON.stringify(pkgJson, null, 2));
-    shell.rm('-rf', path.join(path.dirname(pkgPath), 'node_modules/ts-node'));
-
     shellExecSpy = jest.spyOn(shell, 'exec').mockImplementation();
   });
 
   afterAll(() => {
-    restoreFs();
     jest.restoreAllMocks();
   });
 
   test(`Set Options`, () => expect(setOptions(TSP_OPTIONS)).toMatchObject(TSP_OPTIONS));
 
-  describe(`Install`, () => {
-    beforeAll(() => install(TSP_OPTIONS));
+  describe.each([ [ '', '0.0.0' ], [ ' (overwrite w/ higher version)', '1.1.1' ] ])
+  (`Install%s`, (caption, version) => {
+    let originalVersion: string;
+    beforeAll(() => {
+      mockFs();
+
+      /* Remove dependencies from package dir */
+      const pkgPath = path.join(baseDir, 'package.json');
+      updatePackageJson(pkgPath, (pkgData) => delete pkgData.dependencies?.['ts-node']);
+      shell.rm('-rf', path.join(path.dirname(pkgPath), 'node_modules/ts-node'));
+
+      /* Set version */
+      updatePackageJson(path.join(tspDir, 'package.json'), (pkgData) => pkgData.version = version);
+      originalVersion = tspPackageJSON.version;
+      tspPackageJSON.version = version;
+
+      /* Install */
+      install(TSP_OPTIONS);
+    });
+
+    afterAll(() => {
+      restoreFs();
+      tspPackageJSON.version = originalVersion
+    });
 
     test(`Original modules backed up`, () => checkModules(undefined, backupDir));
-
-    test(`All modules patched`, () => checkModules(tspVersion, libDir));
-
+    test(`All modules patched`, () => checkModules(version, libDir));
     test(`Backs up and patches typescript.d.ts`, () => {
       const backupSrc = fs.readFileSync(path.join(backupDir, 'typescript.d.ts'), 'utf-8');
       expect(backupSrc).toMatch(/declare\snamespace\sts\s{/);
@@ -94,7 +112,7 @@ describe(`Actions`, () => {
 
       const config = getTSPackage(destDir).config;
 
-      expect(config).toMatchObject({ version: tspVersion, persist: false });
+      expect(config).toMatchObject({ version: version, persist: false });
 
       expect(Object
         .entries(config.modules)
@@ -119,10 +137,32 @@ describe(`Actions`, () => {
       expect(shellExecSpy).toHaveBeenCalled();
       expect(shellExecSpy.mock.calls.pop()[0]).toMatch(/^npm i/);
     });
+
+    // Leave this as the final test, as it resets the virtual FS
+    test(`No semantic errors in typescript.d.ts`, () => {
+      const tsDtsFileSrc = fs.readFileSync(path.join(libDir, 'typescript.d.ts'), 'utf-8');
+      restoreFs();
+
+      const compilerOptions = Object.assign(ts.getDefaultCompilerOptions(), { target: 'ES5', "lib": [ "es2015" ] });
+      const host = ts.createCompilerHost(compilerOptions, false);
+      const originalReadFile = host.readFile;
+      host.readFile = fileName => (fileName === 'typescript.d.ts') ? tsDtsFileSrc : originalReadFile(fileName);
+
+      const program = ts.createProgram([ 'typescript.d.ts' ], compilerOptions, host);
+      const diagnostics = program.getSemanticDiagnostics();
+
+      // Using toHaveLength causes indefinite hang
+      expect(diagnostics.length).toBe(0);
+    });
   });
 
   describe(`Uninstall`, () => {
-    beforeAll(() => uninstall(TSP_OPTIONS));
+    beforeAll(() => {
+      mockFs();
+      install(TSP_OPTIONS);
+      uninstall(TSP_OPTIONS);
+    });
+    afterAll(restoreFs);
 
     test(
       `Removes backup directory`,
@@ -134,7 +174,7 @@ describe(`Actions`, () => {
     test(`Restores typescript.d.ts`, () => {
       const patchSrc = fs.readFileSync(path.join(libDir, 'typescript.d.ts'), 'utf-8');
       expect(patchSrc).toMatch(/declare\snamespace\sts\s{/);
-      expect(patchSrc).not.toMatch(/const\stspVersion:/);
+      expect(patchSrc).not.toMatch(/const\stspPackageJSON.version:/);
     });
 
     test(`check() is accurate`, () => {
@@ -147,21 +187,23 @@ describe(`Actions`, () => {
   });
 
   describe(`Patch`, () => {
+    beforeAll(() => mockFs());
+    afterAll(restoreFs);
     beforeEach(resetFs);
 
     test(`Patches single file`, () => {
       patch(SRC_FILES[0], TSP_OPTIONS);
-      checkModules(tspVersion, libDir, [ SRC_FILES[0] ]);
+      checkModules(tspPackageJSON.version, libDir, [ SRC_FILES[0] ]);
     });
 
     test(`Patches array of files`, () => {
       patch(SRC_FILES, TSP_OPTIONS);
-      checkModules(tspVersion, libDir);
+      checkModules(tspPackageJSON.version, libDir);
     });
 
     test(`Patches glob`, () => {
       patch(path.join(libDir, '*.js'), TSP_OPTIONS);
-      checkModules(tspVersion, libDir);
+      checkModules(tspPackageJSON.version, libDir);
     });
 
     test(`Throws with TS version < 2.7`, () => {
@@ -179,9 +221,10 @@ describe(`Actions`, () => {
 
   describe(`Persistence`, () => {
     beforeAll(() => {
-      resetFs();
+      mockFs();
       install(TSP_OPTIONS);
     });
+    afterAll(restoreFs);
 
     describe(`Enable`, () => {
       beforeAll(() => enablePersistence());

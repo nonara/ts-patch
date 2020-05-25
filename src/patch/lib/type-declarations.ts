@@ -13,5 +13,5 @@ export declare const tspVersion: string;
 export declare const originalCreateProgram: typeof createProgram;
 export declare const diagnosticMap: typeof dgMap;
 
-export * from './types'
+export * from '../../installer/plugin-types'
 export * from './plugin'

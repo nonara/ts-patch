@@ -3,7 +3,7 @@ import fs from 'fs';
 import {
   appOptions, defineProperties, FileNotFound, FileWriteError, isAbsolute, Log, PackageError, tspPackageJSON
 } from './system';
-import resolve = require('resolve');
+import resolve from 'resolve';
 
 
 /* ********************************************************************************************************************

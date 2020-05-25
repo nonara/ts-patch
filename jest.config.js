@@ -16,5 +16,7 @@ module.exports = {
   ],
   coveragePathIgnorePatterns: [
     'src/installer/lib/system/errors.ts$'
-  ]
+  ],
+
+  testTimeout: 10000
 }

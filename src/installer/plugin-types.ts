@@ -3,16 +3,7 @@ import {
   TransformationContext, Transformer,
   TransformerFactory, TypeChecker
 } from 'typescript';
-import * as TS from 'typescript';
-
-
-/* ****************************************************************************************************************** */
-// region: Ambient Declarations
-/* ****************************************************************************************************************** */
-
-declare const ts: typeof TS;
-
-// endregion
+import * as ts from 'typescript';
 
 
 /* ****************************************************************************************************************** */
@@ -79,10 +70,10 @@ export interface TransformerBasePlugin {
 
 
 /* ****************************************************************************************************************** */
-// region: Shared
+// region: Extras
 /* ****************************************************************************************************************** */
 
-export type TspExtras = {
+export type TransformerExtras = {
   /**
    * Originating TypeScript instance
    */
@@ -96,6 +87,13 @@ export type TspExtras = {
   diagnostics: readonly Diagnostic[],
 }
 
+export type ProgramTransformerExtras = {
+  /**
+   * Originating TypeScript instance
+   */
+  ts: typeof ts;
+}
+
 // endregion
 
 
@@ -106,8 +104,8 @@ export type TspExtras = {
 export type ProgramTransformer = (
   program: Program,
   host: CompilerHost | undefined,
-  config: PluginConfig | undefined,
-  extras: { ts: typeof ts }
+  config: PluginConfig,
+  extras: ProgramTransformerExtras
 ) => Program;
 
 export type LSPattern = (ls: LanguageService, config: {}) => TransformerPlugin;
@@ -118,7 +116,7 @@ export type TypeCheckerPattern = (checker: TypeChecker, config: {}) => Transform
 export type ProgramPattern = (
   program: Program,
   config: {},
-  extras?: TspExtras
+  extras: TransformerExtras
 ) => TransformerPlugin;
 
 export type RawPattern = (

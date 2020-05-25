@@ -1,4 +1,4 @@
-import { PluginConfig, TransformerList } from '../../src/patch/lib/types';
+import { PluginConfig, TransformerList } from '../../src/installer';
 import { PluginCreator } from '../../src/patch/lib/plugin';
 import { advancedTransformer } from '../assets/transformers/transform-advanced';
 import { simpleTransformer } from '../assets/transformers/transform-simple';

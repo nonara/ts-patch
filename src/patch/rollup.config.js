@@ -34,7 +34,7 @@ const config = [
     output: [ {
       file: path.join(resourceDir, 'module-patch.d.ts')
     } ],
-    plugins: [ dts({ compilerOptions: { noEmit: false }}), buildPatchTypes() ]
+    plugins: [ dts(), buildPatchTypes() ]
   }
 ];
 

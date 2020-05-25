@@ -1,7 +1,7 @@
 import * as TS from 'typescript';
-import { TspExtras } from '../../../src/patch/lib/types';
+import { TransformerExtras } from '../../../src/installer';
 
-export default function (program: TS.Program, config: any, { ts }: TspExtras) {
+export default function (program: TS.Program, config: any, { ts }: TransformerExtras) {
   const checker = program.getTypeChecker();
   return (ctx: TS.TransformationContext) => (sourceFile: TS.SourceFile) => {
     function visitor(node: TS.Node): TS.Node {

@@ -1,4 +1,4 @@
-import * as TS from 'typescript';
+import * as ts from 'typescript';
 import { Diagnostic } from 'typescript';
 
 
@@ -6,7 +6,7 @@ import { Diagnostic } from 'typescript';
 // region: Constants
 /* ****************************************************************************************************************** */
 
-export const diagnosticMap = new WeakMap<TS.Program, Diagnostic[]>();
+export const diagnosticMap = new WeakMap<ts.Program, Diagnostic[]>();
 
 // endregion
 
@@ -16,10 +16,10 @@ export const diagnosticMap = new WeakMap<TS.Program, Diagnostic[]>();
  * Helpers
  * ********************************************************************************************************************/
 
-export function diagnosticExtrasFactory(program: TS.Program) {
+export function diagnosticExtrasFactory(program: ts.Program) {
   const diagnostics = diagnosticMap.get(program) || diagnosticMap.set(program, []).get(program)!;
 
-  const addDiagnostic = (diag: TS.Diagnostic): number => diagnostics.push(diag);
+  const addDiagnostic = (diag: ts.Diagnostic): number => diagnostics.push(diag);
   const removeDiagnostic = (index: number) => { diagnostics.splice(index, 1) };
 
   return { addDiagnostic, removeDiagnostic, diagnostics };

@@ -11,7 +11,7 @@ import { diagnosticExtrasFactory, getCurrentLibrary } from './shared';
 import {
   CompilerOptionsPattern, ConfigPattern, LSPattern, PluginConfig, PluginFactory, ProgramPattern, ProgramTransformer,
   RawPattern, TransformerBasePlugin, TransformerList, TransformerPlugin, TypeCheckerPattern
-} from './types';
+} from '../../installer';
 import * as TSPlus from './type-declarations';
 
 

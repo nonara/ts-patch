@@ -8,10 +8,12 @@ Project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Fixed
 - Possible recursion issue with program transformer
-- Older TS versions, tsc wasn't passing diagnostics array
+- In some older TS versions, tsc wasn't passing diagnostics array
+- Various CLI bugs
 
 ### Added
 - Added 'library' to TspExtras
+- install and patch actions now will proceed to run if already patched but current version is out-dated
 
 ### Code
 - Substantial re-design of certain parts (see release commit message for more)
@@ -26,7 +28,8 @@ The mechanism of action for `Program` transformation has been moved from inside
 In the new methodology, the `Program` instance is transformed at the point of creation _before_ it is returned from the 
 factory function, which is a far better approach.
 
-While the option name has been updated for clarity, the old `beforeEmit` will still work, so this is not a breaking change.
+While the option name has been updated to reflect the new behaviour, the old `beforeEmit` can still function as an alias
+to the new behaviour, so this is not a breaking change.
 
 ### Added: Inspect or alter diagnostics
 

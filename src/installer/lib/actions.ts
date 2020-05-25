@@ -9,7 +9,7 @@ import {
   appRoot, BackupError, defineProperties, Log, NPMError, parseOptions, PatchError, PersistenceError, resetOptions,
   RestoreError, TSPOptions, tspPackageJSON
 } from './system';
-import resolve = require('resolve');
+import resolve from 'resolve';
 
 
 /* ********************************************************************************************************************

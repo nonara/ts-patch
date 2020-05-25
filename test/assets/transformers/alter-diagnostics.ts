@@ -1,11 +1,11 @@
 import * as TS from 'typescript';
 import { DiagnosticCategory, DiagnosticWithLocation, Diagnostic } from 'typescript';
-import { TspExtras } from '../../../src/patch/lib/types';
+import { TransformerExtras } from '../../../src/installer';
 
 export default function (
   program: TS.Program,
   opts: any,
-  extras: TspExtras
+  extras: TransformerExtras
 ) {
   const { addDiagnostic, diagnostics, removeDiagnostic, library, ts } = extras;
 

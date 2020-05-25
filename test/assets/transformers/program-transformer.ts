@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
 import * as path from 'path';
-import { ProgramTransformer, TspExtras } from '../../../src/patch/lib/types';
+import { ProgramTransformer, ProgramTransformerExtras } from '../../../src/installer';
 
 
 export const newFiles = [ 'abc1.ts', 'abc2.ts' ].map(f => (ts as any).normalizePath(path.resolve(__dirname, '../src-files', f)));
@@ -13,7 +13,7 @@ const readFileFactory = (originalReadFile: Function) => ({
 });
 
 function createProgramTransformer(newFileIndex: number) {
-  return function (program: ts.Program, host: ts.CompilerHost | undefined, config: any, { ts: tsInstance }: { ts: typeof ts }) {
+  return function (program: ts.Program, host: ts.CompilerHost | undefined, config: any, { ts: tsInstance }: ProgramTransformerExtras) {
     if (!host) host = tsInstance.createCompilerHost(program.getCompilerOptions());
     if (host.readFile.name !== 'newReadFile') Object.assign(host, readFileFactory(host.readFile));
     if (tsInstance.sys.readFile.name !== 'newReadFile') Object.assign(tsInstance.sys, readFileFactory(tsInstance.sys.readFile));
@@ -39,7 +39,7 @@ export let progTsInstance: typeof ts | undefined = undefined;
  * Recursion
  * ****************************************************************************************************************** */
 
-export function recursiveTransformer1(program: ts.Program, host: ts.CompilerHost | undefined, config: any, { ts: tsInstance }: { ts: typeof ts }) {
+export function recursiveTransformer1(program: ts.Program, host: ts.CompilerHost | undefined, config: any, { ts: tsInstance }: ProgramTransformerExtras) {
   progTsInstance = tsInstance;
 
   const newProgram = (tsInstance as any).createProgram(
@@ -52,7 +52,7 @@ export function recursiveTransformer1(program: ts.Program, host: ts.CompilerHost
   return newProgram;
 }
 
-export function recursiveTransformer2(program: ts.Program, host: ts.CompilerHost | undefined, config: any, { ts: tsInstance }: { ts: typeof ts }) {
+export function recursiveTransformer2(program: ts.Program, host: ts.CompilerHost | undefined, config: any, { ts: tsInstance }: ProgramTransformerExtras) {
   progTsInstance = tsInstance;
 
   const newProgram = (tsInstance as any).createProgram(

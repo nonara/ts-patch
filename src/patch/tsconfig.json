@@ -1,5 +1,7 @@
 {
+  "include": [ "lib", "../installer/plugin-types.ts" ],
   "compilerOptions": {
+    "rootDir": "..",
     "noEmit": true,
     "strict": true,
     "noUnusedLocals": false,

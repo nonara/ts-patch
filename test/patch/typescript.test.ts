@@ -73,7 +73,7 @@ describe.each([ ...tsInstallationDirs.keys() ])(`TypeScript - %s`, (tsVersion: s
     expect(customTransformer).toBeCalledTimes(1);
   });
 
-  describe(`TspExtras`, () => {
+  describe(`TransformerExtras`, () => {
     let message = '';
     let diagnostics: ts.Diagnostic[];
     beforeAll(() => {

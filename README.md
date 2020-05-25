@@ -65,29 +65,22 @@ Add transformers to `compilerOptions` in `plugin` array:
 | import            | Name of exported transformer function _(defaults to `default` export)_ |
 | after             | Apply transformer after stock TS transformers. |
 | afterDeclarations | Apply transformer to declaration (*.d.ts) files _(TypeScript 2.9+)_. |
-| transformProgram        | Transform `Program` before `program.emit()` is called _(see: [Transforming Program](#transforming-program))_ |
+| transformProgram        | Transform `Program` during `ts.createProgram()` _(see: [Transforming Program](#transforming-program))_ |
 | _..._    |  Provide your own custom options, which will be passed to the transformer |
 
 _Note: Required options are bold_
 
 ### Type Signatures
-`ts.TransformerFactory` >>> `(context: ts.TransformationContext) => (sourceFile: ts.SourceFile) => ts.SourceFile`  
-`TspExtras` >>> 
-```
-{  
-    ts: typeof ts;          // The typescript instance
-    addDiagnostic: (diag: Diagnostic) => number,
-    removeDiagnostic: (index: number) => void,
-    diagnostics: readonly Diagnostic[],
-    library: string         // Originating library ('tsc' | typescript' | 'tsserverlibrary' | 'tsserver')
-}
-```
+_ts.TransformerFactory_ >>> `(context: ts.TransformationContext) => (sourceFile: ts.SourceFile) => ts.SourceFile`  
 
 #### program (default)
+
 Signature with `ts.Program` instance:
 ```ts
-(program: ts.Program, config: PluginConfig | undefined, extras: TspExtras) => ts.TransformerFactory
+(program: ts.Program, config: PluginConfig, extras: TransformerExtras) => ts.TransformerFactory
 ```
+
+_TransformerExtras_ >>> [See Type Declaration](https://github.com/nonara/ts-patch/blob/master/src/installer/plugin-types.ts#L76)  
 
 #### config
 Signature with transformer's config:
@@ -98,7 +91,7 @@ Signature with transformer's config:
 #### checker
 Signature with `ts.TypeChecker`:
 ```ts
-(checker: ts.TypeChecker, config?: PluginConfig) => ts.TransformerFactory
+(checker: ts.TypeChecker, config: PluginConfig) => ts.TransformerFactory
 ```
 
 #### raw
@@ -110,7 +103,7 @@ Signature without `ts-patch` wrapper:
 
 #### compilerOptions
 ```ts
-(compilerOpts: ts.CompilerOptions, config?: PluginConfig) => ts.TransformerFactory
+(compilerOpts: ts.CompilerOptions, config: PluginConfig) => ts.TransformerFactory
 ```
 
 ### Examples
@@ -199,8 +192,10 @@ Good news! `ts-patch` now supports this via a `transformProgram` plugin. The tra
 There is only one possible signature for a Program transformer.
 
 ```TS
-(program: ts.Program, host?: ts.CompilerHost, options?: PluginConfig) => ts.Program
+(program: ts.Program, host: ts.CompilerHost | undefined, options: PluginConfig, extras: ProgramTransformerExtras) => ts.Program
 ```
+
+_ProgramTransformerExtras_ >>> [See Type Declaration](https://github.com/nonara/ts-patch/blob/master/src/installer/plugin-types.ts#L90)  
 
 #### Example Program Transformer
 ```TypeScript
@@ -223,14 +218,16 @@ export default function (program: ts.Program, host?: ts.CompilerHost) {
 ```
 
 #### Notes
-A Program transformer is _not_ a Node Transformer. This means the following options will not apply when `transformProgram: true` is specified:
+A Program transformer is _not_ a Node Transformer. This means the following options will not apply when 
+`transformProgram: true` is specified:
 - `type` 
 - `before`
 - `after`
 
 ### Altering Diagnostics
 
-To alter diagnostics, use the [program type signature](#program-default), and use the following properties from the `TspExtras` parameter
+To alter diagnostics, use the [program type signature](#program-default), and use the following properties from the 
+`TransformerExtras` parameter
 
 | property | description |
 | -------- |----------- |

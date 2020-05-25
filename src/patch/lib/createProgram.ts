@@ -7,7 +7,7 @@ import { diagnosticMap } from './shared';
 import * as TS from 'typescript';
 import { Diagnostic } from 'typescript';
 import { PluginCreator } from './plugin';
-import { PluginConfig, ProgramTransformer } from './types';
+import { PluginConfig, ProgramTransformer } from '../../installer';
 import * as TSPlus from './type-declarations';
 
 

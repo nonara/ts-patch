@@ -5,6 +5,18 @@ import { getTSModule, TSModule, TSPackage } from './file-utils';
 import { BACKUP_DIRNAME } from './actions';
 
 
+/* ****************************************************************************************************************** */
+// region: Constants
+/* ****************************************************************************************************************** */
+
+const dtsPatchSrc = '\n' +
+  fs.readFileSync(path.resolve(appRoot, tspPackageJSON.directories.resources, 'module-patch.d.ts'), 'utf-8');
+const jsPatchSrc =
+  fs.readFileSync(path.resolve(appRoot, tspPackageJSON.directories.resources, 'module-patch.js'), 'utf-8')
+
+// endregion
+
+
 /* ********************************************************************************************************************
  * Helpers
  * ********************************************************************************************************************/
@@ -13,12 +25,11 @@ import { BACKUP_DIRNAME } from './actions';
  * Generate insertion code for module-patch
  */
 const generatePatch = (isTSC: boolean) =>
-  fs
-    .readFileSync(path.resolve(appRoot, tspPackageJSON.directories.resources, 'module-patch.js'), 'utf-8')
+  jsPatchSrc
     .replace(
       /(^\s*Object\.assign\(ts,\s*{[\s\S]*tspVersion,[\s\S]+?}\);?$)/m,
-      `var tspVersion = '${tspPackageJSON.version}';\r\n` +
-      `var isTSC = ${isTSC};\r\n` +
+      `var tspVersion = '${tspPackageJSON.version}';\n` +
+      `var isTSC = ${isTSC};\n` +
       `$1`
     );
 
@@ -122,14 +133,16 @@ export function patchTSModule(tsModule: TSModule, tsPackage: TSPackage) {
   }
 
   /* Patch d.ts with types (if module is typescript.ts) */
-  if (filename === 'typescript.js')
+  if (filename === 'typescript.js') {
+    const targetFile = path.join(dir, 'typescript.d.ts');
+    const backupFile = path.join(tsPackage.packageDir, BACKUP_DIRNAME, 'typescript.d.ts');
+
     try {
-      fs.appendFileSync(
-        path.join(dir, 'typescript.d.ts'),
-        '\r\n' + fs.readFileSync(path.resolve(appRoot, tspPackageJSON.directories.resources, 'module-patch.d.ts'))
-      )
+      if (fs.existsSync(backupFile)) fs.writeFileSync(targetFile, fs.readFileSync(backupFile, 'utf-8') + dtsPatchSrc)
+      else fs.appendFileSync(targetFile, dtsPatchSrc)
     }
     catch (e) {
       throw new FileWriteError(filename, e.message);
     }
+  }
 }
