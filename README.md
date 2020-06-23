@@ -71,7 +71,7 @@ Add transformers to `compilerOptions` in `plugin` array.
             { "transform": "transformer-module4", "type": "compilerOptions" },
 
             // Program Transformer -> Only has one signature - notice no type specified, because it does not apply
-            { "transform": "transformer-module4", "transformProgram": true }
+            { "transform": "transformer-module5", "transformProgram": true }
         ]
     }
 }
@@ -184,7 +184,7 @@ export default function(program: ts.Program, pluginOptions: any) {
 
 ### Transforming Program
 
-There are some cases where a transformer isn't enough. Several examples of are if you want to:
+There are some cases where a transformer isn't enough. Several examples are if you want to:
 
 - TypeCheck code after it's been transformed
 - Add or remove emit files during transformation
