@@ -28,8 +28,7 @@ For more options, use: ```ts-patch /?```
   - [Configuring](#configuring)
       - [tsconfig.json](#tsconfigjson)
       - [Plugin Options](#plugin-options)
-      - [Type Signatures](#type-signatures)
-      - [Examples](#examples)
+      - [Source Transformer Signatures](#source-transformer-signatures)
   - [Usage](#usage)
       - [Transforming AST Nodes](#transforming-ast-nodes)
           - [Example Node Transformers](#example-node-transformers)
@@ -46,32 +45,54 @@ For more options, use: ```ts-patch /?```
 ## Configuring
 ### tsconfig.json
 
-Add transformers to `compilerOptions` in `plugin` array:
-```JSON
+Add transformers to `compilerOptions` in `plugin` array.  
+
+**Examples**
+```jsonc
 {
     "compilerOptions": {
         "plugins": [
-            { "transform": "transformer-module" }
+            // Source Transformer -> 'type' defaults to 'program'
+            { "transform": "transformer-module", "someOption1": 123, "someOption2": 321 },
+
+            // Source Transformer -> program signature 
+            { "transform": "./transformers/my-transformer.ts", "type": "program" },
+
+            // Source Transformer -> program signature, applies after TS transformers
+            { "transform": "transformer-module1", "type": "config", "after": true },
+
+            // Source Transformer -> checker signature, applies to TS declarations
+            { "transform": "transformer-module2", "type": "checker", "afterDeclarations": true }, 
+            
+            // Source Transformer -> raw signature
+            { "transform": "transformer-module3", "type": "raw" },
+
+            // Source Transformer -> compilerOptions signature 
+            { "transform": "transformer-module4", "type": "compilerOptions" },
+
+            // Program Transformer -> Only has one signature - notice no type specified, because it does not apply
+            { "transform": "transformer-module4", "transformProgram": true }
         ]
     }
 }
 ```
 
 ### Plugin Options
-| Option                | Description |
-| --------------------- |  :----------- |
-| **transform**         | Module name or path to transformer _(*.ts or *.js)_ |
-| type              | Plugin entry point format _(see: [Type Signatures](#type-signatures))_ |
-| import            | Name of exported transformer function _(defaults to `default` export)_ |
-| after             | Apply transformer after stock TS transformers. |
-| afterDeclarations | Apply transformer to declaration (*.d.ts) files _(TypeScript 2.9+)_. |
-| transformProgram        | Transform `Program` during `ts.createProgram()` _(see: [Transforming Program](#transforming-program))_ |
-| _..._    |  Provide your own custom options, which will be passed to the transformer |
+| Option            | Type    | Description |
+| ------------------| ------- | :----------- |
+| **transform**     | string  | Module name or path to transformer _(*.ts or *.js)_ |
+| type              | string  | *Source Transformer* entry point signature _(see: [Source Transformer Signatures](#source-transformer-signatures))_ |
+| import            | string  | Name of exported transformer function _(defaults to `default` export)_ |
+| after             | boolean | Apply transformer after stock TS transformers. |
+| afterDeclarations | boolean | Apply transformer to declaration (*.d.ts) files _(TypeScript 2.9+)_. |
+| transformProgram  | boolean | Transform `Program` during `ts.createProgram()` _(see: [Transforming Program](#transforming-program))_ |
+| _..._             |         | Provide your own custom options, which will be passed to the transformer |
 
 _Note: Required options are bold_
 
-### Type Signatures
-_ts.TransformerFactory_ >>> `(context: ts.TransformationContext) => (sourceFile: ts.SourceFile) => ts.SourceFile`  
+### Source Transformer Signatures
+The following are the possible values for the `type` option and their corresponding entry point signatures.  
+_Note: These apply to Source Transformers only._
 
 #### program (default)
 
@@ -80,7 +101,10 @@ Signature with `ts.Program` instance:
 (program: ts.Program, config: PluginConfig, extras: TransformerExtras) => ts.TransformerFactory
 ```
 
+_ts.TransformerFactory_ >>> `(context: ts.TransformationContext) => (sourceFile: ts.SourceFile) => ts.SourceFile`  
 _TransformerExtras_ >>> [See Type Declaration](https://github.com/nonara/ts-patch/blob/master/src/installer/plugin-types.ts#L76)  
+
+_Note: This is *not* the configuration for a [Program Transformer](#transforming-program)._
 
 #### config
 Signature with transformer's config:
@@ -104,23 +128,6 @@ Signature without `ts-patch` wrapper:
 #### compilerOptions
 ```ts
 (compilerOpts: ts.CompilerOptions, config: PluginConfig) => ts.TransformerFactory
-```
-
-### Examples
-```jsonc
-{
-    "compilerOptions": {
-        "plugins": [
-            { "transform": "transformer-module", "someOption1": 123, "someOption2": 321 }, // type defaults to 'program'
-            { "transform": "./transformers/my-transformer.ts", "type": "program" },
-            { "transform": "transformer-module1", "type": "config", "after": true },
-            { "transform": "transformer-module2", "type": "checker", "afterDeclarations": true },
-            { "transform": "transformer-module3", "type": "raw" },
-            { "transform": "transformer-module4", "type": "compilerOptions", "transformProgram": true },
-            { "transform": "transformer-module4", "transformProgram": true } // No type specified - transformProgram has only one signature
-        ]
-    }
-}
 ```
 
 ## Usage
@@ -177,19 +184,25 @@ export default function(program: ts.Program, pluginOptions: any) {
 
 ### Transforming Program
 
-There are some cases where a transformer isn't enough. Some of the biggest examples are if you're trying to:
+There are some cases where a transformer isn't enough. Several examples of are if you want to:
 
 - TypeCheck code after it's been transformed
 - Add or remove emit files during transformation
 
-In order to do this, you'd normally have to create a custom build tool which manually creates `Program` and manipulates 
-or re-creates it as you need.
+For this, we've introduced what we call a Program Transformer. The transform action takes place during `ts.createProgram`, and allows
+re-creating the `Program` instance that typescript uses.
 
-Good news! `ts-patch` now supports this via a `transformProgram` plugin. The transform action takes place during `ts.createProgram`.
+#### Configuring Program Transformer
+
+To configure a Program Transformer, supply `"transformProgram": true` in the config transformer entry.
+
+_Note: The `type`, `before`, and `after` options do not apply to a Program Transformer and will be ignored_
+
+[See Config Example](#tsconfigjson)
 
 #### Signature
 
-There is only one possible signature for a Program transformer.
+There is only one possible signature for a Program Transformer entry point.
 
 ```TS
 (program: ts.Program, host: ts.CompilerHost | undefined, options: PluginConfig, extras: ProgramTransformerExtras) => ts.Program
@@ -204,11 +217,17 @@ _ProgramTransformerExtras_ >>> [See Type Declaration](https://github.com/nonara/
  */
 import * as ts from 'typescript';
 import * as path from 'path';
+import { ProgramTransformerExtras, PluginConfig } from 'ts-patch';
 
 export const newFile = path.resolve(__dirname, 'added-file.ts');
 
-export default function (program: ts.Program, host?: ts.CompilerHost) {
-  return ts.createProgram(
+export default function (
+  program: ts.Program, 
+  host: ts.CompilerHost | undefined, 
+  options: PluginConfig, 
+  { ts: tsInstance }: ProgramTransformerExtras
+) {
+  return tsInstance.createProgram(
     /* rootNames */ program.getRootFileNames().concat([ newFile ]),
     program.getCompilerOptions(),
     host,
@@ -217,14 +236,9 @@ export default function (program: ts.Program, host?: ts.CompilerHost) {
 }
 ```
 
-#### Notes
-A Program transformer is _not_ a Node Transformer. This means the following options will not apply when 
-`transformProgram: true` is specified:
-- `type` 
-- `before`
-- `after`
-
 ### Altering Diagnostics
+
+Diagnostics can be altered in a Source Transformer.
 
 To alter diagnostics, use the [program type signature](#program-default), and use the following properties from the 
 `TransformerExtras` parameter
