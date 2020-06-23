@@ -11,6 +11,8 @@ import * as ts from 'typescript';
 /* ****************************************************************************************************************** */
 
 export interface PluginConfig {
+  [x:string]: any
+
   /**
    * Language Server TypeScript Plugin name
    */
