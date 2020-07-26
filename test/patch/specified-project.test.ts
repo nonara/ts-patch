@@ -1,7 +1,7 @@
 /**
  * Test cases for specifying tsconfig as 'project' in config.
  *
- * Note: Unfortunately, because of jest's sandbox, we cannot directly test path mapping. It is not able to resolve
+ * Notes: Unfortunately, because of jest's sandbox, we cannot directly test path mapping. It is not able to resolve
  *       mapped paths. Ideally, we'd be able to execute virtually in a context outside of
  *       jest, but there is not currently a clear way to do this.
  *
@@ -17,13 +17,19 @@ import { getPatchedTS } from '../lib/mock-utils';
 
 
 /* ****************************************************************************************************************** *
+ * Config
+ * ****************************************************************************************************************** */
+
+const srcFilesPath = path.join(testAssetsDir, 'src-files/transformer-with-project');
+const destDir = path.join(os.tmpdir(), 'tmpTSC');
+const tscPath = path.join(destDir, 'node_modules/typescript/lib/tsc.js');
+
+
+/* ****************************************************************************************************************** *
  * Tests
  * ****************************************************************************************************************** */
 
 describe('Specify Project', () => {
-  const srcFilesPath = path.join(testAssetsDir, 'src-files/transformer-with-project');
-  const destDir = path.join(os.tmpdir(), 'tmpTSC');
-  const tscPath = path.join(destDir, 'node_modules/typescript/lib/tsc.js');
   beforeAll(() => {
     const { tscCode } = getPatchedTS('latest');
 
@@ -39,21 +45,21 @@ describe('Specify Project', () => {
 
   test(`Loads project file & path mapping works`, () => {
     const cmd = `node ${tscPath} --noEmit false -p ${srcFilesPath}`;
-    const res = child_process.execSync(cmd, { stdio: 'pipe' });
-    expect(res.toString()).toMatch(/Path-Mapping Success!/);
+    const res = child_process.spawnSync(cmd, { stdio: 'pipe', shell: true });
+    expect(res.stdout.toString()).toMatch(/Path-Mapping Success!/);
   });
 
   test(`Mapping fails without project specified`, () => {
     const cmd = `node ${tscPath} --noEmit false -p ${path.join(srcFilesPath, 'tsconfig.noproject.json')}`;
-    const fail = () => child_process.execSync(cmd, { stdio: 'pipe' });
-    expect(fail).toThrow(/Cannot find module '#a'/);
+    const res = child_process.spawnSync(cmd, { stdio: 'pipe', shell: true  });
+    expect(res.stderr.toString()).toMatch(/Cannot find module '#a'/);
   });
 
   test(`Logs warning if can't find tsconfig-paths`, () => {
     shell.rm('-r', path.join(destDir, 'node_modules/tsconfig-paths'));
 
     const cmd = `node ${tscPath} --noEmit false -p ${srcFilesPath}`;
-    const fail = () => child_process.execSync(cmd, { stdio: 'pipe' });
-    expect(fail).toThrow(/Try adding 'tsconfig-paths'/);
+    const res = child_process.spawnSync(cmd, { stdio: 'pipe', shell: true  });
+    expect(res.stderr.toString()).toMatch(/Try adding 'tsconfig-paths'/);
   });
 });
