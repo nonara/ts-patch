@@ -13,13 +13,14 @@ import resolve from 'resolve';
 // region: Constants
 /* ****************************************************************************************************************** */
 
-const vanillaFiles = [
+const vanillaFiles = Object.fromEntries([
   ...cacheDirectory(tsProjectsDir),
   ...cacheDirectory(resourcesDir),
   ...cacheDirectory(testAssetsDir)
-];
+]);
 
 let patchedFiles = new Map<string, { ts: any, tscCode: string }>();
+const cachedFiles = new Map<string, Buffer>();
 
 // endregion
 
@@ -28,10 +29,24 @@ let patchedFiles = new Map<string, { ts: any, tscCode: string }>();
 // region: Helpers
 /* ****************************************************************************************************************** */
 
-function cacheDirectory(dir: string): [ string, string | {} ][] {
+/**
+ * Create a map of [ path, FileFactory ] for use with mock-fs (uses caching)
+ */
+function cacheDirectory(dir: string): [ string, {} | ReturnType<typeof mock.file> ][] {
   return (shell.ls('-RAl', dir) as unknown as (fs.Stats & { name: string })[]).map(stat => {
     const statPath = normalizeSlashes(path.join(dir, stat.name));
-    return [ statPath, stat.isFile() ? fs.readFileSync(statPath, 'utf-8') : {} ]
+    const value = !stat.isFile() ? {} :
+      <ReturnType<typeof mock.file>>(() => {
+        const fileData = fs.readFileSync(statPath);
+        cachedFiles.set(statPath, fileData);
+
+        return Object.defineProperty(mock.file({ content: '' })(), '_content', {
+          get: () => cachedFiles.get(statPath),
+          set: (data: any) => cachedFiles.set(statPath, data)
+        });
+      });
+
+    return [ statPath, value ];
   });
 }
 
@@ -42,12 +57,13 @@ function cacheDirectory(dir: string): [ string, string | {} ][] {
 // region: FileSystem
 /* ****************************************************************************************************************** */
 
-export function mockFs(fileEntries: [ string, string | {} ][] = vanillaFiles) {
-  mock(fileEntries.reduce((p, [key, value]) => { p[key] = value; return p; }, <Record<string, string | {}>>{}));
+export function mockFs() {
+  mock(vanillaFiles);
 }
 
 export function restoreFs() {
   mock.restore();
+  cachedFiles.clear();
 }
 
 export function resetFs() {
