@@ -17,13 +17,20 @@ import { getPatchedTS } from '../lib/mock-utils';
 
 
 /* ****************************************************************************************************************** *
+ * Config
+ * ****************************************************************************************************************** */
+
+const maxBuffer = 2e+6; // 2MB
+const srcFilesPath = path.join(testAssetsDir, 'src-files/transformer-with-project');
+const destDir = path.join(os.tmpdir(), 'tmpTSC');
+const tscPath = path.join(destDir, 'node_modules/typescript/lib/tsc.js');
+
+
+/* ****************************************************************************************************************** *
  * Tests
  * ****************************************************************************************************************** */
 
 describe('Specify Project', () => {
-  const srcFilesPath = path.join(testAssetsDir, 'src-files/transformer-with-project');
-  const destDir = path.join(os.tmpdir(), 'tmpTSC');
-  const tscPath = path.join(destDir, 'node_modules/typescript/lib/tsc.js');
   beforeAll(() => {
     const { tscCode } = getPatchedTS('latest');
 
@@ -39,13 +46,13 @@ describe('Specify Project', () => {
 
   test(`Loads project file & path mapping works`, () => {
     const cmd = `node ${tscPath} --noEmit false -p ${srcFilesPath}`;
-    const res = child_process.execSync(cmd, { stdio: 'pipe' });
+    const res = child_process.execSync(cmd, { stdio: 'pipe', maxBuffer });
     expect(res.toString()).toMatch(/Path-Mapping Success!/);
   });
 
   test(`Mapping fails without project specified`, () => {
     const cmd = `node ${tscPath} --noEmit false -p ${path.join(srcFilesPath, 'tsconfig.noproject.json')}`;
-    const fail = () => child_process.execSync(cmd, { stdio: 'pipe' });
+    const fail = () => child_process.execSync(cmd, { stdio: 'pipe', maxBuffer });
     expect(fail).toThrow(/Cannot find module '#a'/);
   });
 
@@ -53,7 +60,7 @@ describe('Specify Project', () => {
     shell.rm('-r', path.join(destDir, 'node_modules/tsconfig-paths'));
 
     const cmd = `node ${tscPath} --noEmit false -p ${srcFilesPath}`;
-    const fail = () => child_process.execSync(cmd, { stdio: 'pipe' });
+    const fail = () => child_process.execSync(cmd, { stdio: 'pipe', maxBuffer });
     expect(fail).toThrow(/Try adding 'tsconfig-paths'/);
   });
 });
