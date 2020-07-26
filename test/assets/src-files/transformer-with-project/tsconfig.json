@@ -1,0 +1,11 @@
+{
+  "files": [ "index.ts" ],
+  "compilerOptions": {
+    "noEmit": true,
+    "plugins": [ {
+      "transform": "./transformer/transformer.ts",
+      "tsConfig": "./transformer/tsconfig.json",
+      "import": "transformer"
+    } ]
+  }
+}
