@@ -40,17 +40,22 @@ describe('Specify Project', () => {
   beforeAll(() => {
     if (isLessThanNode12) return;
 
+    console.log('1');
     const { tscCode } = getPatchedTS('latest');
+    console.log('2');
 
     shell.rm('-rf', destDir);
     shell.mkdir('-p', destDir);
+    console.log('3');
 
     shell.cp('-r', `${srcFilesPath}/*`, destDir);
     shell.cp('-r', `${path.join(tsProjectsDir, 'latest')}/*`, destDir);
+    console.log('4');
 
     fs.writeFileSync(tscPath, tscCode);
+    console.log('5');
   });
-  // afterAll(() => shell.rm('-rf', destDir));
+  afterAll(() => shell.rm('-rf', destDir));
 
   test(`Loads project file & path mapping works`, () => {
     // const cmd = `node ${tscPath} --noEmit false -p ${srcFilesPath}`;
