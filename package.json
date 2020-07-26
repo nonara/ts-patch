@@ -11,7 +11,7 @@
     "build:patch": "cd src/patch && rollup -c",
     "------------ ": "-------------",
     "test": "jest",
-    "test:coverage": "jest",
+    "test:coverage": "jest test/patch/specified-project.test.ts",
     "------------": "-------------",
     "prepare": "node scripts/prepare.js",
     "postbuild": "node scripts/postbuild.js"
