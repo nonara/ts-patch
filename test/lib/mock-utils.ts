@@ -7,17 +7,18 @@ import { resourcesDir, testAssetsDir, tsInstallationDirs, tsProjectsDir } from '
 import { patch } from '../../src/installer';
 import { normalizeSlashes } from 'ts-node';
 import resolve from 'resolve';
+import FileSystem from 'mock-fs/lib/filesystem';
 
 
 /* ****************************************************************************************************************** */
 // region: Constants
 /* ****************************************************************************************************************** */
 
-const vanillaFiles = Object.fromEntries([
-  ...cacheDirectory(tsProjectsDir),
-  ...cacheDirectory(resourcesDir),
-  ...cacheDirectory(testAssetsDir)
-]);
+const vanillaFiles = cacheDirectories(
+  tsProjectsDir,
+  resourcesDir,
+  testAssetsDir
+);
 
 let patchedFiles = new Map<string, { ts: any, tscCode: string }>();
 const cachedFiles = new Map<string, Buffer>();
@@ -30,24 +31,27 @@ const cachedFiles = new Map<string, Buffer>();
 /* ****************************************************************************************************************** */
 
 /**
- * Create a map of [ path, FileFactory ] for use with mock-fs (uses caching)
+ * Create a DirectoryItems from actual files and directories for mock-fs (uses caching)
  */
-function cacheDirectory(dir: string): [ string, {} | ReturnType<typeof mock.file> ][] {
-  return (shell.ls('-RAl', dir) as unknown as (fs.Stats & { name: string })[]).map(stat => {
-    const statPath = normalizeSlashes(path.join(dir, stat.name));
-    const value = !stat.isFile() ? {} :
-      <ReturnType<typeof mock.file>>(() => {
-        const fileData = fs.readFileSync(statPath);
-        cachedFiles.set(statPath, fileData);
+function cacheDirectories(...directory: string[]): FileSystem.DirectoryItems {
+  const res: FileSystem.DirectoryItems = {};
+  for (const dir of directory)
+    for (const stat of shell.ls('-RAl', dir) as unknown as (fs.Stats & { name: string })[]) {
+      const statPath = normalizeSlashes(path.join(dir, stat.name));
+      res[statPath] =
+        !stat.isFile() ? {} :
+        <ReturnType<typeof mock.file>>(() => {
+          const fileData = fs.readFileSync(statPath);
+          cachedFiles.set(statPath, fileData);
 
-        return Object.defineProperty(mock.file({ content: '' })(), '_content', {
-          get: () => cachedFiles.get(statPath),
-          set: (data: any) => cachedFiles.set(statPath, data)
+          return Object.defineProperty(mock.file({ content: '' })(), '_content', {
+            get: () => cachedFiles.get(statPath),
+            set: (data: any) => cachedFiles.set(statPath, data)
+          });
         });
-      });
+    }
 
-    return [ statPath, value ];
-  });
+  return res;
 }
 
 // endregion
