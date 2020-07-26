@@ -38,17 +38,17 @@ describe('Specify Project', () => {
   if (isLessThanNode12) test.only(``, () => console.warn('Skipping specified project test due to issue with node 10'));
 
   beforeAll(() => {
-    // if (isLessThanNode12) return;
-    //
-    // const { tscCode } = getPatchedTS('latest');
-    //
-    // shell.rm('-rf', destDir);
-    // shell.mkdir('-p', destDir);
-    //
-    // shell.cp('-r', `${srcFilesPath}/*`, destDir);
-    // shell.cp('-r', `${path.join(tsProjectsDir, 'latest')}/*`, destDir);
-    //
-    // fs.writeFileSync(tscPath, tscCode);
+    if (isLessThanNode12) return;
+
+    const { tscCode } = getPatchedTS('latest');
+
+    shell.rm('-rf', destDir);
+    shell.mkdir('-p', destDir);
+
+    shell.cp('-r', `${srcFilesPath}/*`, destDir);
+    shell.cp('-r', `${path.join(tsProjectsDir, 'latest')}/*`, destDir);
+
+    fs.writeFileSync(tscPath, tscCode);
   });
   // afterAll(() => shell.rm('-rf', destDir));
 
