@@ -46,21 +46,21 @@ describe('Specify Project', () => {
 
   test(`Loads project file & path mapping works`, () => {
     const cmd = `node ${tscPath} --noEmit false -p ${srcFilesPath}`;
-    const res = child_process.execSync(cmd, { stdio: 'pipe', maxBuffer });
-    expect(res.toString()).toMatch(/Path-Mapping Success!/);
+    const res = child_process.spawnSync(cmd, { stdio: 'pipe', maxBuffer, shell: true });
+    expect(res.stdout.toString()).toMatch(/Path-Mapping Success!/);
   });
 
   test(`Mapping fails without project specified`, () => {
     const cmd = `node ${tscPath} --noEmit false -p ${path.join(srcFilesPath, 'tsconfig.noproject.json')}`;
-    const fail = () => child_process.execSync(cmd, { stdio: 'pipe', maxBuffer });
-    expect(fail).toThrow(/Cannot find module '#a'/);
+    const res = child_process.spawnSync(cmd, { stdio: 'pipe', maxBuffer, shell: true  });
+    expect(res.stderr.toString()).toMatch(/Cannot find module '#a'/);
   });
 
   test(`Logs warning if can't find tsconfig-paths`, () => {
     shell.rm('-r', path.join(destDir, 'node_modules/tsconfig-paths'));
 
     const cmd = `node ${tscPath} --noEmit false -p ${srcFilesPath}`;
-    const fail = () => child_process.execSync(cmd, { stdio: 'pipe', maxBuffer });
-    expect(fail).toThrow(/Try adding 'tsconfig-paths'/);
+    const res = child_process.spawnSync(cmd, { stdio: 'pipe', maxBuffer, shell: true  });
+    expect(res.stderr.toString()).toMatch(/Try adding 'tsconfig-paths'/);
   });
 });
