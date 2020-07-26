@@ -79,6 +79,7 @@
     "ts-transform-react-intl": "^0.4.1",
     "ts-transformer-enumerate": "^0.5.1",
     "ts-transformer-keys": "^0.4.1",
+    "tsconfig-paths": "^3.9.0",
     "typescript": "^3.9.3",
     "yarn": "^1.22.4"
   },

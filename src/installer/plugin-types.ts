@@ -24,6 +24,11 @@ export interface PluginConfig {
   transform?: string;
 
   /**
+   * tsconfig.json file (for transformer)
+   */
+  tsConfig?: string;
+
+  /**
    * The optional name of the exported transform plugin in the transform module.
    */
   import?: string;
