@@ -13,6 +13,8 @@ import {
   RawPattern, TransformerBasePlugin, TransformerList, TransformerPlugin, TypeCheckerPattern
 } from '../../installer';
 import * as TSPlus from './type-declarations';
+import fs from 'fs';
+import path from 'path';
 
 
 /* ****************************************************************************************************************** */
@@ -41,6 +43,8 @@ declare const ts: typeof TS & typeof TSPlus;
  * ]).createTransformers({ program })
  */
 export class PluginCreator {
+  currentProject?: string
+
   constructor(
     private configs: PluginConfig[],
     private resolveBaseDir: string = process.cwd()
@@ -72,7 +76,7 @@ export class PluginCreator {
     for (const config of this.configs) {
       if (!config.transform || config.transformProgram) continue;
 
-      const factory = this.resolveFactory(config.transform, config.import);
+      const factory = this.resolveFactory(config);
       if (factory === undefined) continue;
 
       this.mergeTransformers(
@@ -88,11 +92,11 @@ export class PluginCreator {
   }
 
   public getProgramTransformers(): [ ProgramTransformer, PluginConfig ][] {
-    const res:[ ProgramTransformer, PluginConfig ][] = [];
+    const res: [ ProgramTransformer, PluginConfig ][] = [];
     for (const config of this.configs) {
       if (!config.transform || !config.transformProgram) continue;
 
-      const factory = this.resolveFactory(config.transform, config.import) as ProgramTransformer;
+      const factory = this.resolveFactory(config) as ProgramTransformer;
       if (factory === undefined) continue;
 
       res.push([ factory, config ]);
@@ -106,22 +110,55 @@ export class PluginCreator {
    * Helpers
    * ***********************************************************/
 
-  private resolveFactory(transform: string, importKey: string = 'default'):
-    PluginFactory | ProgramTransformer | undefined
-  {
+  private resolveFactory(config: PluginConfig): PluginFactory | ProgramTransformer | undefined {
+    let { tsConfig } = config;
+    const transform = config.transform!;
+    const importKey = config.import || 'default';
+
     /* Add support for TS transformers */
-    if (!tsNodeIncluded && transform.match(/\.ts$/)) {
-      require('ts-node').register({
-        transpileOnly: true,
-        skipProject: true,
-        compilerOptions: {
-          target: 'ES2018',
-          jsx: 'react',
-          esModuleInterop: true,
-          module: 'commonjs',
-        },
-      });
-      tsNodeIncluded = true;
+    let tsConfigCleanup: Function | undefined;
+    if (transform!.match(/\.ts$/)) {
+      // If tsConfig is specified and it differs, we need to re-register tsNode
+      if (tsNodeIncluded && (tsConfig !== this.currentProject)) tsNodeIncluded = false;
+      if (tsConfig) tsConfig = path.resolve(this.resolveBaseDir, tsConfig);
+      this.currentProject = tsConfig;
+
+      if (!tsNodeIncluded) {
+        /* Try to add path mapping support, if paths specified */
+        let tsConfigData: any;
+        try { tsConfigData = tsConfig && JSON.parse(fs.readFileSync(tsConfig, 'utf8')); } catch {}
+        if (tsConfig && tsConfigData?.compilerOptions?.paths) {
+          try {
+            const tsConfigPaths = require('tsconfig-paths');
+            const { absoluteBaseUrl } = tsConfigPaths.loadConfig(tsConfig);
+            tsConfigCleanup = tsConfigPaths.register({
+              baseUrl: absoluteBaseUrl,
+              paths: tsConfigData.compilerOptions.paths
+            });
+          }
+          catch (e) {
+            if (e.code === 'MODULE_NOT_FOUND')
+              console.warn(
+              `Warning: Paths specified in transformer tsconfig.json, but they can't be resolved. ` +
+              `Try adding 'tsconfig-paths' as a dev dependency`
+              );
+            else throw e;
+          }
+        }
+
+        /* Register tsNode */
+        require('ts-node').register({
+          transpileOnly: true,
+          ...(tsConfig ? { project: tsConfig } : { skipProject: true }),
+          compilerOptions: {
+            target: 'ES2018',
+            jsx: 'react',
+            esModuleInterop: true,
+            module: 'commonjs',
+          }
+        });
+        tsNodeIncluded = true;
+      }
     }
 
     const modulePath = resolve.sync(transform, { basedir: this.resolveBaseDir });
@@ -133,6 +170,9 @@ export class PluginCreator {
     requireStack.push(modulePath);
     const commonjsModule: PluginFactory | { [key: string]: PluginFactory } = require(modulePath);
     requireStack.pop();
+
+    // Un-register path mapping if in place
+    tsConfigCleanup?.();
 
     const factoryModule = (typeof commonjsModule === 'function') ? { default: commonjsModule } : commonjsModule;
     const factory = factoryModule[importKey];
@@ -168,7 +208,6 @@ export class PluginCreator {
     const { transform, after, afterDeclarations, name, type, transformProgram, ...cleanConfig } = config;
 
     if (!transform) throw new Error('Not a valid config entry: "transform" key not found');
-
 
     let ret: TransformerPlugin;
     switch (config.type) {

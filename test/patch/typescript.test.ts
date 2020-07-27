@@ -1,13 +1,12 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as ts from 'typescript';
-import { CompilerOptions, ScriptTarget } from 'typescript';
+import { ScriptTarget } from 'typescript';
 import * as progTransformers from '../assets/transformers/program-transformer';
 import { newFiles } from '../assets/transformers/program-transformer';
 import { getPatchedTS } from '../lib/mock-utils';
 import { testAssetsDir, tsInstallationDirs } from '../lib/config';
 import SpyInstance = jest.SpyInstance;
-
 
 /* ********************************************************************************************************************
  * Constants
@@ -20,6 +19,21 @@ const safelyExpected =
 const basicCode = 'var a = 1';
 const basicExpected = /^[\s\r\n]*var a = 1;*[\s\r\n]*$/m;
 
+const defaultCompilerOptions = {
+  ...ts.getDefaultCompilerOptions(),
+  lib: undefined,
+  types: undefined,
+  noEmit: undefined,
+  noEmitOnError: undefined,
+  paths: undefined,
+  rootDirs: undefined,
+  composite: undefined,
+  declarationDir: undefined,
+  out: undefined,
+  outFile: undefined,
+  noResolve: true,
+  noLib: true
+}
 
 /* ********************************************************************************************************************
  * Tests
@@ -27,7 +41,8 @@ const basicExpected = /^[\s\r\n]*var a = 1;*[\s\r\n]*$/m;
 describe.each([ ...tsInstallationDirs.keys() ])(`TypeScript - %s`, (tsVersion: string) => {
   let ts: typeof import('typescript');
   beforeAll(() => {
-    ts = getPatchedTS(tsVersion).ts;
+    const patchedTs = getPatchedTS(tsVersion);
+    ts = patchedTs.ts;
     jest.mock('typescript', () => ts);
     expect(new RegExp('^' + tsVersion === 'latest' ? '3.9' : tsVersion).test(ts.version));
   });
@@ -135,32 +150,32 @@ describe.each([ ...tsInstallationDirs.keys() ])(`TypeScript - %s`, (tsVersion: s
   describe('Program transformer', () => {
     const safelyFile = path.join(__dirname, '../assets/safely-code.ts');
     const pluginsNormal: any[] = [
-      { transform: path.join(__dirname, '../assets/transformers/program-transformer.ts'), beforeEmit: true, import: 'progTransformer1' },
-      { transform: path.join(__dirname, '../assets/transformers/program-transformer.ts'), beforeEmit: true, import: 'progTransformer2' }
+      {
+        transform: path.join(__dirname, '../assets/transformers/program-transformer.ts'),
+        transformProgram: true,
+        import: 'progTransformer1'
+      },
+      {
+        transform: path.join(__dirname, '../assets/transformers/program-transformer.ts'),
+        transformProgram: true,
+        import: 'progTransformer2'
+      }
     ];
     const pluginsRecursive: any[] = [
-      { transform: path.join(__dirname, '../assets/transformers/program-transformer.ts'), beforeEmit: true, import: 'recursiveTransformer1' },
-      { transform: path.join(__dirname, '../assets/transformers/program-transformer.ts'), beforeEmit: true, import: 'recursiveTransformer2' }
+      {
+        transform: path.join(__dirname, '../assets/transformers/program-transformer.ts'),
+        transformProgram: true,
+        import: 'recursiveTransformer1'
+      },
+      {
+        transform: path.join(__dirname, '../assets/transformers/program-transformer.ts'),
+        transformProgram: true,
+        import: 'recursiveTransformer2'
+      }
     ];
-    let compilerOptions: CompilerOptions;
     let spies: Map<string, SpyInstance>;
 
     beforeAll(() => {
-      compilerOptions = {
-        ...ts.getDefaultCompilerOptions(),
-        lib: undefined,
-        types: undefined,
-        noEmit: undefined,
-        noEmitOnError: undefined,
-        paths: undefined,
-        rootDirs: undefined,
-        composite: undefined,
-        declarationDir: undefined,
-        out: undefined,
-        outFile: undefined,
-        noResolve: true,
-        noLib: true
-      }
       const fns = [ 'progTransformer1', 'progTransformer2', 'recursiveTransformer1', 'recursiveTransformer2' ] as const;
       spies = new Map<typeof fns[number], SpyInstance>(
         fns.map(f =>
@@ -173,7 +188,7 @@ describe.each([ ...tsInstallationDirs.keys() ])(`TypeScript - %s`, (tsVersion: s
     afterAll(() => spies.forEach(s => s.mockRestore()));
 
     test(`Transforms program once`, () => {
-      const options = { ...compilerOptions, plugins: pluginsNormal.slice(0, 1) };
+      const options = { ...defaultCompilerOptions, plugins: pluginsNormal.slice(0, 1) };
       const program = ts.createProgram([ safelyFile ], options);
 
       expect(spies.get('progTransformer1')).toBeCalledTimes(1);
@@ -183,7 +198,7 @@ describe.each([ ...tsInstallationDirs.keys() ])(`TypeScript - %s`, (tsVersion: s
     });
 
     test(`Transforms program twice`, () => {
-      const options = { ...compilerOptions, plugins: pluginsNormal };
+      const options = { ...defaultCompilerOptions, plugins: pluginsNormal };
       const program = ts.createProgram([ safelyFile ], options);
 
       expect(spies.get('progTransformer1')).toBeCalledTimes(1);
@@ -193,7 +208,7 @@ describe.each([ ...tsInstallationDirs.keys() ])(`TypeScript - %s`, (tsVersion: s
     });
 
     test(`Prevents createProgram recursion`, () => {
-      const options = { ...compilerOptions, plugins: pluginsRecursive }
+      const options = { ...defaultCompilerOptions, plugins: pluginsRecursive }
       ts.createProgram([ safelyFile ], options);
 
       expect(spies.get('recursiveTransformer1')).toBeCalledTimes(1);

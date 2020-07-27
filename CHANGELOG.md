@@ -4,6 +4,13 @@ Notable changes are documented in this file.
 
 Project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.3.0] (07-26-2020)
+
+### Added
+- Added ability to specify tsconfig.json file for transformer (`tsConfig` option)
+  Note: This opens up the door to specify compilerOptions, which can be useful
+- Added path mapping support (requires [tsconfig-paths](https://npmjs.com/tsconfig-paths))
+
 ## [1.2.2] (05-23-2020)
 
 ### Fixed
@@ -64,6 +71,7 @@ See `README.md` for full detail.
 - Edge cases occurred in which TypeScript based transformers using CommonJS were not being interpretted properly. 
   _(Should address [issue #1](https://github.com/nonara/ts-patch/issues/1))_
 
+[1.3.0]: https://github.com/nonara/ts-patch/compare/v1.2.2...v1.3.0
 [1.2.2]: https://github.com/nonara/ts-patch/compare/v1.1.0...v1.2.2
 [1.2.0]: https://github.com/nonara/ts-patch/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/nonara/ts-patch/compare/v1.0.10...v1.1.0

@@ -7,19 +7,21 @@ import { resourcesDir, testAssetsDir, tsInstallationDirs, tsProjectsDir } from '
 import { patch } from '../../src/installer';
 import { normalizeSlashes } from 'ts-node';
 import resolve from 'resolve';
+import FileSystem from 'mock-fs/lib/filesystem';
 
 
 /* ****************************************************************************************************************** */
 // region: Constants
 /* ****************************************************************************************************************** */
 
-const vanillaFiles = [
-  ...cacheDirectory(tsProjectsDir),
-  ...cacheDirectory(resourcesDir),
-  ...cacheDirectory(testAssetsDir)
-];
+const vanillaFiles = cacheDirectories(
+  tsProjectsDir,
+  resourcesDir,
+  testAssetsDir
+);
 
 let patchedFiles = new Map<string, { ts: any, tscCode: string }>();
+const cachedFiles = new Map<string, Buffer>();
 
 // endregion
 
@@ -28,11 +30,28 @@ let patchedFiles = new Map<string, { ts: any, tscCode: string }>();
 // region: Helpers
 /* ****************************************************************************************************************** */
 
-function cacheDirectory(dir: string): [ string, string | {} ][] {
-  return (shell.ls('-RAl', dir) as unknown as (fs.Stats & { name: string })[]).map(stat => {
-    const statPath = normalizeSlashes(path.join(dir, stat.name));
-    return [ statPath, stat.isFile() ? fs.readFileSync(statPath, 'utf-8') : {} ]
-  });
+/**
+ * Create a DirectoryItems from actual files and directories for mock-fs (uses caching)
+ */
+function cacheDirectories(...directory: string[]): FileSystem.DirectoryItems {
+  const res: FileSystem.DirectoryItems = {};
+  for (const dir of directory)
+    for (const stat of shell.ls('-RAl', dir) as unknown as (fs.Stats & { name: string })[]) {
+      const statPath = normalizeSlashes(path.join(dir, stat.name));
+      res[statPath] =
+        !stat.isFile() ? {} :
+        <ReturnType<typeof mock.file>>(() => {
+          const fileData = fs.readFileSync(statPath);
+          cachedFiles.set(statPath, fileData);
+
+          return Object.defineProperty(mock.file({ content: '' })(), '_content', {
+            get: () => cachedFiles.get(statPath),
+            set: (data: any) => cachedFiles.set(statPath, data)
+          });
+        });
+    }
+
+  return res;
 }
 
 // endregion
@@ -42,12 +61,13 @@ function cacheDirectory(dir: string): [ string, string | {} ][] {
 // region: FileSystem
 /* ****************************************************************************************************************** */
 
-export function mockFs(fileEntries: [ string, string | {} ][] = vanillaFiles) {
-  mock(fileEntries.reduce((p, [key, value]) => { p[key] = value; return p; }, <Record<string, string | {}>>{}));
+export function mockFs() {
+  mock(vanillaFiles);
 }
 
 export function restoreFs() {
   mock.restore();
+  cachedFiles.clear();
 }
 
 export function resetFs() {

@@ -41,7 +41,7 @@ function execTsc(tscPath: string, tscScript: vm.Script, cmd: string):
   try {
     tscScript.runInThisContext()(
       exports,
-      require,
+      jest.requireActual,
       module,
       /* __filename */ tscPath,
       /* __dirname */ path.dirname(tscPath),
@@ -126,5 +126,5 @@ describe.each([ ...tsInstallationDirs.keys() ])(`TSC - %s`, (tsVersion: string) 
       }
     });
     test(`addDiagnostic works`, () => expect(errors).toMatch(/TS1337/));
-  })
+  });
 });

@@ -2,8 +2,8 @@
 ![Build Status](https://github.com/nonara/ts-patch/workflows/Build%20(CI)/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/nonara/ts-patch/badge.svg?branch=master)](https://coveralls.io/github/nonara/ts-patch?branch=master)
 
-ts-patch
-=======================================
+# TS Patch
+
 Directly patch typescript installation to allow custom transformers (plugins).  
 
 - Plugins are specified in `tsconfig.json`, or provided programmatically in `CompilerOptions`.
@@ -45,7 +45,7 @@ For more options, use: ```ts-patch /?```
 ## Configuring
 ### tsconfig.json
 
-Add transformers to `compilerOptions` in `plugin` array.  
+Add transformers to `compilerOptions` in `plugins` array.  
 
 **Examples**
 ```jsonc
@@ -83,6 +83,7 @@ Add transformers to `compilerOptions` in `plugin` array.
 | **transform**     | string  | Module name or path to transformer _(*.ts or *.js)_ |
 | type              | string  | *Source Transformer* entry point signature _(see: [Source Transformer Signatures](#source-transformer-signatures))_ |
 | import            | string  | Name of exported transformer function _(defaults to `default` export)_ |
+| tsConfig          | string  | tsconfig.json file _for transformer_ (allows specifying compileOptions, support path mapping, etc) |
 | after             | boolean | Apply transformer after stock TS transformers. |
 | afterDeclarations | boolean | Apply transformer to declaration (*.d.ts) files _(TypeScript 2.9+)_. |
 | transformProgram  | boolean | Transform `Program` during `ts.createProgram()` _(see: [Transforming Program](#transforming-program))_ |
