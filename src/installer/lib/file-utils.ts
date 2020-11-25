@@ -77,25 +77,28 @@ export interface TSPackage {
 export function getTSPackage(basedir: string = process.cwd()): TSPackage {
   if (!fs.existsSync(basedir)) throw new PackageError(`${basedir} is not a valid directory`);
 
-  const packageDir = path.dirname(resolve.sync('typescript/package.json', { basedir }));
-  if (!packageDir) throw new PackageError(`Could not find typescript package in ${packageDir}`);
+  const possiblePackageDirs = [ basedir, path.dirname(resolve.sync(`typescript/package.json`, { basedir })) ];
 
-  /* Parse package.json data */
-  const packageFile = path.join(packageDir, 'package.json');
-  const { name, version } = (() => {
-    try {
-      return JSON.parse(fs.readFileSync(packageFile, 'utf8'));
-    }
-    catch (e) {
-      throw new PackageError(`Could not parse json data in ${packageFile}`);
-    }
-  })();
+  for (const packageDir of possiblePackageDirs) {
+    /* Parse package.json data */
+    const packageFile = path.join(packageDir, 'package.json');
+    if (!fs.existsSync(packageFile)) continue;
 
-  /* Validate */
-  if (name !== 'typescript')
-    throw new PackageError(`The package in ${packageDir} is not TypeScript. Found: ${name}.`);
+    const { name, version } = (() => {
+      try {
+        return JSON.parse(fs.readFileSync(packageFile, 'utf8'));
+      }
+      catch (e) {
+        throw new PackageError(`Could not parse json data in ${packageFile}`);
+      }
+    })();
 
-  return { version, packageFile, packageDir, config: getConfig(packageDir), libDir: path.join(packageDir, 'lib') };
+    /* Validate */
+    if (name === 'typescript')
+      return { version, packageFile, packageDir, config: getConfig(packageDir), libDir: path.join(packageDir, 'lib') };
+  }
+
+  throw new PackageError(`Could not find typescript package from ${basedir}`);
 }
 
 // endregion
