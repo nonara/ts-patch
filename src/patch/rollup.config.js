@@ -27,7 +27,13 @@ const config = [
       format: 'iife',
       globals: [ 'ts' ],
     } ],
-    plugins: [ typescript(tsOptions), resolve({ preferBuiltins: true }), json({ namedExports: false }), commonjs(), shim(shimOptions) ]
+    plugins: [
+      typescript(tsOptions),
+      resolve({ preferBuiltins: true }),
+      json({ namedExports: false }),
+      commonjs(),
+      shim(shimOptions)
+    ]
   },
   {
     input: 'lib/type-declarations.ts',

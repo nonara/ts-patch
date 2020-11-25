@@ -83,7 +83,7 @@ Add transformers to `compilerOptions` in `plugins` array.
 | **transform**     | string  | Module name or path to transformer _(*.ts or *.js)_ |
 | type              | string  | *Source Transformer* entry point signature _(see: [Source Transformer Signatures](#source-transformer-signatures))_ |
 | import            | string  | Name of exported transformer function _(defaults to `default` export)_ |
-| tsConfig          | string  | tsconfig.json file _for transformer_ (allows specifying compileOptions, support path mapping, etc) |
+| tsConfig          | string  | tsconfig.json file _for transformer_ (allows specifying compileOptions, path mapping support, etc) |
 | after             | boolean | Apply transformer after stock TS transformers. |
 | afterDeclarations | boolean | Apply transformer to declaration (*.d.ts) files _(TypeScript 2.9+)_. |
 | transformProgram  | boolean | Transform `Program` during `ts.createProgram()` _(see: [Transforming Program](#transforming-program))_ |

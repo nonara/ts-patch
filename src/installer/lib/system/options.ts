@@ -7,7 +7,7 @@ import { getGlobalTSDir } from '../file-utils';
 /* ********************************************************************************************************************
  * Options & Type
  * ********************************************************************************************************************/
-export type TSPOptions = { [K in keyof typeof defaultOptions]: (typeof defaultOptions)[K] }
+export type TSPOptions = typeof defaultOptions
 
 export const defaultOptions = {
   logLevel: Log.normal,

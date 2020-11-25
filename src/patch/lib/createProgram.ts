@@ -88,6 +88,7 @@ export function createProgram(
   configFileParsingDiagnostics?: ReadonlyArray<TS.Diagnostic>
 ): TS.Program {
   let rootNames;
+  // TODO - Replace all process.cwd with attempting to first resolve from tsConfigFile dir & bump major version
   let projectDir = process.cwd();
 
   /* Determine options */
