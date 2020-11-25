@@ -4,6 +4,11 @@ Notable changes are documented in this file.
 
 Project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
+## [1.3.1] (11-25-2020)
+
+### Fixed
+- Fixed #21 (Could not specify `--basedir` with dir name other than `typescript` - affected yarn aliasing)
+
 ## [1.3.0] (07-26-2020)
 
 ### Added
@@ -71,6 +76,7 @@ See `README.md` for full detail.
 - Edge cases occurred in which TypeScript based transformers using CommonJS were not being interpretted properly. 
   _(Should address [issue #1](https://github.com/nonara/ts-patch/issues/1))_
 
+[1.3.1]: https://github.com/nonara/ts-patch/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/nonara/ts-patch/compare/v1.2.2...v1.3.0
 [1.2.2]: https://github.com/nonara/ts-patch/compare/v1.1.0...v1.2.2
 [1.2.0]: https://github.com/nonara/ts-patch/compare/v1.1.0...v1.2.0
