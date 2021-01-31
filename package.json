@@ -25,7 +25,10 @@
     "config",
     "ast"
   ],
-  "author": "Ron S.",
+  "author": {
+    "name": "Ron S.",
+    "url": "http://twitter.com/ron"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
