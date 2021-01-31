@@ -272,8 +272,9 @@ will still be merged into the result of `program.emit() -> diagnostics`
 | Tool | Type | Description |
 | ---- | ---- | ----------- |
 | [TS AST Viewer](https://ts-ast-viewer.com/) | Website | Allows you to see the `Node` structure of any TS/JS source, including Flags, `Type`, and `Symbol`. This is the go-to tool for all things TypeScript AST.
-| [ts-query](https://www.npmjs.com/package/@phenomnomnominal/tsquery) | NPM Module |  Perform fast CSS-like queries on AST to find specific nodes (by attribute, kind, name, etc)
+| [ts-query](https://www.npmjs.com/package/@phenomnomnominal/tsquery) | NPM Package |  Perform fast CSS-like queries on AST to find specific nodes (by attribute, kind, name, etc)
 | [ts-query Playground](https://tsquery-playground.firebaseapp.com/) | Website | Test `ts-query` in realtime
+| [ts-expose-internals](https://github.com/nonara/ts-expose-internals) | NPM Package | Exposes internal types and methods of the TS compiler API 
 
 ## Credit
 | Author                |  Module |
