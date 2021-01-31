@@ -237,6 +237,8 @@ export default function (
 }
 ```
 
+**Note:** For a more complete example, see [Transforming Program with additional AST transformations](https://github.com/nonara/ts-patch/discussions/29#discussioncomment-325979)
+
 ### Altering Diagnostics
 
 Diagnostics can be altered in a Source Transformer.
@@ -260,7 +262,8 @@ will still be merged into the result of `program.emit() -> diagnostics`
 
 ### Recommended Reading
 
-- [TypeScript Transformer Handbook](https://github.com/madou/typescript-transformer-handbook) (**must read**, whether new or experienced)
+- [Advice for working with the TS Compiler API](https://github.com/nonara/ts-patch/discussions/31) (**must read**)
+- [TypeScript Transformer Handbook](https://github.com/madou/typescript-transformer-handbook) (**must read**)
 - Article: [How to Write a TypeScript Transform (Plugin)](https://dev.doctorevidence.com/how-to-write-a-typescript-transform-plugin-fc5308fdd943)
 - Article: [Creating a TypeScript Transformer](https://43081j.com/2018/08/creating-a-typescript-transform?source=post_page-----731e2b0b66e6----------------------)
 
@@ -282,7 +285,7 @@ will still be merged into the result of `program.emit() -> diagnostics`
 
 - If you're new to this sort of thing, please be sure to go through the [Recommended Reading](#recommended-reading).
 - A good place to ask questions is [StackOverflow](https://stackoverflow.com/questions/tagged/typescript-compiler-api) (with the `#typescript-compiler-api` tag).
-- Read the handbook and still stuck? [Ask in Issues](https://github.com/nonara/ts-patch/issues), and I or someone else may help when they have some time!
+- Read the handbook and still stuck? [Ask in Discussions](https://github.com/nonara/ts-patch/discussions), and I or someone else may help when they have some time!
 - Check out the `#compiler` room on the [TypeScript Discord Server](https://discord.com/invite/typescript).
 
 ## License
