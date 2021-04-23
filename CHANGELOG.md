@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.3.3](https://github.com/nonara/ts-patch/compare/v1.3.2...v1.3.3) (2021-04-23)
+
+
+### Bug Fixes
+
+* **patch:** Patched emit does not pass all arguments (fixes [#36](https://github.com/nonara/ts-patch/issues/36)) ([9b130bc](https://github.com/nonara/ts-patch/commit/9b130bc8fd1a5bf3e7b33f796990ed7383aa5449))
+
 ### [1.3.2](https://github.com/nonara/ts-patch/compare/v1.3.1...v1.3.2) (2021-01-31)
 
 ## [1.3.1] (11-25-2020)
