@@ -150,7 +150,8 @@ export function createProgram(
     writeFile?: TS.WriteFileCallback,
     cancellationToken?: TS.CancellationToken,
     emitOnlyDtsFiles?: boolean,
-    customTransformers?: TS.CustomTransformers
+    customTransformers?: TS.CustomTransformers,
+    ...additionalArgs: any
   ): TS.EmitResult {
     /* Merge in our transformers */
     const transformers = pluginCreator.createTransformers({ program }, customTransformers);
@@ -161,7 +162,9 @@ export function createProgram(
       writeFile,
       cancellationToken,
       emitOnlyDtsFiles,
-      transformers
+      transformers,
+      // @ts-ignore
+      ...additionalArgs
     );
 
     /* Merge in transformer diagnostics */
