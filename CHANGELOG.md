@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.3.4](https://github.com/nonara/ts-patch/compare/v1.3.3...v1.3.4) (2021-06-30)
+
+
+### Bug Fixes
+
+* Install adds ts-node to deps instead of devDeps (fixes [#38](https://github.com/nonara/ts-patch/issues/38)) ([a2d586b](https://github.com/nonara/ts-patch/commit/a2d586b286a4af0650faf69d3163115442aec8ab))
+
 ### [1.3.3](https://github.com/nonara/ts-patch/compare/v1.3.2...v1.3.3) (2021-04-23)
 
 
