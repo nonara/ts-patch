@@ -110,7 +110,7 @@ function restore(currentModule: TSModule, tsPackage: TSPackage, noDelete?: boole
 }
 
 /**
- * Remove tsNode from dependencies in typescript's package.json
+ * Remove tsNode from devDependencies in typescript's package.json
  */
 function removeDependencies(tsPackage: TSPackage) {
   const pkgFile = path.join(tsPackage.packageDir, 'package.json');
@@ -118,7 +118,7 @@ function removeDependencies(tsPackage: TSPackage) {
   try {
     const pkgData: any = JSON.parse(fs.readFileSync(pkgFile, 'utf8'));
 
-    for (const d of tsDependencies) delete pkgData.dependencies[d];
+    for (const d of tsDependencies) delete pkgData.devDependencies[d];
 
     fs.writeFileSync(pkgFile, JSON.stringify(pkgData, null, 2));
   }
@@ -128,7 +128,7 @@ function removeDependencies(tsPackage: TSPackage) {
 }
 
 /**
- * Add tsNode to typescript's dependencies
+ * Add tsNode to typescript's devDependencies
  */
 function installDependencies(tsPackage: TSPackage) {
   const pkgFile = path.join(tsPackage.packageDir, 'package.json');
@@ -166,7 +166,7 @@ function installDependencies(tsPackage: TSPackage) {
      *  This workaround will be replaced shortly.
      */
     shell.exec(
-      `npm i --no-audit ${process.platform === 'win32' ? '%PACKAGES%' : '$PACKAGES'}`,
+      `npm i -D --no-audit ${process.platform === 'win32' ? '%PACKAGES%' : '$PACKAGES'}`,
       {
         cwd: path.resolve(tsPackage.packageDir, '..'),
         env: {
