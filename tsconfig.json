@@ -1,0 +1,8 @@
+{
+  "references": [
+    { "path": "./packages/system" },
+    { "path": "./packages/main" }
+  ],
+  "files": [],
+  "include": []
+}

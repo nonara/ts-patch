@@ -1,0 +1,52 @@
+{
+  "private": true,
+  "license": "MIT",
+  "description": "Augment the TypeScript compiler to support extended functionality",
+  "scripts": {
+    "build": "tsc --build",
+    "compile": "yarn workspaces run compile",
+    "test": "yarn workspaces run test",
+    "test:coverage": "yarn workspaces run test:coverage",
+    "-------------   ": "-------------",
+    "clean": "yarn workspaces run clean",
+    "clean:global": "yarn run clean && rimraf .yarn.lock .yarn-cache ./**/node_modules ./**/yarn.lock ./**/yarn-error.log node_modules",
+    "-------------": "-------------",
+    "compile:main": "yarn workspace ts-patch compile",
+    "compile:system": "yarn workspace @ts-patch/system compile",
+    "test:main": "yarn workspace ts-patch test",
+    "test:system": "yarn workspace @ts-patch/system test",
+    "-------------  ": "-------------",
+    "version": "lerna version --conventional-commits",
+    "publish": "lerna publish"
+  },
+  "keywords": [
+    "typescript",
+    "transform",
+    "transformer",
+    "plugin",
+    "plugins",
+    "config",
+    "ast",
+    "ts-patch",
+    "ttypescript"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:nonara/ts-patch.git"
+  },
+  "devDependencies": {
+    "@ts-patch/system": "link:packages/system",
+    "lerna": "^4.0.0",
+    "typescript": "^4.3.5"
+  },
+  "engines": {
+    "node": ">=14.x",
+    "npm": ">=3.x",
+    "yarn": ">=0.27.5 || >=1.0.0-20170811"
+  },
+  "workspaces": [
+    "packages/system",
+    "packages/main"
+  ],
+  "name": "ts-patch"
+}

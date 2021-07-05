@@ -1,0 +1,42 @@
+# TODO - https://stackoverflow.com/questions/57597367/how-to-set-up-github-actions-to-publish-a-lerna-monorepo
+
+name: Publish (NPM)
+
+on:
+  push:
+    tags:
+      - v*.*.*
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: TBD
+        run: echo TBD
+
+#      - name: Checkout
+#        uses: actions/checkout@v2
+#
+#      - name: Setup Node.js 14.x to publish to npmjs.org
+#        uses: actions/setup-node@v1
+#        with:
+#          node-version: '14.x'
+#          registry-url: 'https://registry.npmjs.org'
+#
+#      - name: Install Packages
+#        run: yarn install --frozen-lockfile
+#
+#      - name: Build
+#        run: yarn build
+#
+#      - name: Test
+#        run: yarn run test
+#        env:
+#          CI: true
+#          FORCE_COLOR: 1
+#
+#      - name: Publish to NPM
+#        run: yarn run publish
+#        env:
+#          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

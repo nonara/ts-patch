@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "strict": true,
+    "noUnusedLocals": false,
+    "noImplicitReturns": true,
+    "forceConsistentCasingInFileNames": true,
+
+    "lib": [ "ESNext" ],
+    "outDir": "dist",
+    "target": "ES2020",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "sourceMap": true,
+
+    "newLine": "LF",
+    "allowSyntheticDefaultImports": true
+  }
+}
