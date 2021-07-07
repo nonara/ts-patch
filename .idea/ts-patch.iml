@@ -11,6 +11,7 @@
       <excludeFolder url="file://$MODULE_DIR$/test/patch/assets" />
       <excludeFolder url="file://$MODULE_DIR$/tmp" />
       <excludeFolder url="file://$MODULE_DIR$/ttypescript" />
+      <excludeFolder url="file://$MODULE_DIR$/.tsp" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
