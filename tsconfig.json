@@ -1,6 +1,6 @@
 {
   "references": [
-    { "path": "./packages/system" },
+    { "path": "./packages/core" },
     { "path": "./packages/main" }
   ],
   "files": [],

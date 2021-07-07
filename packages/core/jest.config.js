@@ -1,5 +1,3 @@
-const { compilerOptions } = require('./tsconfig');
-
 module.exports = {
   testEnvironment: "node",
   preset: 'ts-jest',

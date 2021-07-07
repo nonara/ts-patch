@@ -12,9 +12,9 @@
     "clean:global": "yarn run clean && rimraf .yarn.lock .yarn-cache ./**/node_modules ./**/yarn.lock ./**/yarn-error.log node_modules",
     "-------------": "-------------",
     "compile:main": "yarn workspace ts-patch compile",
-    "compile:system": "yarn workspace @ts-patch/system compile",
+    "compile:core": "yarn workspace @ts-patch/core compile",
     "test:main": "yarn workspace ts-patch test",
-    "test:system": "yarn workspace @ts-patch/system test",
+    "test:core": "yarn workspace @ts-patch/core test",
     "-------------  ": "-------------",
     "version": "lerna version --conventional-commits",
     "publish": "lerna publish"
@@ -36,7 +36,7 @@
   },
   "devDependencies": {
     "@crosstype/common": "^0.1.0",
-    "@ts-patch/system": "link:packages/system",
+    "@ts-patch/core": "link:packages/core",
     "lerna": "^4.0.0",
     "typescript": "^4.3.5"
   },
@@ -46,7 +46,7 @@
     "yarn": ">=0.27.5 || >=1.0.0-20170811"
   },
   "workspaces": [
-    "packages/system",
+    "packages/core",
     "packages/main"
   ],
   "name": "ts-patch"
