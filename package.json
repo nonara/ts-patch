@@ -35,6 +35,7 @@
     "url": "git@github.com:nonara/ts-patch.git"
   },
   "devDependencies": {
+    "@crosstype/common": "^0.1.0",
     "@ts-patch/system": "link:packages/system",
     "lerna": "^4.0.0",
     "typescript": "^4.3.5"
