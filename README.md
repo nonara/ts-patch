@@ -29,11 +29,7 @@ The code for v2 is currently under development and subject to change until a rel
 
 ### 1. Add dev dependency
 ```sh
-# Yarn
-yarn add -D ts-patch
-
-# NPM
-npm i -D ts-patch
+<yarn|npm|pnpm> add -D ts-patch
 ```
 
 ### 2. Add prepare script
