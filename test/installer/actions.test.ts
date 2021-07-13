@@ -3,7 +3,7 @@ import fs from 'fs';
 import shell from 'shelljs';
 import { getTSPackage, install, patch, setOptions, uninstall } from '../../src/installer';
 import {
-  BACKUP_DIRNAME, check, disablePersistence, enablePersistence, parseFiles, SRC_FILES
+  BACKUP_DIRNAME, check, defaultInstallLibraries, disablePersistence, enablePersistence, parseFiles, SRC_FILES
 } from '../../src/installer/lib/actions';
 import { mockFs, resetFs, restoreFs } from '../lib/mock-utils';
 import resolve from 'resolve';
@@ -89,8 +89,8 @@ describe(`Actions`, () => {
       tspPackageJSON.version = originalVersion
     });
 
-    test(`Original modules backed up`, () => checkModules(undefined, backupDir));
-    test(`All modules patched`, () => checkModules(version, libDir));
+    test(`Original modules backed up`, () => checkModules(undefined, backupDir, defaultInstallLibraries));
+    test(`All modules patched`, () => checkModules(version, libDir, defaultInstallLibraries));
     test(`Backs up and patches typescript.d.ts`, () => {
       const backupSrc = fs.readFileSync(path.join(backupDir, 'typescript.d.ts'), 'utf-8');
       expect(backupSrc).toMatch(/declare\snamespace\sts\s{/);
@@ -116,16 +116,16 @@ describe(`Actions`, () => {
           !isNaN(parseFloat(<any>timestamp))      // Timestamp must be valid
         )
         .length
-      ).toBe(SRC_FILES.length);
+      ).toBe(defaultInstallLibraries.length);
     });
 
     test(`check() is accurate`, () => {
       const modules = check(SRC_FILES);
       expect(modules.map(({ filename }) => filename)).toEqual(SRC_FILES);
       expect(modules.unPatchable.length).toEqual(0);
-      expect(modules.canUpdateOrPatch.length).toEqual(0);
-      expect(modules.patched.length).toEqual(SRC_FILES.length);
-      expect(modules.patchable.length).toEqual(SRC_FILES.length);
+      expect(modules.canUpdateOrPatch.map(m => m.filename)).toEqual(SRC_FILES.filter(s => !defaultInstallLibraries.includes(s)));
+      expect(modules.patched.map(m => m.filename)).toEqual(defaultInstallLibraries);
+      expect(modules.patchable.map(m => m.filename)).toEqual(SRC_FILES);
     });
 
     // Leave this as the final test, as it resets the virtual FS
@@ -159,7 +159,7 @@ describe(`Actions`, () => {
       () => expect(fs.existsSync(path.join(destDir, BACKUP_DIRNAME))).toBe(false)
     );
 
-    test(`Restores original modules`, () => checkModules(undefined, libDir));
+    test(`Restores original modules`, () => checkModules(undefined, libDir, defaultInstallLibraries));
 
     test(`Restores typescript.d.ts`, () => {
       const patchSrc = fs.readFileSync(path.join(libDir, 'typescript.d.ts'), 'utf-8');

@@ -27,7 +27,7 @@ export const cliOptions: MenuData = {
 };
 
 export const cliCommands: MenuData = {
-  install: { short: 'i', caption: `Installs ts-patch` },
+  install: { short: 'i', caption: `Installs ts-patch (to main libraries)` },
   uninstall: { short: 'u', caption: 'Restores original typescript files' },
   check: {
     short: 'c', caption:

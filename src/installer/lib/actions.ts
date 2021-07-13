@@ -24,6 +24,8 @@ export const BACKUP_DIRNAME = 'lib-backup';
 export const RESOURCES_PATH = path.join(appRoot, tspPackageJSON.directories.resources);
 export const HOOKS_FILES = [ 'postinstall', 'postinstall.cmd' ];
 
+export const defaultInstallLibraries = [ 'tsc.js', 'typescript.js' ];
+
 // endregion
 
 
@@ -124,7 +126,7 @@ export const setOptions = (opts?: Partial<TSPOptions>) => resetOptions(opts);
  * Patch TypeScript modules
  */
 export function install(opts?: Partial<TSPOptions>) {
-  const ret = patch(SRC_FILES, opts);
+  const ret = patch(defaultInstallLibraries, opts);
   if (ret) Log([ '+', chalk.green(`ts-patch installed!`) ]);
   return ret;
 }
@@ -133,7 +135,7 @@ export function install(opts?: Partial<TSPOptions>) {
  * Remove patches from TypeScript modules
  */
 export function uninstall(opts?: Partial<TSPOptions>) {
-  const ret = unpatch(SRC_FILES, opts);
+  const ret = unpatch(defaultInstallLibraries, opts);
   if (ret) Log([ '-', chalk.green(`ts-patch removed!`) ]);
   return ret;
 }
