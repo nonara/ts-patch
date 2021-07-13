@@ -7,22 +7,46 @@
 Directly patch typescript installation to allow custom transformers (plugins).  
 
 - Plugins are specified in `tsconfig.json`, or provided programmatically in `CompilerOptions`.
-- Logic based on [ttypescript](https://github.com/cevek/ttypescript) - 100% compatibility with `ttypescript` configuration + transformers.
+- Based on [ttypescript](https://github.com/cevek/ttypescript) - 100% compatibility in configuration & transformers.
 
 ## Features
-* Easy to patch or unpatch any version of typescript (2.7+)
-* One step setup - no complicated install process
-* Optionally, enable **persistence**, which re-patches typescript automatically if it is updated
-* Advanced options for patching individual files, specific locations, etc. (see `ts-patch /?`)
+* Patch / unpatch any version of typescript (2.7+)
+* Advanced options for patching individual libraries, specific locations, etc. (see `ts-patch /?`)
 * _(New)_ Supports 'transforming' the `Program` instance during creation. (see: [Transforming Program](#transforming-program))
 * _(New)_ Add, remove, or modify diagnostics! (see: [Altering Diagnostics](#altering-diagnostics))
 
-## Installation
+## Setup
+
+1. Install package
+```sh
+<yarn|npm|pnpm> add -D ts-patch
 ```
-$ npm i ts-patch -D
-$ ts-patch install
+
+2. Patch typescript
+```shell
+ts-patch install
+# For advanced options, see: ts-patch /?
 ```
-For more options, use: ```ts-patch /?```
+
+3. Add `prepare` script (keeps patch persisted after npm installations)
+
+`package.json`
+ ```jsonc
+{
+  /* ... */
+  "scripts": {
+    "prepare": "ts-patch install -s"
+  }
+}
+ ```
+
+## V2 Coming Soon...
+
+With a couple years of hindsight, it's time for a much needed redesign to make a more complete plugin ecosystem that is
+more multi-package manager friendly. The development of v2 is underway. To follow that progress, see 
+[this discussion](https://github.com/nonara/ts-patch/discussions/40). 
+
+In the mean time, v1 will still be maintained and patched for any issues, and its end of life will be no earlier than 2023.
 
 ## Table of Contents
   - [Configuring](#configuring)
@@ -159,12 +183,6 @@ export default function(program: ts.Program, pluginOptions: any) {
 
 [`{ transform: "typescript-is/lib/transform-inline/transformer" }`](https://github.com/woutervh-/typescript-is) 
 
-[`{ transform: "ts-transformer-keys/transformer" }`](https://github.com/kimamula/ts-transformer-keys) 
-
-[`{ transform: "ts-transformer-enumerate/transformer" }`](https://github.com/kimamula/ts-transformer-enumerate)
-
-[`{ transform: "ts-transform-graphql-tag/dist/transformer" }`](https://github.com/firede/ts-transform-graphql-tag) 
-
 [`{ transform: "ts-transform-img/dist/transform", type: "config" }`](https://github.com/longlho/ts-transform-img) 
 
 [`{ transform: "ts-transform-css-modules/dist/transform", type: "config" }`](https://github.com/longlho/ts-transform-css-modules) 
@@ -177,11 +195,7 @@ export default function(program: ts.Program, pluginOptions: any) {
 
 [`{ transform: "typescript-transform-paths" }`](https://github.com/LeDDGroup/typescript-transform-paths) 
 
-[`{ transform: "typescript-transform-macros" }`](https://github.com/LeDDGroup/typescript-transform-macros) 
-
 [`{ transform: "ts-transformer-minify-privates" }`](https://github.com/timocov/ts-transformer-minify-privates) 
-
-[`{ transform: "typescript-plugin-styled-components", type: "config" }`](https://github.com/Igorbek/typescript-plugin-styled-components#ttypescript-compiler)
 
 ### Transforming Program
 
@@ -284,9 +298,9 @@ will still be merged into the result of `program.emit() -> diagnostics`
 
 ## HALP!!!
 
-- If you're new to this sort of thing, please be sure to go through the [Recommended Reading](#recommended-reading).
-- A good place to ask questions is [StackOverflow](https://stackoverflow.com/questions/tagged/typescript-compiler-api) (with the `#typescript-compiler-api` tag).
-- Read the handbook and still stuck? [Ask in Discussions](https://github.com/nonara/ts-patch/discussions), and I or someone else may help when they have some time!
+- Start here: [Recommended Reading](#recommended-reading)
+- Ask on [StackOverflow](https://stackoverflow.com/questions/tagged/typescript-compiler-api) with the `#typescript-compiler-api` tag
+- Read the handbook and still stuck? [Ask in Discussions](https://github.com/nonara/ts-patch/discussions) - someone may answer if they have time.
 - Check out the `#compiler` room on the [TypeScript Discord Server](https://discord.com/invite/typescript).
 
 ## License
