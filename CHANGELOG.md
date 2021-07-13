@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.4.0](https://github.com/nonara/ts-patch/compare/v1.3.4...v1.4.0) (2021-07-13)
+
+
+### Features
+
+* Add tsserver.js to supported libraries ([08262ed](https://github.com/nonara/ts-patch/commit/08262ede07c6e69b178751013988da772661ef02))
+
+
+### Bug Fixes
+
+* Require ts-node installation to be handled by user (fixes [#51](https://github.com/nonara/ts-patch/issues/51)) ([979338c](https://github.com/nonara/ts-patch/commit/979338ca5f0642b233de46dd6d293daa7f552ac4))
+
 ### [1.3.4](https://github.com/nonara/ts-patch/compare/v1.3.3...v1.3.4) (2021-06-30)
 
 
