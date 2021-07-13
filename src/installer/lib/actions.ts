@@ -6,8 +6,8 @@ import * as shell from 'shelljs';
 import { patchTSModule } from './patcher';
 import { getModuleAbsolutePath, getTSModule, getTSPackage, mkdirIfNotExist, TSModule, TSPackage } from './file-utils';
 import {
-  appRoot, BackupError, defineProperties, Log, NPMError, parseOptions, PatchError, PersistenceError, resetOptions,
-  RestoreError, TSPOptions, tspPackageJSON
+  appRoot, BackupError, defineProperties, Log, parseOptions, PatchError, PersistenceError, resetOptions, RestoreError,
+  TSPOptions, tspPackageJSON
 } from './system';
 import resolve from 'resolve';
 
@@ -19,7 +19,7 @@ import resolve from 'resolve';
 
 shell.config.silent = true;
 
-export const SRC_FILES = [ 'tsc.js', 'tsserverlibrary.js', 'typescript.js', 'typescriptServices.js' ];
+export const SRC_FILES = [ 'tsc.js', 'tsserverlibrary.js', 'typescript.js', 'typescriptServices.js', 'tsserver.js' ];
 export const BACKUP_DIRNAME = 'lib-backup';
 export const RESOURCES_PATH = path.join(appRoot, tspPackageJSON.directories.resources);
 export const HOOKS_FILES = [ 'postinstall', 'postinstall.cmd' ];
