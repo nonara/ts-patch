@@ -4920,7 +4920,7 @@ ts-transformer-enumerate@^0.5.1:
   resolved "https://registry.yarnpkg.com/ts-transformer-enumerate/-/ts-transformer-enumerate-0.5.2.tgz#801e353d982004385fa35f98487fb8c40f3e2ee9"
   integrity sha512-2hIvMtGvdmQyhE6kW8h4VFFO14tBB8deqgYgHKE1i+hvuexy5zAz2A3MHJq14fuw5f8KlVeU5yD8ANJRkoZXXg==
 
-ts-transformer-keys@^0.4.1:
+ts-transformer-keys@^0.4.3:
   version "0.4.3"
   resolved "https://registry.yarnpkg.com/ts-transformer-keys/-/ts-transformer-keys-0.4.3.tgz#d62389a40f430c00ef98fb9575fb6778a196e3ed"
   integrity sha512-pOTLlet1SnAvhKNr9tMAFwuv5283OkUNiq1fXTEK+vrSv+kxU3e2Ijr/UkqyX2vuMmvcNHdpXC31hob7ljH//g==
