@@ -75,11 +75,6 @@ describe(`Actions`, () => {
     beforeAll(() => {
       mockFs();
 
-      /* Remove dependencies from package dir */
-      const pkgPath = path.join(baseDir, 'package.json');
-      updatePackageJson(pkgPath, (pkgData) => delete pkgData.devDependencies?.['ts-node']);
-      shell.rm('-rf', path.join(path.dirname(pkgPath), 'node_modules/ts-node'));
-
       /* Set version */
       updatePackageJson(path.join(tspDir, 'package.json'), (pkgData) => pkgData.version = version);
       originalVersion = tspPackageJSON.version;
@@ -131,11 +126,6 @@ describe(`Actions`, () => {
       expect(modules.canUpdateOrPatch.length).toEqual(0);
       expect(modules.patched.length).toEqual(SRC_FILES.length);
       expect(modules.patchable.length).toEqual(SRC_FILES.length);
-    });
-
-    test(`Calls npm to install devDependencies`, () => {
-      expect(shellExecSpy).toHaveBeenCalled();
-      expect(shellExecSpy.mock.calls.pop()[0]).toMatch(/^npm i -D/);
     });
 
     // Leave this as the final test, as it resets the virtual FS

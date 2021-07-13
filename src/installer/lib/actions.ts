@@ -17,8 +17,6 @@ import resolve from 'resolve';
  * ********************************************************************************************************************/
 // region Config
 
-export const tsDependencies = [ 'ts-node' ];
-
 shell.config.silent = true;
 
 export const SRC_FILES = [ 'tsc.js', 'tsserverlibrary.js', 'typescript.js', 'typescriptServices.js' ];
@@ -108,87 +106,6 @@ function restore(currentModule: TSModule, tsPackage: TSPackage, noDelete?: boole
   if ((fs.readdirSync(backupDir).length < 1) && shell.rm('-rf', backupDir) && shell.error())
     Log([ '!', `Error deleting backup directory` + chalk.grey(`[${backupDir}]`) ], Log.verbose);
 }
-
-/**
- * Remove tsNode from devDependencies in typescript's package.json
- */
-function removeDependencies(tsPackage: TSPackage) {
-  const pkgFile = path.join(tsPackage.packageDir, 'package.json');
-
-  try {
-    const pkgData: any = JSON.parse(fs.readFileSync(pkgFile, 'utf8'));
-
-    for (const d of tsDependencies) delete pkgData.devDependencies[d];
-
-    fs.writeFileSync(pkgFile, JSON.stringify(pkgData, null, 2));
-  }
-  catch (e) {
-    throw new PatchError(e.message);
-  }
-}
-
-/**
- * Add tsNode to typescript's devDependencies
- */
-function installDependencies(tsPackage: TSPackage) {
-  const pkgFile = path.join(tsPackage.packageDir, 'package.json');
-
-  /* Read TS package json */
-  let pkgData: any;
-  try { pkgData = JSON.parse(fs.readFileSync(pkgFile, 'utf8')); }
-  catch (e) { throw new PatchError(e.message); }
-
-  /* Find existing installations of dependencies */
-  const getDependenciesDetail = () =>
-    tsDependencies
-      .map(name => {
-        let location: string | undefined;
-        let version: string | undefined;
-        try {
-          location = resolve.sync(`${name}/package.json`, { basedir: tsPackage.packageDir });
-          version = require(location).version;
-        }
-        catch (e) { }
-        return ({ name, location, version })
-      });
-
-  /* Install missing dependencies */
-  const missingDeps = getDependenciesDetail().filter(({ version }) => !version);
-
-  if (missingDeps.length > 0) {
-    Log([ '~', `Installing dependencies: ${missingDeps.map(({ name }) => name).join(', ')} (via npm)...` ], Log.verbose);
-
-    /*
-     * Note: The environment variable is used here to compensate for an issue within istanbuljs/spawn-wrap
-     *  When nyc coverage is run, spawn-wrap replaces any instance of the word 'node' in command string with an absolute
-     *  path to its node installation. As a result, ts-node cannot install.
-     *
-     *  This workaround will be replaced shortly.
-     */
-    shell.exec(
-      `npm i -D --no-audit ${process.platform === 'win32' ? '%PACKAGES%' : '$PACKAGES'}`,
-      {
-        cwd: path.resolve(tsPackage.packageDir, '..'),
-        env: {
-          ...process.env,
-          PACKAGES: missingDeps.map(({ name }) => name).join(' ')
-        }
-      }
-    );
-
-    if (shell.error()) throw new NPMError(`Error while installing dependencies: ${shell.error()}`);
-  }
-
-  /* Write versions to TS dependencies */
-  for (const { name, version } of getDependenciesDetail()) {
-    if (!pkgData.hasOwnProperty('dependencies')) pkgData.dependencies = {};
-    pkgData.dependencies[name] = `^${version}`;
-  }
-
-  try { fs.writeFileSync(pkgFile, JSON.stringify(pkgData, null, 2)) }
-  catch (e) { throw new PatchError(e.message) }
-}
-
 
 // endregion
 
@@ -281,7 +198,6 @@ export function patch(fileOrFilesOrGlob: string | string[], opts?: Partial<TSPOp
   }
 
   tsPackage.config.save();
-  installDependencies(tsPackage);
 
   if (modules.unPatchable.length > 1) {
     Log([ '!',
@@ -328,9 +244,6 @@ export function unpatch(fileOrFilesOrGlob: string | string[], opts?: Partial<TSP
   else {
     // Remove ts-patch.json file
     shell.rm('-rf', tsPackage.config.file);
-
-    // Remove ts-node from package.json
-    removeDependencies(tsPackage);
   }
 
   /* Handle errors */
@@ -343,7 +256,7 @@ export function unpatch(fileOrFilesOrGlob: string | string[], opts?: Partial<TSP
     Log('');
     throw new RestoreError(
       `[${Object.keys(errors).join(', ')}]`,
-      'Try reinstalling typescript via npm.' +
+      'Try reinstalling typescript.' +
       (!verbose ? ' (Or, run uninstall again with --verbose for specific error detail)' : '')
     );
   }

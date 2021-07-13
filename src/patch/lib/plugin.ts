@@ -147,17 +147,26 @@ export class PluginCreator {
         }
 
         /* Register tsNode */
-        require('ts-node').register({
-          transpileOnly: true,
-          ...(tsConfig ? { project: tsConfig } : { skipProject: true }),
-          compilerOptions: {
-            target: 'ES2018',
-            jsx: 'react',
-            esModuleInterop: true,
-            module: 'commonjs',
-          }
-        });
-        tsNodeIncluded = true;
+        try {
+          require('ts-node').register({
+            transpileOnly: true,
+            ...(tsConfig ? { project: tsConfig } : { skipProject: true }),
+            compilerOptions: {
+              target: 'ES2018',
+              jsx: 'react',
+              esModuleInterop: true,
+              module: 'commonjs',
+            }
+          });
+          tsNodeIncluded = true;
+        } catch (e) {
+          if (e.code === 'MODULE_NOT_FOUND')
+            throw new Error(
+              `Cannot use a typescript-based transformer without ts-node installed. `+
+              `Either add ts-node as a (dev)-dependency or install globally.`
+            );
+          else throw e;
+        }
       }
     }
 

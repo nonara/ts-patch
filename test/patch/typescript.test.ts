@@ -48,6 +48,24 @@ describe.each([ ...tsInstallationDirs.keys() ])(`TypeScript - %s`, (tsVersion: s
   });
   afterAll(() => jest.unmock('typescript'));
 
+  it(`Throws if ts-node not present`, () => {
+    jest.doMock(
+      'ts-node',
+      () => ({ register: () => { require('sdf0s39rf3333d@fake-module') } }),
+      { virtual: true }
+    );
+
+    expect(() => ts.transpileModule(safelyCode, {
+      compilerOptions: {
+        plugins: [ {
+          customTransformers: { before: [ path.join(__dirname, '../assets/transformers/safely.ts') ] },
+        } ] as any,
+      },
+    })).toThrow(`Cannot use a typescript-based transformer without ts-node installed.`)
+
+    jest.dontMock('ts-node');
+  });
+
   it('Applies transformer from legacy config', () => {
     const res = ts.transpileModule(safelyCode, {
       compilerOptions: {

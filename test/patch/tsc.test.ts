@@ -72,7 +72,7 @@ describe.each([ ...tsInstallationDirs.keys() ])(`TSC - %s`, (tsVersion: string) 
   let tscPath: string;
   let tscScript: vm.Script;
   beforeAll(() => {
-    /* Prepare patched version of TS (for ts-node) */
+    /* Prepare patched version of TS */
     const { ts, tscCode } = getPatchedTS(tsVersion);
     jest.mock('typescript', () => ts);
 
