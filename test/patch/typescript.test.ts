@@ -7,10 +7,17 @@ import { newFiles } from '../assets/transformers/program-transformer';
 import { getPatchedTS } from '../lib/mock-utils';
 import { testAssetsDir, tsInstallationDirs } from '../lib/config';
 import SpyInstance = jest.SpyInstance;
+import resolve from 'resolve';
 
 /* ********************************************************************************************************************
  * Constants
  * ********************************************************************************************************************/
+
+const latestVersion =
+  JSON.parse(fs.readFileSync(
+    resolve.sync('typescript/package.json', { basedir: tsInstallationDirs.get('latest') }),
+    'utf8'
+  )).version;
 
 const safelyCode = fs.readFileSync(path.join(testAssetsDir, 'src-files/safely-code.ts')).toString();
 const safelyExpected =
@@ -38,13 +45,14 @@ const defaultCompilerOptions = {
 /* ********************************************************************************************************************
  * Tests
  * ********************************************************************************************************************/
-describe.each([ ...tsInstallationDirs.keys() ])(`TypeScript - %s`, (tsVersion: string) => {
+describe.each([ ...tsInstallationDirs.keys() ].map(k => k === 'latest' ? latestVersion : k ))
+(`TypeScript - %s`, (tsVersion: string) => {
   let ts: typeof import('typescript');
   beforeAll(() => {
-    const patchedTs = getPatchedTS(tsVersion);
+    const patchedTs = getPatchedTS(tsVersion === latestVersion ? 'latest' : tsVersion);
     ts = patchedTs.ts;
     jest.mock('typescript', () => ts);
-    expect(new RegExp('^' + tsVersion === 'latest' ? '3.9' : tsVersion).test(ts.version));
+    expect(new RegExp('^' + tsVersion).test(ts.version));
   });
   afterAll(() => jest.unmock('typescript'));
 
