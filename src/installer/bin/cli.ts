@@ -20,9 +20,9 @@ export const cliOptions: MenuData = {
   basedir: { short: 'd', paramCaption: '<dir>', caption: 'Base directory to resolve package from' },
   persist: {
     caption:
-      'Enable automatic persistence. (If TypeScript is updated/reinstalled, it will automatically re-patch)'
+      `Enable persistence for npm ` + chalk.yellow(`(deprecated - prefer 'prepare' script)`)
   },
-  'no-persist': { caption: 'Disable automatic persistence.' },
+  'no-persist': { caption: 'Disable npm persistence ' + chalk.yellow(`(deprecated - prefer 'prepare' script)`) },
   color: { inverse: true, caption: 'Strip ansi colours from output' }
 };
 
@@ -35,11 +35,11 @@ export const cliCommands: MenuData = {
   },
   patch: {
     short: void 0, paramCaption: '<module_file> | <glob>', caption:
-      'Patch specific module(s) ' + chalk.yellow('(Not recommended. Use install instead)')
+      'Patch specific module(s) ' + chalk.yellow('(advanced)')
   },
   unpatch: {
     short: void 0, paramCaption: '<module_file> | <glob>', caption:
-      'Un-patch specific module(s) ' + chalk.yellow('(Not recommended. Use uninstall instead)')
+      'Un-patch specific module(s) ' + chalk.yellow('(advanced)')
   },
   version: { short: 'v', caption: 'Show version' },
   help: { short: '/?', caption: 'Show help menu' },
@@ -101,7 +101,7 @@ export function run(argStr?: string) {
   try {
     /* Select command by short or full code */
     if (cmd) cmd = (Object.keys(cliCommands).includes(cmd)) ? cmd :
-                   (Object.entries(cliCommands).find(([ n, { short } ]) => n && (short == cmd)) || [])[0];
+                   (Object.entries(cliCommands).find(([ n, { short } ]) => n && (short === cmd)) || [])[0];
 
     /* Parse options (convert short-code to long) */
     const opts = Object
