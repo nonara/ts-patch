@@ -83,7 +83,7 @@
     "ts-transform-img": "^0.4.2",
     "ts-transform-react-intl": "^0.4.1",
     "ts-transformer-enumerate": "^0.5.1",
-    "ts-transformer-keys": "^0.4.1",
+    "ts-transformer-keys": "^0.4.3",
     "tsconfig-paths": "^3.9.0",
     "typescript": "^4.1.2",
     "yarn": "^1.22.4"
