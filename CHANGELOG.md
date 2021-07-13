@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.1](https://github.com/nonara/ts-patch/compare/v1.4.0...v1.4.1) (2021-07-13)
+
+
+### Bug Fixes
+
+* Only patch 'tsc.js' and 'typescript.js' by default (closes [#52](https://github.com/nonara/ts-patch/issues/52)) ([4d029f6](https://github.com/nonara/ts-patch/commit/4d029f666abdf5e2862c773eeba97eeddbb80089))
+
 ## [1.4.0](https://github.com/nonara/ts-patch/compare/v1.3.4...v1.4.0) (2021-07-13)
 
 
