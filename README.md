@@ -42,11 +42,14 @@ ts-patch install
 
 ## V2 Coming Soon...
 
-With a couple years of hindsight, it's time for a much needed redesign to make a more complete plugin ecosystem that is
-more multi-package manager friendly. The development of v2 is underway. To follow that progress, see 
-[this discussion](https://github.com/nonara/ts-patch/discussions/40). 
+With a couple years of hindsight, it's time for a much needed redesign to make a more complete plugin ecosystem! The new
+design will also be friendlier for the various package management apps. 
 
-In the mean time, v1 will still be maintained and patched for any issues, and its end of life will be no earlier than 2023.
+The development of v2 is already underway! To follow that progress, see [this discussion](https://github.com/nonara/ts-patch/discussions/40). 
+
+That said — 
+- The new v2 will still support all legacy packages and config
+- v1 will be maintained and patched for any issues, having an end of life no earlier than 2023.
 
 ## Table of Contents
   - [Configuring](#configuring)
