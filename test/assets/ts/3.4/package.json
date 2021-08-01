@@ -1,8 +1,8 @@
 {
-  "name": "module-ts27",
+  "name": "module-ts34",
   "version": "1.0.0",
   "dependencies": {
-    "typescript": "2.7.2",
+    "typescript": "3.4.5",
     "ts-patch": "*",
     "ts-node": "^8.10.1",
     "tsconfig-paths": "^3.9.0"

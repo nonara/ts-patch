@@ -72,8 +72,8 @@ const patchModule = (tsModule: TSModule, source?: string) => {
       restCode.substr(pos);
   }
 
-  /* TS 2.7 */
-  pos = restCode.search(/^\s*?var [_\w]+? = program.emit\(\)/m);
+  /* TS 2.7 - 3.5 */
+  pos = restCode.search(/^\s*?var [_\w]+? = program.emit\(/m);
   if (pos < 0) throw new Error(
     `Could not recognize diagnostics signature in emitFilesAndReportErrors(). Please open an issue with your TS version #.`
   );
