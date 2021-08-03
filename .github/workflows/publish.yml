@@ -35,3 +35,8 @@ jobs:
         run: yarn publish dist --non-interactive
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Generate GitHub Release
+        uses: lsegal/github-release-from-changelog-action@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
