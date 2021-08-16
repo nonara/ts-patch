@@ -1,4 +1,4 @@
-name: Publish (NPM)
+name: Publish
 
 on:
   push:
@@ -31,12 +31,16 @@ jobs:
           CI: true
           FORCE_COLOR: 1
 
+      - name: Generate Release Body
+        run: npx extract-changelog-release > RELEASE_BODY.md
+
       - name: Publish to NPM
         run: yarn publish dist --non-interactive
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Generate GitHub Release
-        uses: lsegal/github-release-from-changelog-action@latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          bodyFile: "RELEASE_BODY.md"
+          token: ${{ secrets.GITHUB_TOKEN }}
