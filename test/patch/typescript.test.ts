@@ -19,7 +19,8 @@ const latestVersion =
     'utf8'
   )).version;
 
-const safelyCode = fs.readFileSync(path.join(testAssetsDir, 'src-files/safely-code.ts')).toString();
+const safelyCodePath = path.join(testAssetsDir, 'src-files/safely-code.ts');
+const safelyCode = fs.readFileSync(safelyCodePath).toString();
 const safelyExpected =
   /^var a = { b: 1 };*[\s\r\n]*function abc\(\) {[\s\r\n]*var c = a && a.b;*[\s\r\n]*}[\s\r\n]*console.log\(abc.toString\(\)\);*$/m;
 
@@ -96,6 +97,36 @@ describe.each([ ...tsInstallationDirs.keys() ].map(k => k === 'latest' ? latestV
     });
 
     expect(res.outputText).toMatch(safelyExpected);
+  });
+
+  // see: https://github.com/nonara/ts-patch/issues/59
+  describe(`Relative transformer resolution`, () => {
+    it('Without project: Resolves from cwd', () => {
+      const res = ts.transpileModule(safelyCode, {
+        compilerOptions: {
+          plugins: [ {
+            transform: './test/assets/transformers/safely.ts',
+          } ] as any,
+        },
+      });
+
+      expect(res.outputText).toMatch(safelyExpected);
+    });
+
+    it('With project: Resolves from project root', () => {
+      const compilerOptions = {
+        skipLibCheck: true,
+        skipDefaultLibCheck: true,
+        plugins: [ {
+          transform: '../transformers/safely.ts',
+        } ] as any
+      };
+      const program = ts.createProgram([ safelyCodePath ], compilerOptions);
+      let outputText: string;
+      program.emit(void 0, (_, src) => outputText = src);
+      expect(outputText!).toMatch(safelyExpected);
+    });
+
   });
 
   it('Merges transformers', () => {

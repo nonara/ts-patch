@@ -6,6 +6,8 @@ import { PluginCreator } from './plugin';
 import { diagnosticMap } from './shared';
 import * as TS from 'typescript';
 import * as TSPlus from './type-declarations';
+// noinspection ES6UnusedImports
+import {} from 'ts-expose-internals';
 
 
 /* ****************************************************************************************************************** *

@@ -28,28 +28,30 @@ declare const isTSC: boolean;
 // region: Helpers
 /* ****************************************************************************************************************** */
 
-function getConfig(
-  compilerOptions: TS.CompilerOptions, rootFileNames: ReadonlyArray<string>, defaultDir: string
-)
-{
-  if (compilerOptions.configFilePath === undefined) {
-    const dir = (rootFileNames.length > 0) ? dirname(rootFileNames[0]) : defaultDir;
+function getProjectDir(compilerOptions: TS.CompilerOptions) {
+  return compilerOptions.configFilePath && dirname(compilerOptions.configFilePath);
+}
 
-    const tsconfigPath = ts.findConfigFile(dir, ts.sys.fileExists);
-    if (tsconfigPath) {
-      const projectDir = dirname(tsconfigPath);
+function getProjectConfig(compilerOptions: TS.CompilerOptions, rootFileNames: ReadonlyArray<string>) {
+  let configFilePath = compilerOptions.configFilePath;
+  let projectDir = getProjectDir(compilerOptions);
 
-      const config = readConfig(tsconfigPath, dirname(tsconfigPath));
+  if (configFilePath === undefined) {
+    const baseDir = (rootFileNames.length > 0) ? dirname(rootFileNames[0]) : projectDir ?? process.cwd;
+    configFilePath = ts.findConfigFile(baseDir, ts.sys.fileExists);
+
+    if (configFilePath) {
+      const config = readConfig(configFilePath);
       compilerOptions = { ...config.options, ...compilerOptions };
-
-      return ({ projectDir, compilerOptions });
+      projectDir = getProjectDir(compilerOptions);
     }
   }
 
-  return ({ projectDir: dirname(compilerOptions.configFilePath as string), compilerOptions });
+  return ({ projectDir, compilerOptions });
 }
 
-function readConfig(configFileNamePath: string, projectDir: string) {
+function readConfig(configFileNamePath: string) {
+  const projectDir = dirname(configFileNamePath);
   const result = ts.readConfigFile(configFileNamePath, ts.sys.readFile);
 
   if (result.error) throw new Error('Error in tsconfig.json: ' + result.error.messageText);
@@ -88,8 +90,6 @@ export function createProgram(
   configFileParsingDiagnostics?: ReadonlyArray<TS.Diagnostic>
 ): TS.Program {
   let rootNames;
-  // TODO - Replace all process.cwd with attempting to first resolve from tsConfigFile dir & bump major version
-  let projectDir = process.cwd();
 
   /* Determine options */
   const createOpts = !Array.isArray(rootNamesOrOptions) ? <TS.CreateProgramOptions>rootNamesOrOptions : void 0;
@@ -105,13 +105,10 @@ export function createProgram(
   }
 
   /* Get Config */
+  const projectConfig = getProjectConfig(options, rootNames);
   if (isTSC) {
-    const info = getConfig(options, rootNames, projectDir);
-    options = info.compilerOptions;
-
+    options = projectConfig.compilerOptions;
     if (createOpts) createOpts.options = options;
-
-    projectDir = info.projectDir;
   }
 
   /* Invoke TS createProgram */
@@ -122,7 +119,7 @@ export function createProgram(
 
   /* Prepare Plugins */
   const plugins = preparePluginsFromCompilerOptions(options.plugins);
-  const pluginCreator = new PluginCreator(plugins, projectDir);
+  const pluginCreator = new PluginCreator(plugins, projectConfig.projectDir ?? process.cwd());
 
   /* Prevent recursion in Program transformers */
   const programTransformers = new Map(pluginCreator.getProgramTransformers());
