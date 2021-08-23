@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.3](https://github.com/nonara/ts-patch/compare/v1.4.2...v1.4.3) (2021-08-23)
+
+
+### Bug Fixes
+
+* Relative transform paths do not resolve from project root dir with compiler API (fixes [#59](https://github.com/nonara/ts-patch/issues/59)) ([e38655a](https://github.com/nonara/ts-patch/commit/e38655ac20f3905e61bcf8bfc03b97a5386b76f8))
+* ts 3.6.5 does not patch properly (fixes [#55](https://github.com/nonara/ts-patch/issues/55)) ([1babac9](https://github.com/nonara/ts-patch/commit/1babac9284d330983a9658794680a5058e7c64c0))
+
 ### [1.4.2](https://github.com/nonara/ts-patch/compare/v1.4.1...v1.4.2) (2021-08-01)
 
 
