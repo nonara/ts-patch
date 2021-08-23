@@ -81,7 +81,7 @@ describe.each([ ...tsInstallationDirs.keys() ])(`TSC - %s`, (tsVersion: string) 
     tscScript = new vm.Script(
       `(function (exports, require, module, __filename, __dirname, tscArgs, process, mockWriteFile) { \n` +
       tscCode.replace(
-        /(^\s*?ts\.executeCommandLine\(ts.sys.+?;$)/m,
+        /(^\s*?ts\.executeCommandLine\(ts\.sys)/m,
         `\nObject.assign(ts.sys, { args: tscArgs, writeFile: mockWriteFile });\n$1`
       ) +
       `})`

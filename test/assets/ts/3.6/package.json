@@ -1,0 +1,10 @@
+{
+  "name": "module-ts36",
+  "version": "1.0.0",
+  "dependencies": {
+    "typescript": "3.6.5",
+    "ts-patch": "*",
+    "ts-node": "^8.10.1",
+    "tsconfig-paths": "^3.9.0"
+  }
+}

@@ -55,32 +55,28 @@ function validate(tsModule?: TSModule, tsPackage?: TSPackage) {
   return true;
 }
 
-const patchModule = (tsModule: TSModule, source?: string) => {
+const patchModule = (tsModule: TSModule, tsPackage: TSPackage, source?: string) => {
   const src = source || tsModule.moduleSrc!;
   const funcPos = src.search(/function emitFilesAndReportErrors\(/);
-  if (funcPos < 0)
-    throw new Error(`Bad TS Code. Could not find function emitFilesAndReportErrors in ${tsModule.filename}`);
+  if (funcPos < 0) throw new Error(`Bad TS Code. Could not find function emitFilesAndReportErrors in ${tsModule.filename}`);
+
   const startCode = src.substr(0, funcPos);
   const restCode = src.substr(funcPos);
 
-  /* Modern TS */
-  let pos = restCode.search(/^\s*?var emitResult =/m);
-  if (pos >= 0) {
-    return startCode +
-      restCode.substr(0, pos) +
-      `\nts.diagnosticMap.set(program, allDiagnostics);\n` +
-      restCode.substr(pos);
-  }
+  /* Find emit call position  */
+  let emitPos = restCode.search(/^\s*?var emitResult =/m);
+  if (emitPos < 0) emitPos = restCode.search(/^\s*?var [_\w]+? = program.emit\(/m); // TS 2.7 - 3.5
+  if (emitPos < 0) throw new Error(`Could not determine emit call. Please file an issue with your TS version!`);
 
-  /* TS 2.7 - 3.5 */
-  pos = restCode.search(/^\s*?var [_\w]+? = program.emit\(/m);
-  if (pos < 0) throw new Error(
-    `Could not recognize diagnostics signature in emitFilesAndReportErrors(). Please open an issue with your TS version #.`
-  );
+  const ver = tsPackage.version.split('.')
+  const majorVer = +ver[0];
+  const minorVer = +ver[1];
+  let diagnosticsArrName = (majorVer > 3 || (majorVer === 3 && minorVer > 7)) ? 'allDiagnostics' : 'diagnostics';
+
   return startCode +
-    restCode.substr(0, pos) +
-    `\nts.diagnosticMap.set(program, diagnostics);\n` +
-    restCode.substr(pos);
+    restCode.substr(0, emitPos) +
+    `\nts.diagnosticMap.set(program, ${diagnosticsArrName});\n` +
+    restCode.substr(emitPos);
 }
 
 
@@ -101,7 +97,7 @@ export function patchTSModule(tsModule: TSModule, tsPackage: TSPackage) {
   const patchSrc = generatePatch(isTSC);
 
   /* Add diagnostic modification support */
-  const moduleSrc = patchModule(tsModule);
+  const moduleSrc = patchModule(tsModule, tsPackage);
 
   try {
     if (isTSC) {
@@ -116,7 +112,7 @@ export function patchTSModule(tsModule: TSModule, tsPackage: TSPackage) {
       /* Expand TSC with full typescript library (splice tsc part on top of typescript.ts code) */
       fs.writeFileSync(file,
         Buffer.concat([
-          Buffer.from(patchModule(tsModule, fs.readFileSync(tsFile, 'utf-8'))),
+          Buffer.from(patchModule(tsModule, tsPackage, fs.readFileSync(tsFile, 'utf-8'))),
           Buffer.from(!getTSModule(tsFile).patchVersion ? patchSrc : ''),
           Buffer.from(
             moduleSrc.replace(/^[\s\S]+(\(function \(ts\) {\s+function countLines[\s\S]+)$/, '$1')
