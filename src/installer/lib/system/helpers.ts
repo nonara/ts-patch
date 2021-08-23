@@ -46,7 +46,7 @@ type GetDescriptorType<T extends PropertyDescriptor & { initializer?: (...args: 
  */
 export function defineProperties<TObj, TProps extends Record<PropertyKey, PropertyDescriptor>>(obj: TObj, properties: TProps):
   TObj & { [K in keyof TProps]: GetDescriptorType<TProps[K]> } {
-  return Object.defineProperties(obj, properties);
+  return Object.defineProperties(obj, properties) as any;
 }
 
 
