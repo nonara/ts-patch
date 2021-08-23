@@ -1,4 +1,5 @@
 [![npm version](https://badge.fury.io/js/ts-patch.svg)](https://badge.fury.io/js/ts-patch)
+[![NPM Downloads](https://img.shields.io/npm/dm/ts-patch.svg?style=flat)](https://npmjs.org/package/ts-patch)
 ![Build Status](https://github.com/nonara/ts-patch/workflows/Build%20(CI)/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/nonara/ts-patch/badge.svg?branch=master)](https://coveralls.io/github/nonara/ts-patch?branch=master)
 
