@@ -305,7 +305,7 @@ will still be merged into the result of `program.emit() -> diagnostics`
 - Start here: [Recommended Reading](#recommended-reading)
 - Ask on [StackOverflow](https://stackoverflow.com/questions/tagged/typescript-compiler-api) with the `#typescript-compiler-api` tag
 - Read the handbook and still stuck? [Ask in Discussions](https://github.com/nonara/ts-patch/discussions) - someone may answer if they have time.
-- Check out the `#compiler` room on the [TypeScript Discord Server](https://discord.com/invite/typescript).
+- Check out the `#compiler-api` room on the [TypeScript Discord Server](https://discord.com/invite/typescript).
 
 ## License
 
