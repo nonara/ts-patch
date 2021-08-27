@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.4](https://github.com/nonara/ts-patch/compare/v1.4.3...v1.4.4) (2021-08-27)
+
+
+### Bug Fixes
+
+* `--basedir` flag fails if dir is not a subdir of a package ([5912288](https://github.com/nonara/ts-patch/commit/5912288f36f98a1722252d150a456c139e3f8382))
+
 ### [1.4.3](https://github.com/nonara/ts-patch/compare/v1.4.2...v1.4.3) (2021-08-23)
 
 
