@@ -77,9 +77,16 @@ export interface TSPackage {
 export function getTSPackage(basedir: string = process.cwd()): TSPackage {
   if (!fs.existsSync(basedir)) throw new PackageError(`${basedir} is not a valid directory`);
 
-  const possiblePackageDirs = [ basedir, path.dirname(resolve.sync(`typescript/package.json`, { basedir })) ];
+  const possiblePackageDirs = [ basedir, () => path.dirname(resolve.sync(`typescript/package.json`, { basedir })) ];
 
-  for (const packageDir of possiblePackageDirs) {
+  for (const d of possiblePackageDirs) {
+    let packageDir: string;
+    try {
+      packageDir = typeof d === 'function' ? d() : d;
+    } catch {
+      break;
+    }
+
     /* Parse package.json data */
     const packageFile = path.join(packageDir, 'package.json');
     if (!fs.existsSync(packageFile)) continue;
