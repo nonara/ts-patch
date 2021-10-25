@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.4.5](https://github.com/nonara/ts-patch/compare/v1.4.4...v1.4.5) (2021-10-25)
+
+
+### Bug Fixes
+
+* compilation fails if basedir resolves to cwd ([#65](https://github.com/nonara/ts-patch/issues/65)) ([9bac698](https://github.com/nonara/ts-patch/commit/9bac698993cd287de6d62caba48205bf53b4e52e))
+
 ### [1.4.4](https://github.com/nonara/ts-patch/compare/v1.4.3...v1.4.4) (2021-08-27)
 
 
