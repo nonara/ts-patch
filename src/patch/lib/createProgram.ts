@@ -37,7 +37,7 @@ function getProjectConfig(compilerOptions: TS.CompilerOptions, rootFileNames: Re
   let projectDir = getProjectDir(compilerOptions);
 
   if (configFilePath === undefined) {
-    const baseDir = (rootFileNames.length > 0) ? dirname(rootFileNames[0]) : projectDir ?? process.cwd;
+    const baseDir = (rootFileNames.length > 0) ? dirname(rootFileNames[0]) : projectDir ?? process.cwd();
     configFilePath = ts.findConfigFile(baseDir, ts.sys.fileExists);
 
     if (configFilePath) {
