@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
 import * as path from 'path';
-import { ProgramTransformer, ProgramTransformerExtras } from '../../../src/installer';
+import { ProgramTransformer, ProgramTransformerExtras } from 'ts-patch/src/shared/plugin-types';
 
 
 export const newFiles = [ 'abc1.ts', 'abc2.ts' ].map(f => (ts as any).normalizePath(path.resolve(__dirname, '../src-files', f)));

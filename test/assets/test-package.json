@@ -1,0 +1,8 @@
+{
+  "name": "test-project",
+  "private": true,
+  "dependencies": {
+    "ts-patch": "*",
+    "typescript": "*",
+  }
+}

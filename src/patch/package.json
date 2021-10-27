@@ -1,0 +1,8 @@
+{
+  "name": "@tsp/patch",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "typescript": "link:../../node_modules/typescript"
+  }
+}

@@ -3,7 +3,7 @@ import chalk from 'chalk';
 import stripAnsi from 'strip-ansi';
 import * as actions from '../lib/actions'
 import { appOptions, Log, parseOptions, TSPOptions, tspPackageJSON } from '../lib/system';
-import { getTSPackage } from '..';
+import { getTSPackage } from '../lib/file-utils';
 
 
 /* ********************************************************************************************************************
@@ -17,12 +17,7 @@ export const cliOptions: MenuData = {
   silent: { short: 's', caption: 'Run silently' },
   global: { short: 'g', caption: 'Target global TypeScript installation' },
   verbose: { short: 'v', caption: 'Chat it up' },
-  basedir: { short: 'd', paramCaption: '<dir>', caption: 'Base directory to resolve package from' },
-  persist: {
-    caption:
-      `Enable persistence for npm ` + chalk.yellow(`(deprecated - prefer 'prepare' script)`)
-  },
-  'no-persist': { caption: 'Disable npm persistence ' + chalk.yellow(`(deprecated - prefer 'prepare' script)`) },
+  dir: { short: 'd', paramCaption: '<dir>', caption: 'TypeScript directory or directory to resolve typescript package from' },
   color: { inverse: true, caption: 'Strip ansi colours from output' }
 };
 
@@ -31,7 +26,7 @@ export const cliCommands: MenuData = {
   uninstall: { short: 'u', caption: 'Restores original typescript files' },
   check: {
     short: 'c', caption:
-      `Check patch status (use with ${chalk.cyanBright('--basedir')} to specify TS package location)`
+      `Check patch status (use with ${chalk.cyanBright('--dir')} to specify TS package location)`
   },
   patch: {
     short: void 0, paramCaption: '<module_file> | <glob>', caption:
@@ -112,6 +107,8 @@ export function run(argStr?: string) {
         ...(short && args.hasOwnProperty(short) && { [key]: args[short] })
       }), <Partial<TSPOptions>>{});
 
+    if (args.basedir) opts.basedir = args.basedir;
+
     /* Handle special cases */
     if ((args.v) && (!cmd)) cmd = 'version';
     if (args.h) cmd = 'help';
@@ -127,7 +124,7 @@ export function run(argStr?: string) {
           return Log(menuText, Log.system);
 
         case 'version':
-          const { version: tsVersion, packageDir } = getTSPackage(appOptions.basedir);
+          const { version: tsVersion, packageDir } = getTSPackage(appOptions.dir);
           return Log('\r\n' +
             chalk.bold.blue('ts-patch:    ') + tspPackageJSON.version + '\r\n' +
             chalk.bold.blue('typescript:  ') + tsVersion + chalk.gray(`   [${packageDir}]`),
@@ -150,13 +147,9 @@ export function run(argStr?: string) {
           return actions.check();
 
         default:
-          return (args.persist === undefined) ?
-                 Log('Invalid command. Try ts-patch /? for more info', Log.system) : {}
+          Log('Invalid command. Try ts-patch /? for more info', Log.system)
       }
     })();
-
-    /* Handle persist option */
-    if (args.persist !== undefined) (args.persist) ? actions.enablePersistence() : actions.disablePersistence();
   }
   catch (e) {
     Log([

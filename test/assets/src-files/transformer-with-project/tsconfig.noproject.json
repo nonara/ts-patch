@@ -1,8 +1,0 @@
-{
-  "compilerOptions": {
-    "plugins": [ {
-      "transform": "./transformer/transformer.ts",
-      "import": "transformer"
-    } ]
-  }
-}

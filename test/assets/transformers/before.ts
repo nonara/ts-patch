@@ -1,7 +1,6 @@
 import * as TS from 'typescript';
-import { TransformerExtras } from '../../../src/installer';
 
-export default function (program: TS.Program, config: any, { ts }: TransformerExtras) {
+export default function (program: TS.Program, config: any, { ts }: { ts: typeof TS }) {
   const checker = program.getTypeChecker();
   return (ctx: TS.TransformationContext) => (sourceFile: TS.SourceFile) => {
     function visitor(node: TS.Node): TS.Node {

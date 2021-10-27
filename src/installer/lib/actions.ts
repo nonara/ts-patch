@@ -6,10 +6,9 @@ import * as shell from 'shelljs';
 import { patchTSModule } from './patcher';
 import { getModuleAbsolutePath, getTSModule, getTSPackage, mkdirIfNotExist, TSModule, TSPackage } from './file-utils';
 import {
-  appRoot, BackupError, defineProperties, Log, parseOptions, PatchError, PersistenceError, resetOptions, RestoreError,
-  TSPOptions, tspPackageJSON
+  appRoot, BackupError, defineProperties, Log, parseOptions, PatchError, resetOptions, RestoreError, TSPOptions,
+  tspPackageJSON
 } from './system';
-import resolve from 'resolve';
 
 
 /* ********************************************************************************************************************
@@ -22,7 +21,6 @@ shell.config.silent = true;
 export const SRC_FILES = [ 'tsc.js', 'tsserverlibrary.js', 'typescript.js', 'typescriptServices.js', 'tsserver.js' ];
 export const BACKUP_DIRNAME = 'lib-backup';
 export const RESOURCES_PATH = path.join(appRoot, tspPackageJSON.directories.resources);
-export const HOOKS_FILES = [ 'postinstall', 'postinstall.cmd' ];
 
 export const defaultInstallLibraries = [ 'tsc.js', 'typescript.js' ];
 
@@ -37,13 +35,13 @@ export const defaultInstallLibraries = [ 'tsc.js', 'typescript.js' ];
 /**
  * Parse file, array of files, or glob of files and get TSModule info for each
  */
-export function parseFiles(fileOrFilesOrGlob: string | string[], dir: string, includeSrc: boolean = false) {
+export function parseFiles(fileOrFilesOrGlob: string | string[], libDir: string, includeSrc: boolean = false) {
   const files =
     Array.isArray(fileOrFilesOrGlob) ? fileOrFilesOrGlob :
-    fs.existsSync(getModuleAbsolutePath(fileOrFilesOrGlob, dir)) ? [ fileOrFilesOrGlob ] :
+    fs.existsSync(getModuleAbsolutePath(fileOrFilesOrGlob, libDir)) ? [ fileOrFilesOrGlob ] :
     glob.sync(fileOrFilesOrGlob);
 
-  const ret = files.map(f => getTSModule(getModuleAbsolutePath(f, dir), includeSrc));
+  const ret = files.map(f => getTSModule(getModuleAbsolutePath(f, libDir), includeSrc));
 
   return defineProperties(ret, {
     patched: { get: () => ret.filter(f => f.patchVersion) },
@@ -144,8 +142,8 @@ export function uninstall(opts?: Partial<TSPOptions>) {
  * Check if files can be patched
  */
 export function check(fileOrFilesOrGlob: string | string[] = SRC_FILES, opts?: Partial<TSPOptions>) {
-  const { basedir } = parseOptions(opts);
-  const { libDir, packageDir, version } = getTSPackage(basedir);
+  const { dir } = parseOptions(opts);
+  const { libDir, packageDir, version } = getTSPackage(dir);
 
   Log(`Checking TypeScript ${chalk.blueBright(`v${version}`)} installation in ${chalk.blueBright(packageDir)}\r\n`);
 
@@ -170,9 +168,9 @@ export function check(fileOrFilesOrGlob: string | string[] = SRC_FILES, opts?: P
  */
 export function patch(fileOrFilesOrGlob: string | string[], opts?: Partial<TSPOptions>) {
   if (!fileOrFilesOrGlob) throw new PatchError(`Must provide a file path, array of files, or glob.`);
-  const { basedir } = parseOptions(opts);
+  const { dir } = parseOptions(opts);
 
-  const tsPackage = getTSPackage(basedir);
+  const tsPackage = getTSPackage(dir);
   const modules = parseFiles(fileOrFilesOrGlob, tsPackage.libDir, true);
 
   if (!modules.canUpdateOrPatch.length) {
@@ -214,9 +212,9 @@ export function patch(fileOrFilesOrGlob: string | string[], opts?: Partial<TSPOp
 
 export function unpatch(fileOrFilesOrGlob: string | string[], opts?: Partial<TSPOptions>) {
   if (!fileOrFilesOrGlob) throw new PatchError(`Must provide a file path, array of files, or glob.`);
-  const { basedir, verbose, instanceIsCLI } = parseOptions(opts);
+  const { dir, verbose, instanceIsCLI } = parseOptions(opts);
 
-  const tsPackage = getTSPackage(basedir);
+  const tsPackage = getTSPackage(dir);
   const modules = parseFiles(fileOrFilesOrGlob, tsPackage.libDir, true);
 
   if (modules.patched.length < 1) {
@@ -264,70 +262,6 @@ export function unpatch(fileOrFilesOrGlob: string | string[], opts?: Partial<TSP
   }
 
   return true;
-}
-
-/**
- * Enable persistence hooks
- */
-export function enablePersistence(opts?: Partial<TSPOptions>) {
-  const { basedir } = parseOptions(opts);
-  const { config, packageDir } = getTSPackage(basedir);
-
-  Log([ '~', `Enabling persistence in ${chalk.blueBright(packageDir)}` ], Log.verbose);
-
-  config.persist = true;
-  config.save();
-
-  /* Copy hooks */
-  const hooksDir = path.join(packageDir, '../.hooks');
-  const hooksFiles = HOOKS_FILES.map(f => path.join(RESOURCES_PATH, f));
-
-  try { mkdirIfNotExist(hooksDir) }
-  catch (e) { throw new PersistenceError(`Could not create hooks directory in node_modules: ${e.message}`); }
-
-  if (shell.cp(hooksFiles, hooksDir) && shell.error())
-    throw new PersistenceError(`Error trying to copy persistence hooks: ${shell.error()}`);
-
-  /* Write absolute path to ts-patch in hooks */
-  let tspPath;
-  try { tspPath = path.dirname(resolve.sync('ts-patch/package.json', { basedir: packageDir })) }
-  catch (e) { }
-
-  if (tspPath)
-    for (let file of hooksFiles.map(f => path.join(hooksDir, path.basename(f)))) {
-      shell.sed('-i',
-        /(?<=^(@SET\s)?tspdir\s*=\s*").+?(?="$)/m,
-        tspPath.split(path.sep).join((path.extname(file) === '.cmd') ? '\\' : '/'),
-        file
-      );
-
-      if (shell.error())
-        throw new PersistenceError(`Error writing to hooks file '${path.basename(file)}': ${shell.error()}`);
-    }
-
-  Log([ '+', chalk.green(`Enabled persistence for ${chalk.blueBright(packageDir)}`) ]);
-}
-
-/**
- * Disable persistence hooks
- */
-export function disablePersistence(opts?: Partial<TSPOptions>) {
-  const { basedir } = parseOptions(opts);
-  const { config, packageDir } = getTSPackage(basedir);
-
-  Log([ '~', `Disabling persistence in ${chalk.blueBright(packageDir)}` ], Log.verbose);
-
-  config.persist = false;
-  config.save();
-
-  /* Remove hooks */
-  const hooksDir = path.join(packageDir, '../.hooks');
-  const hooksFiles = HOOKS_FILES.map(f => path.join(hooksDir, f));
-
-  if (shell.rm('-rf', hooksFiles) && shell.error())
-    throw new PersistenceError(`Error trying to remove persistence hooks: ${shell.error()}`);
-
-  Log([ '-', chalk.green(`Disabled persistence for ${chalk.blueBright(packageDir)}`) ]);
 }
 
 // endregion
