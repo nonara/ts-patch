@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.1](https://github.com/nonara/ts-patch/compare/v1.4.5...v2.0.1) (2021-11-01)
+
+### Bug Fixes
+
+* Corrected path error in previous release ([7c56d56](https://github.com/nonara/ts-patch/commit/7c56d56b5165affb9c58a3c65c2753391f3e967a))
+
 ## [2.0.0](https://github.com/nonara/ts-patch/compare/v1.4.5...v2.0.0) (2021-11-01)
 
 
