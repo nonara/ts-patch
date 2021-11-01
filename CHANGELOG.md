@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.0.0](https://github.com/nonara/ts-patch/compare/v1.4.5...v2.0.0) (2021-11-01)
+
+
+### Summary
+
+This is not the planned rewrite, but the codebase was in desperate need of an update. The patch build system with rollup was failing with newer versions and was hacky under the best of circumstances, anyway. This new version has a proper custom build system that produces a much leaner patch. Additionally, I reorganized the codebase, improved tests, and dropped old TS support.
+
+_Note: If you absolutely need it, it will still work with older TS. Simply fork and remove the version check_
+
+### Changes
+
+- Soft deprecated `--basedir` (use `--dir`)
+- Zero bundled dependencies in patch (much lighter)
+- ⚠️ Hard deprecated `--persist` option (use `package.json` -> `prepare` script)
+- ⚠️ Requires TS >= 4.0
+
+_(⚠️ denotes potential "breaking" change)_
+
+### Development Changes
+
+- Removed rollup and created light-weight custom build system
+- Cleaned up file structure
+- Improved test speed & methodology
+- Changed patch detection signature
+
 ### [1.4.5](https://github.com/nonara/ts-patch/compare/v1.4.4...v1.4.5) (2021-10-25)
 
 
