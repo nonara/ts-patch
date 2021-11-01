@@ -1,4 +1,4 @@
-name: Build (CI)
+name: Build
 
 on: [ push ]
 
@@ -25,14 +25,9 @@ jobs:
       - name: Build
         run: yarn build
 
-      - name: Test (with coverage)
-        run: yarn run test:coverage
+      - name: Test
+        run: yarn run test
         env:
           CI: true
           FORCE_COLOR: 1
           NODE_OPTIONS: --max-old-space-size=4096
-
-      - name: Post coverage to Coveralls
-        uses: coverallsapp/github-action@master
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}

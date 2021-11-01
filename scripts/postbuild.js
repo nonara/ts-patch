@@ -24,6 +24,7 @@ const pkgJSON = JSON.parse(fs.readFileSync(path.join(BASE_DIR, 'package.json'), 
 
 delete pkgJSON.scripts;
 delete pkgJSON.private;
+delete pkgJSON.workspaces;
 delete pkgJSON.devDependencies;
 
 // Write & remove ./dist
@@ -32,19 +33,15 @@ fs.writeFileSync(
   JSON.stringify(pkgJSON, null, 2).replace(/(?<=['"].*?)dist\//g, '')
 );
 
-/* Copy postinstall hooks */
-shell.mkdir('-p', DIST_RESOURCE_DIR);
-shell.cp(path.resolve(SRC_DIR, 'resources/postinstall*'), DIST_RESOURCE_DIR);
-
 /* Copy Readme & Changelog */
 shell.cp(path.resolve('./README.md'), DIST_DIR);
 shell.cp(path.resolve('./CHANGELOG.md'), DIST_DIR);
+shell.cp(path.resolve('./LICENSE.md'), DIST_DIR);
 
 /* Add shebang line to cli */
 const cliPath = path.join(DIST_DIR, '/bin/cli.js');
 const cliSrc = fs.readFileSync(cliPath, 'utf8');
-if (!/^#!\/usr\/bin\/env/.test(cliSrc))
-  fs.writeFileSync(cliPath, `#!/usr/bin/env node\n\n${cliSrc}`, 'utf8');
+if (!/^#!\/usr\/bin\/env/.test(cliSrc)) fs.writeFileSync(cliPath, `#!/usr/bin/env node\n\n${cliSrc}`, 'utf8');
 
 /* Ensure EOL = LF in resources */
 const resFiles = glob.sync(path.join(DIST_RESOURCE_DIR, '*'));

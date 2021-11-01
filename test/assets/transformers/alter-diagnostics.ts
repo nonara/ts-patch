@@ -1,6 +1,6 @@
 import * as TS from 'typescript';
 import { DiagnosticCategory, DiagnosticWithLocation, Diagnostic } from 'typescript';
-import { TransformerExtras } from '../../../src/installer';
+import type { TransformerExtras } from '../../../src/shared/plugin-types';
 
 export default function (
   program: TS.Program,

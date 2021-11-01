@@ -16,7 +16,7 @@ import resolve from 'resolve';
  */
 export const getGlobalTSDir = () => {
   const errors = [];
-  const basedir = require('global-prefix');
+  const dir = require('global-prefix');
   const check = (dir: string) => {
     try { return getTSPackage(dir) }
     catch (e) {
@@ -25,7 +25,7 @@ export const getGlobalTSDir = () => {
     }
   };
 
-  const { packageDir } = (check(basedir) || check(path.join(basedir, 'lib')));
+  const { packageDir } = (check(dir) || check(path.join(dir, 'lib')));
 
   if (!packageDir)
     throw new PackageError(`Could not find global TypeScript installation! Are you sure it's installed globally?`);
@@ -72,12 +72,12 @@ export interface TSPackage {
 }
 
 /**
- * Get TypeScript package info - Resolve from basedir, throws if not cannot find TS package
+ * Get TypeScript package info - Resolve from dir, throws if not cannot find TS package
  */
-export function getTSPackage(basedir: string = process.cwd()): TSPackage {
-  if (!fs.existsSync(basedir)) throw new PackageError(`${basedir} is not a valid directory`);
+export function getTSPackage(dir: string = process.cwd()): TSPackage {
+  if (!fs.existsSync(dir)) throw new PackageError(`${dir} is not a valid directory`);
 
-  const possiblePackageDirs = [ basedir, () => path.dirname(resolve.sync(`typescript/package.json`, { basedir })) ];
+  const possiblePackageDirs = [ dir, () => path.dirname(resolve.sync(`typescript/package.json`, { basedir: dir })) ];
 
   for (const d of possiblePackageDirs) {
     let packageDir: string;
@@ -105,7 +105,7 @@ export function getTSPackage(basedir: string = process.cwd()): TSPackage {
       return { version, packageFile, packageDir, config: getConfig(packageDir), libDir: path.join(packageDir, 'lib') };
   }
 
-  throw new PackageError(`Could not find typescript package from ${basedir}`);
+  throw new PackageError(`Could not find typescript package from ${dir}`);
 }
 
 // endregion
@@ -138,8 +138,11 @@ export function getTSModule(file: string, includeSrc: boolean = false): TSModule
   const fileData = fs.readFileSync(file, 'utf8');
   const canPatch = Boolean(fileData.match(/^\(function\s\(ts\)\s?{[\s\S]+?\(ts\s?\|\|\s?\(ts\s?=\s?{}\)\);?$/m));
   const patchVersion =
-    canPatch &&
-    (fileData.match(/(?<=^\s*?var\stspVersion\s?=\s?['"`])(\S+?)(?=['"`])/m) || [])[0];
+    canPatch && (
+      fileData.match(/^\/\/\/\s*tsp:\s*(\S+)/s) ||
+      fileData.match(/(?<=^\s*?var\stspVersion\s?=\s?['"`])(\S+?)(?=['"`])/m) ||
+      []
+    )[1];
 
   const outOfDate = isOutOfDate(patchVersion);
 
@@ -158,7 +161,6 @@ export function getTSModule(file: string, includeSrc: boolean = false): TSModule
 export interface TSPConfig {
   readonly file: string,
   readonly version: string,
-  persist: boolean,
   modules: { [x: string]: number }
 
   save: Function;
@@ -183,7 +185,6 @@ function getConfig(packageDir: string) {
   }
 
   const config: TSPConfig = {
-    persist: false,
     modules: {},
     ...fileData,
     version: fileData.version || tspPackageJSON.version,

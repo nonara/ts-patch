@@ -5,6 +5,7 @@
     "noUnusedLocals": false,
     "noImplicitReturns": true,
     "forceConsistentCasingInFileNames": true,
+    "useUnknownInCatchVariables": false,
 
     "lib": [ "es2019" ],
     "outDir": "dist",

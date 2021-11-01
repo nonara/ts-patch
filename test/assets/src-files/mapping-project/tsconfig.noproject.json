@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "plugins": [ {
+      "transform": "./transformer/transformer.ts",
+      "import": "transformer"
+    } ],
+    "skipDefaultLibCheck": true,
+    "skipLibCheck": true
+  }
+}

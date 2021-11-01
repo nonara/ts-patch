@@ -1,31 +1,10 @@
-/*
- * Note: This file is used to generate module-patch.js (see rollup.config.js)
- */
-import { createProgram } from './createProgram';
-import { PluginCreator } from './plugin';
-import { diagnosticMap } from './shared';
-import * as TS from 'typescript';
-import * as TSPlus from './type-declarations';
-// noinspection ES6UnusedImports
-import {} from 'ts-expose-internals';
-
-
-/* ****************************************************************************************************************** *
- * Ambient Declarations
- * ****************************************************************************************************************** */
-
-declare const ts: typeof TS & typeof TSPlus;
-declare const tspVersion: string;
-
-
-/* ********************************************************************************************************************
- * Link to ts object
- * ********************************************************************************************************************/
-
-Object.assign(ts, {
-  tspVersion,
-  PluginCreator,
-  originalCreateProgram: ts.createProgram,
-  createProgram,
-  diagnosticMap
-});
+namespace tsp {
+  Object.defineProperties(ts, {
+    isTSC: { get: () => tsp.isTSC, enumerable: true },
+    tspVersion: { get: () => tsp.tspVersion, enumerable: true },
+    PluginCreator: { get: () => tsp.PluginCreator, enumerable: true },
+    originalCreateProgram: { value: ts.createProgram, enumerable: true },
+    createProgram: { value: tsp.createProgram },
+    diagnosticMap: { get: () => tsp.diagnosticMap, enumerable: true }
+  });
+}

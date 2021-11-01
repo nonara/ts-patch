@@ -1,20 +1,32 @@
 {
-  "include": [ "lib", "../installer/plugin-types.ts" ],
+  "include": [ "lib" ],
+
   "compilerOptions": {
-    "rootDir": "..",
-    "noEmit": true,
+    "outFile": "../../dist/resources/module-patch.js",
+    "declaration": true,
+    "types": [ "@types/node" ],
+
     "strict": true,
     "noUnusedLocals": false,
     "noImplicitReturns": true,
     "allowSyntheticDefaultImports": true,
+    "allowSyntheticDefaultImports": true,
+    "stripInternal": true,
 
     "target": "ES5",
-    "lib": [ "ES2019" ],
+    "lib": [ "es2015", "es5" ],
     "downlevelIteration": true,
-    "module": "ES2015",
+    "useUnknownInCatchVariables": false,
     "newLine": "LF",
-    "declaration": false,
-    "moduleResolution": "node",
-    "esModuleInterop": true
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+
+    "plugins": [
+      {
+        "transform": "./plugin.ts",
+        "transformProgram": true,
+        "import": "transformProgram"
+      }
+    ]
   }
 }

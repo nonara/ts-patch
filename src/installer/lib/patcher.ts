@@ -11,6 +11,7 @@ import { BACKUP_DIRNAME } from './actions';
 
 const dtsPatchSrc = '\n' +
   fs.readFileSync(path.resolve(appRoot, tspPackageJSON.directories.resources, 'module-patch.d.ts'), 'utf-8');
+
 const jsPatchSrc =
   fs.readFileSync(path.resolve(appRoot, tspPackageJSON.directories.resources, 'module-patch.js'), 'utf-8')
 
@@ -21,17 +22,14 @@ const jsPatchSrc =
  * Helpers
  * ********************************************************************************************************************/
 
+const getHeader = () => `/// tsp: ${tspPackageJSON.version}\n\n`;
+
 /**
  * Generate insertion code for module-patch
  */
 const generatePatch = (isTSC: boolean) =>
-  jsPatchSrc
-    .replace(
-      /(^\s*Object\.assign\(ts,\s*{[\s\S]*tspVersion,[\s\S]+?}\);?$)/m,
-      `var tspVersion = '${tspPackageJSON.version}';\n` +
-      `var isTSC = ${isTSC};\n` +
-      `$1`
-    );
+  jsPatchSrc +
+  `\nObject.assign(tsp, { isTSC: ${isTSC}, tspVersion: '${tspPackageJSON.version}' });\n\n`;
 
 /**
  * Validate TSModule and TSPackage before patching
@@ -48,8 +46,8 @@ function validate(tsModule?: TSModule, tsPackage?: TSPackage) {
   }
 
   if (tsPackage) {
-    const [ major, minor ] = tsPackage.version.split('.');
-    if (+major < 3 && +minor < 7) throw new WrongTSVersion(`ts-patch requires TypeScript v2.7 or higher.`);
+    const [ major ] = tsPackage.version.split('.');
+    if (+major < 4) throw new WrongTSVersion(`ts-patch v2 requires TypeScript v4.0 or higher.`);
   }
 
   return true;
@@ -64,14 +62,14 @@ const patchModule = (tsModule: TSModule, tsPackage: TSPackage, source?: string) 
   const restCode = src.substr(funcPos);
 
   /* Find emit call position  */
-  let emitPos = restCode.search(/^\s*?var emitResult =/m);
-  if (emitPos < 0) emitPos = restCode.search(/^\s*?var [_\w]+? = program.emit\(/m); // TS 2.7 - 3.5
+  const emitPos = restCode.search(/^\s*?var emitResult =/m);
   if (emitPos < 0) throw new Error(`Could not determine emit call. Please file an issue with your TS version!`);
 
   const ver = tsPackage.version.split('.')
   const majorVer = +ver[0];
   const minorVer = +ver[1];
-  let diagnosticsArrName = (majorVer > 3 || (majorVer === 3 && minorVer > 7)) ? 'allDiagnostics' : 'diagnostics';
+
+  const diagnosticsArrName = 'allDiagnostics';
 
   return startCode +
     restCode.substr(0, emitPos) +
@@ -112,6 +110,7 @@ export function patchTSModule(tsModule: TSModule, tsPackage: TSPackage) {
       /* Expand TSC with full typescript library (splice tsc part on top of typescript.ts code) */
       fs.writeFileSync(file,
         Buffer.concat([
+          Buffer.from(getHeader()),
           Buffer.from(patchModule(tsModule, tsPackage, fs.readFileSync(tsFile, 'utf-8'))),
           Buffer.from(!getTSModule(tsFile).patchVersion ? patchSrc : ''),
           Buffer.from(
@@ -120,6 +119,7 @@ export function patchTSModule(tsModule: TSModule, tsPackage: TSPackage) {
         ])
       );
     } else fs.writeFileSync(file, Buffer.concat([
+      Buffer.from(getHeader()),
       Buffer.from(moduleSrc),
       Buffer.from(patchSrc)
     ]));
@@ -138,7 +138,7 @@ export function patchTSModule(tsModule: TSModule, tsPackage: TSPackage) {
       else fs.appendFileSync(targetFile, dtsPatchSrc)
     }
     catch (e) {
-      throw new FileWriteError(filename, e.message);
+      throw new FileWriteError(filename, (e as Error).stack);
     }
   }
 }

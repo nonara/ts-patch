@@ -1,17 +1,16 @@
 [![npm version](https://badge.fury.io/js/ts-patch.svg)](https://badge.fury.io/js/ts-patch)
 [![NPM Downloads](https://img.shields.io/npm/dm/ts-patch.svg?style=flat)](https://npmjs.org/package/ts-patch)
 ![Build Status](https://github.com/nonara/ts-patch/workflows/Build%20(CI)/badge.svg)
-[![Coverage Status](https://coveralls.io/repos/github/nonara/ts-patch/badge.svg?branch=master)](https://coveralls.io/github/nonara/ts-patch?branch=master)
 
 # TS Patch
 
 Directly patch typescript installation to allow custom transformers (plugins).  
 
 - Plugins are specified in `tsconfig.json`, or provided programmatically in `CompilerOptions`.
-- Based on [ttypescript](https://github.com/cevek/ttypescript) - 100% compatibility in configuration & transformers.
+- Based on [ttypescript](https://github.com/cevek/ttypescript) - Fully compatible + offers more features
 
 ## Features
-* Patch / unpatch any version of typescript (2.7+)
+* Patch / unpatch any version of typescript (4.0+)
 * Advanced options for patching individual libraries, specific locations, etc. (see `ts-patch /?`)
 * _(New)_ Supports 'transforming' the `Program` instance during creation. (see: [Transforming Program](#transforming-program))
 * _(New)_ Add, remove, or modify diagnostics! (see: [Altering Diagnostics](#altering-diagnostics))
@@ -25,11 +24,11 @@ Directly patch typescript installation to allow custom transformers (plugins).
 
 2. Patch typescript
 ```shell
-ts-patch install
 # For advanced options, see: ts-patch /?
+ts-patch install
 ```
 
-3. Add `prepare` script (keeps patch persisted after npm installations)
+3. Add `prepare` script (keeps patch persisted after npm install)
 
 `package.json`
  ```jsonc
@@ -41,16 +40,17 @@ ts-patch install
 }
  ```
 
-## V2 Coming Soon...
+## Rewrite Coming Soon...
 
 With a couple years of hindsight, it's time for a much needed redesign to make a more complete plugin ecosystem! The new
 design will also be friendlier for the various package management apps. 
 
-The development of v2 is already underway! To follow that progress, see [this discussion](https://github.com/nonara/ts-patch/discussions/40). 
+Development is already underway, but my time to work on it is limited! To follow progress, see [this discussion](https://github.com/nonara/ts-patch/discussions/40). 
 
-That said — 
-- The new v2 will still support all legacy packages and config
-- v1 will be maintained and patched for any issues, having an end of life no earlier than 2023.
+Notes — 
+- The new version will be a major release
+- It will still support all legacy packages and config
+- Previous major version will be maintained and patched for any issues for at least one year
 
 ## Table of Contents
   - [Configuring](#configuring)
@@ -80,25 +80,25 @@ Add transformers to `compilerOptions` in `plugins` array.
 {
     "compilerOptions": {
         "plugins": [
-            // Source Transformer -> 'type' defaults to 'program'
+            // Source Transformer: 'type' defaults to 'program'
             { "transform": "transformer-module", "someOption1": 123, "someOption2": 321 },
 
-            // Source Transformer -> program signature 
+            // Source Transformer: program signature 
             { "transform": "./transformers/my-transformer.ts", "type": "program" },
 
-            // Source Transformer -> program signature, applies after TS transformers
+            // Source Transformer: program signature, applies after TS transformers
             { "transform": "transformer-module1", "type": "config", "after": true },
 
-            // Source Transformer -> checker signature, applies to TS declarations
+            // Source Transformer: checker signature, applies to TS declarations
             { "transform": "transformer-module2", "type": "checker", "afterDeclarations": true }, 
             
-            // Source Transformer -> raw signature
+            // Source Transformer: raw signature
             { "transform": "transformer-module3", "type": "raw" },
 
-            // Source Transformer -> compilerOptions signature 
+            // Source Transformer: compilerOptions signature 
             { "transform": "transformer-module4", "type": "compilerOptions" },
 
-            // Program Transformer -> Only has one signature - notice no type specified, because it does not apply
+            // Program Transformer: Only has one signature - no type specified, because it does not apply
             { "transform": "transformer-module5", "transformProgram": true }
         ]
     }
@@ -185,6 +185,8 @@ export default function(program: ts.Program, pluginOptions: any) {
 
 #### Example Node Transformers
 
+[`{ transform: "typescript-transform-paths" }`](https://github.com/LeDDGroup/typescript-transform-paths)
+
 [`{ transform: "typescript-is/lib/transform-inline/transformer" }`](https://github.com/woutervh-/typescript-is) 
 
 [`{ transform: "ts-transform-img/dist/transform", type: "config" }`](https://github.com/longlho/ts-transform-img) 
@@ -197,15 +199,14 @@ export default function(program: ts.Program, pluginOptions: any) {
 
 [`{ transform: "typescript-transform-jsx" }`](https://github.com/LeDDGroup/typescript-transform-jsx) 
 
-[`{ transform: "typescript-transform-paths" }`](https://github.com/LeDDGroup/typescript-transform-paths) 
-
 [`{ transform: "ts-transformer-minify-privates" }`](https://github.com/timocov/ts-transformer-minify-privates) 
 
 ### Transforming Program
 
-There are some cases where a transformer isn't enough. Several examples are if you want to:
+Sometimes you want to do more than just transform source code. For example you may want to:
 
 - TypeCheck code after it's been transformed
+- Generate code and add it to the program
 - Add or remove emit files during transformation
 
 For this, we've introduced what we call a Program Transformer. The transform action takes place during `ts.createProgram`, and allows
@@ -266,15 +267,12 @@ To alter diagnostics, use the [program type signature](#program-default), and us
 
 | property | description |
 | -------- |----------- |
-| diagnostics | Reference to `Diagnostic[]` created during `ts.emitFilesAndReportErrors()` (works with tsc also)
+| diagnostics | Reference to `Diagnostic` array
 | addDiagnostic() | Directly add `Diagnostic` to `diagnostics` array |
 | removeDiagnostic() | Directly remove `Diagnostic` from `diagnostics` array (uses splice, for safe removal)
 
 #### Notes
-- This alters diagnostics during _emit only_. If you want to alter diagnostics in your IDE, create a LanguageService plugin
-- If an emit method other than `ts.emitFilesAndReportErrors()` is used, any diagnostics added via `addDiagnostic()` 
-will still be merged into the result of `program.emit() -> diagnostics`
-
+- This alters diagnostics during _emit only_. If you want to alter diagnostics in your IDE as well, you'll need to create a LanguageService plugin to accompany your source transformer
 
 ## Resources
 
@@ -289,7 +287,7 @@ will still be merged into the result of `program.emit() -> diagnostics`
 
 | Tool | Type | Description |
 | ---- | ---- | ----------- |
-| [TS AST Viewer](https://ts-ast-viewer.com/) | Website | Allows you to see the `Node` structure of any TS/JS source, including Flags, `Type`, and `Symbol`. This is the go-to tool for all things TypeScript AST.
+| [TS AST Viewer](https://ts-ast-viewer.com/) | Website | Allows you to see the `Node` structure and other TS properties of your source code.
 | [ts-query](https://www.npmjs.com/package/@phenomnomnominal/tsquery) | NPM Package |  Perform fast CSS-like queries on AST to find specific nodes (by attribute, kind, name, etc)
 | [ts-query Playground](https://tsquery-playground.firebaseapp.com/) | Website | Test `ts-query` in realtime
 | [ts-expose-internals](https://github.com/nonara/ts-expose-internals) | NPM Package | Exposes internal types and methods of the TS compiler API 
@@ -309,4 +307,4 @@ will still be merged into the result of `program.emit() -> diagnostics`
 
 ## License
 
-This project is licensed under the MIT License
+This project is licensed under the MIT License, as described in `LICENSE.md`
