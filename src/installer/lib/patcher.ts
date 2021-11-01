@@ -138,7 +138,7 @@ export function patchTSModule(tsModule: TSModule, tsPackage: TSPackage) {
       else fs.appendFileSync(targetFile, dtsPatchSrc)
     }
     catch (e) {
-      throw new FileWriteError(filename, e.message);
+      throw new FileWriteError(filename, (e as Error).stack);
     }
   }
 }

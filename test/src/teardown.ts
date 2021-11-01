@@ -7,5 +7,5 @@ import { tmpDir } from './config';
  * ****************************************************************************************************************** */
 
 module.exports = () => {
-  if (fs.existsSync(tmpDir)) fs.rmSync(tmpDir, { recursive: true });
+  if (fs.existsSync(tmpDir)) (fs.rmSync || fs.rmdirSync)(tmpDir, { recursive: true });
 }

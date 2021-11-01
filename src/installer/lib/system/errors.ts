@@ -31,7 +31,7 @@ export class BackupError extends Error {
 }
 
 export class FileWriteError extends Error {
-  constructor(public filename: string, message: string) {
-    super(`Error while trying to write to ${filename}${message && `: ${message}`}`);
+  constructor(public filename: string, message?: string) {
+    super(`Error while trying to write to ${filename}${message ? `: ${message}` : ''}`);
   }
 }

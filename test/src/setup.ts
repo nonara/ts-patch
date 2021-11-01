@@ -10,7 +10,7 @@ import * as tsp from 'ts-patch'
 
 module.exports = () => {
   process.stdout.write(`\nPatching ${tsModules.length} TS modules...\n\n`)
-  if (fs.existsSync(tmpDir)) fs.rmSync(tmpDir, { recursive: true });
+  if (fs.existsSync(tmpDir)) (fs.rmSync || fs.rmdirSync)(tmpDir, { recursive: true });
 
   /* Patch all TS */
   for (const tsm of tsModules) {
