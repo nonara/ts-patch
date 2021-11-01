@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.0.0](https://github.com/nonara/ts-patch/compare/v1.4.5...v2.0.0) (2021-11-01)
+
+
+### ⚠ BREAKING CHANGES
+
+* Cleaner, lighter weight patch (#66)
+
+### Features
+
+* Cleaner, lighter weight patch ([#66](https://github.com/nonara/ts-patch/issues/66)) ([78dcff5](https://github.com/nonara/ts-patch/commit/78dcff59bb7dd3ba35ca81b14aab7e07a8c593b8))
+
 ### [1.4.5](https://github.com/nonara/ts-patch/compare/v1.4.4...v1.4.5) (2021-10-25)
 
 
