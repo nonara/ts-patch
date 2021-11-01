@@ -58,12 +58,12 @@ export function defineProperties<TObj, TProps extends Record<PropertyKey, Proper
  * Root directory for ts-patch
  */
 export const appRoot = (() => {
-  const moduleDir = path.join(__dirname, '../../../');
+  const moduleDir = path.join(__dirname, '../../');
 
   const chkFile = (pkgFile: string) =>
     (fs.existsSync(pkgFile) && (require(pkgFile).name === 'ts-patch')) ? path.dirname(pkgFile) : void 0;
 
-  const res = chkFile(path.join(moduleDir, 'package.json')) || chkFile(path.join(moduleDir, '../package.json'));
+  const res = chkFile(path.join(moduleDir, 'package.json')) || chkFile(path.join(moduleDir, '../../package.json'));
 
   if (!res) throw new Error(`Error getting app root. No valid ts-patch package file found in ` + moduleDir);
 
