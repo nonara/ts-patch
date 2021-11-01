@@ -25,8 +25,8 @@ jobs:
       - name: Build
         run: yarn build
 
-      - name: Test (with coverage)
-        run: yarn run test:coverage
+      - name: Test
+        run: yarn run test
         env:
           CI: true
           FORCE_COLOR: 1

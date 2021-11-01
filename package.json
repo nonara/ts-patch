@@ -15,7 +15,6 @@
     "reset": "yarn run clean:global && yarn install && yarn build",
     "------------  ": "-------------",
     "test": "jest",
-    "test:coverage": "jest --coverage",
     "------------": "-------------",
     "prepare": "ts-patch i -s && yarn prepare:patch && yarn prepare:test",
     "prepare:patch": "cd src/patch && yarn install && tsc",
