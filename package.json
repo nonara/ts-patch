@@ -78,7 +78,7 @@
     "ts-jest": "^27.0.7",
     "ts-nameof": "^5.0.0",
     "ts-node": "^10.4.0",
-    "ts-patch": "latest",
+    "ts-patch": "^1.4.5",
     "ts-transform-css-modules": "^0.3.3",
     "ts-transform-graphql-tag": "^0.2.1",
     "ts-transform-img": "^0.4.2",
