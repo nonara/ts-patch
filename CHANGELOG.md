@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.2](https://github.com/nonara/ts-patch/compare/v2.0.1...v2.0.2) (2022-08-10)
+
+
+### Changes
+
+* Upgraded dependencies ([a878131](https://github.com/nonara/ts-patch/commit/a87813190eb31b918574509e4dfe4ef3b427b212))
+
 ### [2.0.1](https://github.com/nonara/ts-patch/compare/v1.4.5...v2.0.1) (2021-11-01)
 
 ### Bug Fixes
