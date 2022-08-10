@@ -44,5 +44,5 @@ const cliSrc = fs.readFileSync(cliPath, 'utf8');
 if (!/^#!\/usr\/bin\/env/.test(cliSrc)) fs.writeFileSync(cliPath, `#!/usr/bin/env node\n\n${cliSrc}`, 'utf8');
 
 /* Ensure EOL = LF in resources */
-const resFiles = glob.sync(path.join(DIST_RESOURCE_DIR, '*'));
+const resFiles = glob.sync(path.join(DIST_RESOURCE_DIR, '*').replace(/\\/g, '/'));
 shell.sed('-i', /\r+$/, '', resFiles);

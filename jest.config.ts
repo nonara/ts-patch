@@ -15,12 +15,13 @@ const config: Config.InitialOptions = {
   coveragePathIgnorePatterns: [
     'src/installer/lib/system/errors.ts$'
   ],
-  globalSetup: './test/src/setup.ts',
-  globalTeardown: './test/src/teardown.ts',
+  globalSetup: './test/src/setup.js',
+  globalTeardown: './test/src/teardown.js',
   testTimeout: 10000,
   transformIgnorePatterns: [
     '/node_modules/(?!(ts-transformer-keys|ts-transformer-enumerate|ts-nameof)/)'
-  ]
+  ],
+  maxWorkers: 1 // Have to set this for now, as mockFs seems to mess up other threads
 }
 
 export default config;

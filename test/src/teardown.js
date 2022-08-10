@@ -1,5 +1,5 @@
-import fs from 'fs';
-import { tmpDir } from './config';
+const fs = require('fs');
+const { tmpDir } = require('./config');
 
 
 /* ****************************************************************************************************************** *

@@ -1,7 +1,7 @@
-import fs from 'fs-extra';
-import path from 'path';
-import { tmpDir, tsModules } from './config';
-import * as tsp from 'ts-patch'
+const fs = require('fs-extra');
+const path = require('path');
+const { tmpDir, tsModules } = require('./config');
+const tsp = require('ts-patch');
 
 
 /* ****************************************************************************************************************** *
