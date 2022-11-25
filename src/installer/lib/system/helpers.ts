@@ -32,7 +32,7 @@ export function pick<T, K extends keyof T>(obj: T, ...keys: K[]): Pick<T, K> {
 /**
  * Fully typed Object.keys
  */
-export const getKeys = <T>(obj: T): Array<keyof T> => Object.keys(obj) as Array<keyof T>;
+export const getKeys = <T extends object>(obj: T): Array<keyof T> => Object.keys(obj) as Array<keyof T>;
 
 type GetDescriptorType<T extends PropertyDescriptor & { initializer?: (...args: any[]) => any }> =
   'value' extends keyof T ? T['value'] :
