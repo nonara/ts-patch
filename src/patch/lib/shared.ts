@@ -5,6 +5,8 @@ namespace tsp {
 
   export const diagnosticMap: typeof ts.diagnosticMap = new WeakMap();
   export declare let isTSC: boolean;
+  export declare let isTSServer: boolean;
+  export declare let isTSServerLibrary: boolean;
   export declare let tspVersion: string;
 
   /* ********************************************************* *

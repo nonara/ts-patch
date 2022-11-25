@@ -27,9 +27,16 @@ const getHeader = () => `/// tsp: ${tspPackageJSON.version}\n\n`;
 /**
  * Generate insertion code for module-patch
  */
-const generatePatch = (isTSC: boolean) =>
-  jsPatchSrc +
-  `\nObject.assign(tsp, { isTSC: ${isTSC}, tspVersion: '${tspPackageJSON.version}' });\n\n`;
+const generatePatch = (isTSC: boolean, isTSServer: boolean, isTSServerLibrary: boolean) => {
+  // language=JavaScript
+  return jsPatchSrc + `\n
+Object.assign(tsp, {
+    isTSC: ${isTSC},
+    isTSServer: ${isTSServer},
+    isTSServerLibrary: ${isTSServerLibrary},
+    tspVersion: '${tspPackageJSON.version}'
+});\n\n`;
+};
 
 /**
  * Validate TSModule and TSPackage before patching
@@ -77,6 +84,13 @@ const patchModule = (tsModule: TSModule, tsPackage: TSPackage, source?: string) 
     restCode.substr(emitPos);
 }
 
+const locateFile = (filename: string, tsPackage: TSPackage): string => {
+  return [
+    path.join(tsPackage.packageDir, BACKUP_DIRNAME, filename),
+    path.join(tsPackage.libDir, filename)
+  ].filter(f => fs.existsSync(f))[0];
+}
+
 
 /* ********************************************************************************************************************
  * Patch
@@ -92,22 +106,19 @@ export function patchTSModule(tsModule: TSModule, tsPackage: TSPackage) {
 
   /* Install patch */
   const isTSC = (filename === 'tsc.js');
-  const patchSrc = generatePatch(isTSC);
+  const isTSServer = (filename === 'tsserver.js');
+  const isTSServerLibrary = (filename === 'tsserverlibrary.js');
+  const patchSrc = generatePatch(isTSC, isTSServer, isTSServerLibrary);
 
   /* Add diagnostic modification support */
   const moduleSrc = patchModule(tsModule, tsPackage);
 
   try {
     if (isTSC) {
-      /* Select non-patched typescript.js */
-      const tsFile =
-        [
-          path.join(tsPackage.packageDir, BACKUP_DIRNAME, 'typescript.js'),
-          path.join(tsPackage.libDir, 'typescript.js')
-        ]
-          .filter(f => fs.existsSync(f))[0];
+      // Select non-patched typescript.js
+      const tsFile = locateFile('typescript.js', tsPackage);
 
-      /* Expand TSC with full typescript library (splice tsc part on top of typescript.ts code) */
+      // Expand TSC with full typescript library (splice tsc part on top of typescript.ts code)
       fs.writeFileSync(file,
         Buffer.concat([
           Buffer.from(getHeader()),
@@ -118,11 +129,18 @@ export function patchTSModule(tsModule: TSModule, tsPackage: TSPackage) {
           )
         ])
       );
-    } else fs.writeFileSync(file, Buffer.concat([
-      Buffer.from(getHeader()),
-      Buffer.from(moduleSrc),
-      Buffer.from(patchSrc)
-    ]));
+    // } else if (isTSServer) {
+    //   // Select non-patched tsserver.js
+    //   const tsServerFile = locateFile('tsserver.js', tsPackage);
+    //
+    //   fs.writeFileSync(file,)
+    } else {
+      fs.writeFileSync(file, Buffer.concat([
+        Buffer.from(getHeader()),
+        Buffer.from(moduleSrc),
+        Buffer.from(patchSrc)
+      ]));
+    }
   }
   catch (e) {
     throw new FileWriteError(filename, e.message);

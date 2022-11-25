@@ -86,7 +86,7 @@ namespace tsp {
 
     /* Get Config */
     const projectConfig = getProjectConfig(options, rootNames);
-    if (tsp.isTSC) {
+    if (tsp.isTSC || tsp.isTSServer || tsp.isTSServerLibrary) {
       options = projectConfig.compilerOptions;
       if (createOpts) createOpts.options = options;
     }
