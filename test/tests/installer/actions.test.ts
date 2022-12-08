@@ -191,7 +191,9 @@ describe(`Actions`, () => {
     });
 
     test(`Patches glob`, () => {
-      patch(joinPaths(tsLibDir, '*.js'), TSP_OPTIONS);
+      const srcFileNames = SRC_FILES.map(f => f.split('.')[0]);
+      const globStr = joinPaths(tsLibDir, `{${srcFileNames.join(',')}}.js`);
+      patch(globStr, TSP_OPTIONS);
       checkModules(tspPackageJSON.version, tsLibDir);
     });
 

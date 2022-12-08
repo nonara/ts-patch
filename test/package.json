@@ -2,6 +2,7 @@
   "private": true,
   "dependencies": {
     "ts-40": "npm:typescript@4.0.*",
+    "ts-48": "npm:typescript@4.8.*",
     "ts-latest": "npm:typescript@latest",
     "ts-node": "latest",
     "ts-patch": "link:..",
