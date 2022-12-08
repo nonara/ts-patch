@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.1.0](https://github.com/nonara/ts-patch/compare/v2.0.2...v2.1.0) (2022-12-08)
+
+
+### Features
+
+* Updated to support TS 4.9 ([26f6099](https://github.com/nonara/ts-patch/commit/26f6099543d258a2a430f8344b482aba85ac9b0e))
+
 ### [2.0.2](https://github.com/nonara/ts-patch/compare/v2.0.1...v2.0.2) (2022-08-10)
 
 
