@@ -86,23 +86,25 @@ describe(`TSC`, () => {
     beforeAll(() => {
       tscPath = path.join(tmpDir, moduleSpecifier, 'lib/tsc.js');
       const tscCode = fs.readFileSync(tscPath, 'utf8');
-      tscScript = new vm.Script(
-        `(function (exports, require, module, __filename, __dirname, tscArgs, process, mockWriteFile, console) { \n` +
+      const code = `(function (exports, require, module, __filename, __dirname, tscArgs, process, mockWriteFile, console) { \n` +
         tscCode.replace(
           /(^\s*?ts\.executeCommandLine\(ts\.sys)/m,
           `\nObject.assign(ts.sys, { args: tscArgs, writeFile: mockWriteFile });\n$1`
         ) +
-        `})`
-        , { filename: tscPath, displayErrors: false });
+        `})`;
+
+      tscScript = new vm.Script(code, { filename: tscPath, displayErrors: false });
     });
 
     test('tsc transforms code & outputs standard diagnostic', () => {
       const {
         code,
         message,
-        files
+        files,
+        err
       } = execTsc(tscPath, tscScript, `--noEmit false -p ${path.join(assetsDir, 'src-files')}`);
 
+      expect(err).toBe('');
       expect(code).toBe('2');
       expect(message).toMatch(/TS2339/);
       expect(files[transformedFile]).toMatch(expectedOut);

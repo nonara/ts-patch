@@ -1,6 +1,6 @@
 {
   "name": "ts-patch",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "description": "Patch typescript to support custom transformers in tsconfig.json",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -77,11 +77,11 @@
     "standard-version": "^9.3.2",
     "ts-jest": "^28.0.7",
     "ts-node": "^10.4.0",
-    "ts-patch": "^1.4.5",
+    "ts-patch": "^2.0.2",
     "ts-transform-img": "^0.4.2",
     "ts-transform-react-intl": "^0.4.1",
     "tsconfig-paths": "^3.11.0",
-    "typescript": "^4.7.4"
+    "typescript": "4.8.4"
   },
   "directories": {
     "resources": "./dist/resources"

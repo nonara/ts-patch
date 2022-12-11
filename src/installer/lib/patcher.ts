@@ -60,8 +60,9 @@ function validate(tsModule?: TSModule, tsPackage?: TSPackage) {
   return true;
 }
 
-const patchModule = (tsModule: TSModule, tsPackage: TSPackage, source?: string) => {
+const patchModuleDiagnostics = (tsModule: TSModule, tsPackage: TSPackage, source?: string) => {
   const src = source || tsModule.moduleSrc!;
+
   const funcPos = src.search(/function emitFilesAndReportErrors\(/);
   if (funcPos < 0) throw new Error(`Bad TS Code. Could not find function emitFilesAndReportErrors in ${tsModule.filename}`);
 
@@ -111,36 +112,41 @@ export function patchTSModule(tsModule: TSModule, tsPackage: TSPackage) {
   const patchSrc = generatePatch(isTSC, isTSServer, isTSServerLibrary);
 
   /* Add diagnostic modification support */
-  const moduleSrc = patchModule(tsModule, tsPackage);
+  const moduleSrc = patchModuleDiagnostics(tsModule, tsPackage);
 
   try {
     if (isTSC) {
       // Select non-patched typescript.js
       const tsFile = locateFile('typescript.js', tsPackage);
 
-      // Expand TSC with full typescript library (splice tsc part on top of typescript.ts code)
-      fs.writeFileSync(file,
-        Buffer.concat([
-          Buffer.from(getHeader()),
-          Buffer.from(patchModule(tsModule, tsPackage, fs.readFileSync(tsFile, 'utf-8'))),
-          Buffer.from(!getTSModule(tsFile).patchVersion ? patchSrc : ''),
-          Buffer.from(
-            moduleSrc.replace(/^[\s\S]+(\(function \(ts\) {\s+function countLines[\s\S]+)$/, '$1')
-          )
-        ])
-      );
-    // } else if (isTSServer) {
-    //   // Select non-patched tsserver.js
-    //   const tsServerFile = locateFile('tsserver.js', tsPackage);
-    //
-    //   fs.writeFileSync(file,)
-    } else {
-      fs.writeFileSync(file, Buffer.concat([
+      /* Get TSC-specific module slice */
+      const ver = tsPackage.version.split('.')
+      const majorVer = +ver[0];
+      const minorVer = +ver[1];
+
+      let tscSlice = majorVer >= 4 && minorVer >= 9
+                     ? moduleSrc.replace(/^[\s\S]+(\(function \(ts\) {\s+var StatisticType;[\s\S]+)$/, '$1')
+                     : moduleSrc.replace(/^[\s\S]+(\(function \(ts\) {\s+function countLines[\s\S]+)$/, '$1');
+      const execCmdPost = tscSlice.lastIndexOf('\nts.executeCommandLine\(');
+      if (execCmdPost < 0) throw new Error(`Could not find tsc executeCommandLine`);
+      const execCmd = tscSlice.slice(execCmdPost);
+      tscSlice = tscSlice.slice(0, execCmdPost);
+
+      /* Expand TSC with full typescript library (splice tsc part on top of typescript.ts code) */
+      const content = Buffer.concat([
         Buffer.from(getHeader()),
-        Buffer.from(moduleSrc),
-        Buffer.from(patchSrc)
-      ]));
-    }
+        Buffer.from(patchModuleDiagnostics(tsModule, tsPackage, fs.readFileSync(tsFile, 'utf-8'))),
+        Buffer.from(!getTSModule(tsFile).patchVersion ? patchSrc : ''),
+        Buffer.from(tscSlice),
+        Buffer.from(execCmd)
+      ]);
+
+      fs.writeFileSync(file, content);
+    } else fs.writeFileSync(file, Buffer.concat([
+      Buffer.from(getHeader()),
+      Buffer.from(moduleSrc),
+      Buffer.from(patchSrc)
+    ]));
   }
   catch (e) {
     throw new FileWriteError(filename, e.message);

@@ -25,6 +25,7 @@ export const assetsDir = normalizeSlashes(path.resolve(__dirname, '../assets'));
 
 export const tsModules = [
   getTsModule('latest', 'ts-latest'),
+  getTsModule('4.8', 'ts-48'),
   getTsModule('4.0', 'ts-40')
 ]
 
