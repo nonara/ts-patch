@@ -201,6 +201,8 @@ export default function(program: ts.Program, pluginOptions: any) {
 
 [`{ transform: "ts-transformer-minify-privates" }`](https://github.com/timocov/ts-transformer-minify-privates) 
 
+[`{ transform: "typia/lib/transform" }`](https://github.com/samchon/typia) 
+
 ### Transforming Program
 
 Sometimes you want to do more than just transform source code. For example you may want to:
