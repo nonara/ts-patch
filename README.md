@@ -9,8 +9,16 @@ Directly patch typescript installation to allow custom transformers (plugins).
 - Plugins are specified in `tsconfig.json`, or provided programmatically in `CompilerOptions`.
 - Based on [ttypescript](https://github.com/cevek/ttypescript) - Fully compatible + offers more features
 
+## TypeScript v5 Note
+
+TS v5 has made some fundamental changes which affect the current process. As a result, it is not yet supported.
+
+We're working on adding support. More notes on that here:
+
+- [Issue #93 — Not working with TypeScript v5 (author's note)](https://github.com/nonara/ts-patch/issues/93)
+
 ## Features
-* Patch / unpatch any version of typescript (4.0+)
+* Patch / unpatch any version of typescript (4.*)
 * Advanced options for patching individual libraries, specific locations, etc. (see `ts-patch /?`)
 * _(New)_ Supports 'transforming' the `Program` instance during creation. (see: [Transforming Program](#transforming-program))
 * _(New)_ Add, remove, or modify diagnostics! (see: [Altering Diagnostics](#altering-diagnostics))
@@ -39,18 +47,6 @@ ts-patch install
   }
 }
  ```
-
-## Rewrite Coming Soon...
-
-With a couple years of hindsight, it's time for a much needed redesign to make a more complete plugin ecosystem! The new
-design will also be friendlier for the various package management apps. 
-
-Development is already underway, but my time to work on it is limited! To follow progress, see [this discussion](https://github.com/nonara/ts-patch/discussions/40). 
-
-Notes — 
-- The new version will be a major release
-- It will still support all legacy packages and config
-- Previous major version will be maintained and patched for any issues for at least one year
 
 ## Table of Contents
   - [Configuring](#configuring)
