@@ -18,7 +18,8 @@ import {
 
 shell.config.silent = true;
 
-export const SRC_FILES = [ 'tsc.js', 'tsserverlibrary.js', 'typescript.js', 'typescriptServices.js', 'tsserver.js' ];
+export const SRC_FILES_v4 = [ 'tsc.js', 'tsserverlibrary.js', 'typescript.js', 'typescriptServices.js', 'tsserver.js' ];
+export const SRC_FILES_v5 = [ 'tsc.js', 'tsserverlibrary.js', 'typescript.js', 'tsserver.js' ];
 export const BACKUP_DIRNAME = 'lib-backup';
 export const RESOURCES_PATH = path.join(appRoot, tspPackageJSON.directories.resources);
 
@@ -141,9 +142,12 @@ export function uninstall(opts?: Partial<TSPOptions>) {
 /**
  * Check if files can be patched
  */
-export function check(fileOrFilesOrGlob: string | string[] = SRC_FILES, opts?: Partial<TSPOptions>) {
+
+export function check(fileOrFilesOrGlob?: string | string[], opts?: Partial<TSPOptions>) {
   const { dir } = parseOptions(opts);
   const { libDir, packageDir, version } = getTSPackage(dir);
+  const [major] = version.split(".");
+  fileOrFilesOrGlob ??= +major >= 5 ? SRC_FILES_v5 : SRC_FILES_v4;
 
   Log(`Checking TypeScript ${chalk.blueBright(`v${version}`)} installation in ${chalk.blueBright(packageDir)}\r\n`);
 
