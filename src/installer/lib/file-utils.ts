@@ -136,7 +136,7 @@ export function getTSModule(file: string, includeSrc: boolean = false): TSModule
   const filename = path.basename(file);
   const dir = path.dirname(file);
   const fileData = fs.readFileSync(file, 'utf8');
-  const canPatch = Boolean(fileData.match(/^\(function\s\(ts\)\s?{[\s\S]+?\(ts\s?\|\|\s?\(ts\s?=\s?{}\)\);?$/m));
+  const canPatch = true; // Boolean(fileData.match(/^\(function\s\(ts\)\s?{[\s\S]+?\(ts\s?\|\|\s?\(ts\s?=\s?{}\)\);?$/m));
   const patchVersion =
     canPatch && (
       fileData.match(/^\/\/\/\s*tsp:\s*(\S+)/s) ||

@@ -10,7 +10,6 @@
     "noUnusedLocals": false,
     "noImplicitReturns": true,
     "allowSyntheticDefaultImports": true,
-    "allowSyntheticDefaultImports": true,
     "stripInternal": true,
 
     "target": "ES5",
