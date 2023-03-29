@@ -1,4 +1,4 @@
-import type { PluginConfig, TransformerList } from '../../../src/shared/plugin-types';
+import type { PluginConfig, TransformerList } from '../../../projects/shared/plugin-types';
 import { advancedTransformer } from '../../assets/transformers/transform-advanced';
 import { simpleTransformer } from '../../assets/transformers/transform-simple';
 import { progTransformer1, progTransformer2 } from '../../assets/transformers/program-transformer';

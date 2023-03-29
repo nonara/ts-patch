@@ -1,7 +1,7 @@
-import { Log, TSPOptions } from '../../../src/installer/lib/system';
-import { mockConsoleLog, mockProcessStdout, mockProcessStderr } from 'jest-mock-process';
+import { InstallerOptions, Log } from '../../../projects/installer/src';
+import { mockConsoleLog, mockProcessStderr, mockProcessStdout } from 'jest-mock-process';
 // noinspection ES6PreferShortImport
-import { setOptions } from '../../../src/installer/lib/actions';
+import { setOptions } from '../../../projects/installer/src/actions';
 
 
 /* ****************************************************************************************************************** */
@@ -10,7 +10,7 @@ import { setOptions } from '../../../src/installer/lib/actions';
 
 const hasColor = /\x1b\[[0-9;]*m/;
 
-function log(opt?: Partial<TSPOptions>, msg: string | [ string, string ] = [ '=', 'test' ]) {
+function log(opt?: Partial<InstallerOptions>, msg: string | [ string, string ] = [ '=', 'test' ]) {
   const { instanceIsCLI } = setOptions(opt);
   const logSpy = mockConsoleLog().mockImplementation();
   const stdOutSpy = mockProcessStdout().mockImplementation();

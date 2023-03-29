@@ -9,7 +9,7 @@
 
     "lib": [ "es2019" ],
     "outDir": "dist",
-    "target": "es5",
+    "target": "ES2022",
     "module": "CommonJS",
     "moduleResolution": "node",
 

@@ -1,7 +1,7 @@
 import stripAnsi from 'strip-ansi';
-import { run as runFn, cliCommands, cliOptions } from '../../../src/installer/bin/cli';
-import { getGlobalTSDir } from '../../../src/installer/lib/file-utils';
-import * as actions from '../../../src/installer/lib/actions';
+import { run as runFn, cliCommands, cliOptions } from '../../../projects/installer/bin/cli';
+import { getGlobalTSDir } from '../../../projects/installer/src/file-utils';
+import * as actions from '../../../projects/installer/src/actions';
 
 /* ****************************************************************************************************************** */
 // region: Helpers & Config

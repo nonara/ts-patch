@@ -1,0 +1,25 @@
+{
+  "extends" : "../../tsconfig.base.json",
+  "include" : [
+    "shared",
+    "src"
+  ],
+
+  "compilerOptions" : {
+    "rootDirs" : [
+      "src",
+      "shared"
+    ],
+    "outDir" : "../../dist",
+    "sourceMap" : true,
+    "composite" : true,
+    "declaration" : true,
+
+    "plugins" : [
+      {
+        "transform" : "./plugin.ts",
+        "transformProgram" : true
+      }
+    ]
+  }
+}
