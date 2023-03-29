@@ -7,8 +7,8 @@
   "scripts": {
     "compile": "yarn run compile:installer && yarn run compile:patch",
     "build": "yarn run clean && yarn run compile:patch && yarn run compile:installer",
-    "compile:installer": "tsc -p src",
-    "compile:patch": "tsc -p src/patch",
+    "compile:installer": "tsc -p projects/installer",
+    "compile:patch": "tsc -p projects/patch",
     "------------ ": "-------------",
     "clean": "npx rimraf dist coverage *.tsbuildinfo test/.tmp",
     "clean:global": "yarn run clean && npx rimraf ./**/node_modules ./**/yarn.lock",
@@ -17,7 +17,7 @@
     "test": "jest",
     "------------": "-------------",
     "prepare": "ts-patch i -s && yarn prepare:patch && yarn prepare:test",
-    "prepare:patch": "cd src/patch && yarn install && tsc",
+    "prepare:patch": "cd projects/patch && yarn install && tsc",
     "prepare:test": "cd test && yarn install",
     "postbuild": "node scripts/postbuild.js"
   },
@@ -45,15 +45,12 @@
   "homepage": "https://github.com/nonara/ts-patch#readme",
   "dependencies": {
     "chalk": "^4.1.2",
-    "glob": "^8.0.3",
     "global-prefix": "^3.0.0",
-    "minimist": "^1.2.6",
-    "resolve": "^1.22.1",
-    "shelljs": "^0.8.5",
+    "minimist": "^1.2.8",
     "strip-ansi": "^6.0.1"
   },
   "bin": {
-    "ts-patch": "./dist/bin/cli.js"
+    "ts-patch": "./dist/cli/cli.js"
   },
   "peerDependencies": {
     "typescript": ">=4.0.0"
@@ -81,45 +78,15 @@
     "ts-transform-img": "^0.4.2",
     "ts-transform-react-intl": "^0.4.1",
     "tsconfig-paths": "^3.11.0",
-    "typescript": "4.8.4"
+    "glob": "^7.1.7",
+    "typescript": "^4.9.5",
+    "shelljs" : "^0.8.5"
   },
   "directories": {
     "resources": "./dist/resources"
   },
   "standard-version": {
     "types": [
-      {
-        "type": "feat",
-        "section": "Features"
-      },
-      {
-        "type": "fix",
-        "section": "Bug Fixes"
-      },
-      {
-        "type": "chore",
-        "hidden": true
-      },
-      {
-        "type": "docs",
-        "hidden": true
-      },
-      {
-        "type": "style",
-        "hidden": true
-      },
-      {
-        "type": "refactor",
-        "hidden": true
-      },
-      {
-        "type": "perf",
-        "hidden": true
-      },
-      {
-        "type": "test",
-        "hidden": true
-      },
       {
         "type": "change",
         "section": "Changes"

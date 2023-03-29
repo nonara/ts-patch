@@ -39,7 +39,7 @@ shell.cp(path.resolve('./CHANGELOG.md'), DIST_DIR);
 shell.cp(path.resolve('./LICENSE.md'), DIST_DIR);
 
 /* Add shebang line to cli */
-const cliPath = path.join(DIST_DIR, '/bin/cli.js');
+const cliPath = path.join(DIST_DIR, '/cli/cli.js');
 const cliSrc = fs.readFileSync(cliPath, 'utf8');
 if (!/^#!\/usr\/bin\/env/.test(cliSrc)) fs.writeFileSync(cliPath, `#!/usr/bin/env node\n\n${cliSrc}`, 'utf8');
 
