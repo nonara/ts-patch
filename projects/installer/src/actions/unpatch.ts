@@ -65,8 +65,8 @@ export function unpatch(moduleNameOrNames: string | string[], opts?: Partial<Ins
         LogLevel.verbose
       );
 
-      fs.writeFileSync(backup!.js, tsModule.modulePath);
-      if (backup!.dts) fs.writeFileSync(backup!.dts, tsModule.dtsPath!);
+      fs.writeFileSync(tsModule.modulePath, backup!.js);
+      if (backup?.dts) fs.writeFileSync(tsModule.dtsPath!, backup.dts);
 
       log([ '+', chalk.green(`Successfully restored ${chalk.bold.yellow(tsModule.moduleName)}.\r\n`) ], LogLevel.verbose);
     } catch (e) {

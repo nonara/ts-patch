@@ -90,8 +90,8 @@ export function patch(moduleNameOrNames: string | string[], opts?: Partial<Insta
         dts = patchedDts;
 
         mkdirIfNotExist(tsModule.cachePath);
-        fs.writeFileSync(path.join(tsModule.cachePath, 'original.js'), tsModule.source.sourceText);
-        fs.writeFileSync(path.join(tsModule.cachePath, 'patched.js'), js);
+        fs.writeFileSync(path.join(tsModule.cachePath, TsModule.cachedBackupFilename), tsModule.source.sourceText);
+        fs.writeFileSync(path.join(tsModule.cachePath, TsModule.cachedPatchFilename), js);
       }
 
       /* Write Patched Module */

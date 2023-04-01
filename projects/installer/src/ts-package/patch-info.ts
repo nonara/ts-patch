@@ -65,7 +65,7 @@ export function getPatchInfo(tsPackage: TsPackage, moduleName: TsModule.Name | s
 
   /* Check for patch header */
   const firstLine = readFirstLineSync(moduleFile);
-  const version = firstLine.match(/^\/\/\/ tsp: (\d+\.\d+\.\d+)/);
+  const version = firstLine.match(/^\/\/\/ tsp: (\d+)\.(\d+)\.(\d+)/);
   if (!version) return undefined;
 
   /* Get patch version */
