@@ -193,8 +193,7 @@ export function patchModule(tsModule: TsModule, skipDts: boolean = false, skipCa
     ))
 
     /* Insert map setter - prepend */
-    const newEmitFilesAndReportErrorsNode = factory.updateFunctionDeclaration(
-      emitFilesAndReportErrorsNode,
+    const newEmitFilesAndReportErrorsNode = factory.createFunctionDeclaration(
       emitFilesAndReportErrorsNode.decorators,
       emitFilesAndReportErrorsNode.modifiers,
       emitFilesAndReportErrorsNode.asteriskToken,
@@ -208,6 +207,8 @@ export function patchModule(tsModule: TsModule, skipDts: boolean = false, skipCa
         ...emitFilesAndReportErrorsNode.body!.statements.slice(emitResultNodeIndex)
       ])
     );
+    // @ts-expect-error The parent property is readonly, but we need to set it to make printing
+    newEmitFilesAndReportErrorsNode.parent = emitFilesAndReportErrorsNode.parent;
 
     /* Replace node */
     watchNodes.splice(watchNodes.indexOf(emitFilesAndReportErrorsNode), 1, newEmitFilesAndReportErrorsNode);
