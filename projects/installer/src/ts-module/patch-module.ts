@@ -28,7 +28,6 @@ const jsPatchSrc =
 function mergeStatements(baseNodes: ts.Node[], addedNodes: ts.Node[]): ts.Node[] {
   const mergedNodesMap = new Map<string | symbol, ts.Node>();
 
-  // Add baseNodes to the map
   baseNodes.forEach(addNode);
   addedNodes.forEach(addNode);
 
@@ -88,13 +87,14 @@ export function patchModule(tsModule: TsModule, skipDts: boolean = false, skipCa
     bodyHeaderNodes = bodyHeaderNodes && mergeStatements(bodyHeaderNodes, typescriptModule.source.bodyHeaderNodes ?? []);
 
     /* Find all existing compiler-related files & drop them */
-    let firstIndex: number;
-    innerSourceFileEntries.forEach(([ fileName ], index) => {
+    let firstIndex: number | undefined;
+    for (let i = innerSourceFileEntries.length - 1; i >= 0; i--) {
+      const fileName = innerSourceFileEntries[i][0];
       if (typescriptFiles.includes(fileName)) {
-        if (firstIndex === undefined) firstIndex = index;
-        innerSourceFileEntries.splice(index, 1);
+        firstIndex = i;
+        innerSourceFileEntries.splice(i, 1);
       }
-    });
+    }
 
     /* Insert all from typescript.js */
     innerSourceFileEntries.splice(firstIndex!, 0, ...typescriptModule.source.innerSourceFiles.entries());
@@ -113,11 +113,15 @@ export function patchModule(tsModule: TsModule, skipDts: boolean = false, skipCa
   const printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed, removeComments: false });
 
   const printedFileHeaderNodes = printNodes(fileHeaderNodes);
-  const printedBodyNodes = printNodes(
+  let printedBodyNodes = printNodes(
     [ ...(bodyHeaderNodes ?? []), ...innerSourceFiles.values() ].flat(),
     tsModule.source.usesTsNamespace
   );
   const printedFooterNodes = tsModule.source.footerNodes?.length ? printNodes(tsModule.source.footerNodes) : '';
+
+  // TODO drop
+  if (tsModule.moduleName !== 'typescript.js')
+    printedBodyNodes = printedBodyNodes.replace(/^return require_typescript\(\);/, 'require_typescript();');
 
   const jsBody =
     getPatchHeader(tsModule.moduleName) +
