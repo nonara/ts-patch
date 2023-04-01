@@ -80,7 +80,7 @@ export function getTsModule(tsPackage: TsPackage, moduleName: TsModule.Name | st
   const dtsCacheKey = dtsFile && dtsFile.hash;
 
   const cacheKey = moduleFile.hash;
-  const cachePath = path.join(tsPackage.cacheDir, `cacheKey`);
+  const cachePath = path.join(tsPackage.cacheDir, cacheKey);
 
   /* Create Module */
   const tsModule: TsModule = {

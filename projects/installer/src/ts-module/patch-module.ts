@@ -238,6 +238,8 @@ export function patchModule(tsModule: TsModule, skipDts: boolean = false, skipCa
       createProgramNode.type,
       createProgramNode.body
     );
+    // @ts-expect-error The parent property is readonly, but we need to set it to make printing
+    newCreateProgramNode.parent = createProgramNode.parent;
 
     // function createProgram() { return tsp.originalCreateProgram(...arguments); }
     const createProgramForwarderNode = factory.createFunctionDeclaration(
