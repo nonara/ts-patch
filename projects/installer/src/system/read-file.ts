@@ -20,7 +20,7 @@ export function readFile(filePath: string, skipCache: boolean = false): ReadFile
   if (!skipCache && readFileCache.has(filePath)) return readFileCache.get(filePath)!;
 
   const content = fs.readFileSync(filePath, 'utf8');
-  const hash = crypto.createHash('sha1').update(content).digest('base64');
+  const hash = crypto.createHash('md5').update(content).digest('hex');
   const result = { content, hash };
 
   readFileCache.set(filePath, result);
