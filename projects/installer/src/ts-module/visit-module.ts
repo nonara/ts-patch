@@ -107,27 +107,35 @@ export function visitModule(sourceFile: ts.SourceFile): ModuleSource {
   let currentFileName: string | undefined;
   let currentFileStartNode: ts.Node | undefined;
   let bodyHeaderNodes: ts.Node[] | undefined;
-  for (const statement of bodyStatements) {
+
+  const assignWalkedStatements = (statement: ts.Node, statementIdx: number | undefined) => {
+    if (currentFileStartNode) {
+      fileCode.set(
+        currentFileName!,
+        bodyStatements!.slice(bodyStatements!.indexOf(currentFileStartNode!), statementIdx)
+      );
+    } else {
+      bodyHeaderNodes = bodyStatements!.slice(0, statementIdx);
+    }
+  };
+
+  bodyStatements.forEach((statement, statementIdx) => {
+    if (statementIdx === bodyStatements!.length - 1) {
+      assignWalkedStatements(statement, undefined);
+      return;
+    }
+
     const comment = getLeadingCommentsText(statement, sourceFile).find((comment) => comment.includes('// src/'));
     if (comment) {
       const fileName = comment.match(/\/\/ src\/(.*)/)?.[1];
-      if (!fileName) continue;
+      if (!fileName) return;
 
-      if (currentFileStartNode) {
-        fileCode.set(
-          currentFileName!,
-          bodyStatements.slice(bodyStatements.indexOf(currentFileStartNode),
-            bodyStatements.indexOf(statement)
-          )
-        );
-      } else {
-        bodyHeaderNodes = bodyStatements.slice(0, bodyStatements.indexOf(statement));
-      }
+      assignWalkedStatements(statement, statementIdx);
 
       currentFileName = fileName;
       currentFileStartNode = statement;
     }
-  }
+  });
 
   return {
     sourceFile,
