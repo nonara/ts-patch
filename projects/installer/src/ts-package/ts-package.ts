@@ -89,7 +89,7 @@ export function getTsPackage(dir: string = process.cwd()): TsPackage {
       }
 
       /* Get patch info for each module */
-      for (const moduleName of moduleNames) res.modulePatchInfo.set(name, getPatchInfo(res, moduleName));
+      for (const moduleName of moduleNames) res.modulePatchInfo.set(moduleName, getPatchInfo(res, moduleName));
 
       return res;
     }

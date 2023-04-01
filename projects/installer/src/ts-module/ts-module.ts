@@ -13,6 +13,10 @@ import { readFile } from '../system/read-file';
 
 export namespace TsModule {
   export const names = <const>['tsc.js', 'tsserverlibrary.js', 'typescript.js', 'tsserver.js'];
+  export const cachedPatchFilename = 'patched.js';
+  export const cachedBackupFilename = 'backup.js';
+  export const cachedPatchDtsFilename = 'patched.d.ts';
+  export const cachedBackupDtsFilename = 'backup.d.ts';
 }
 
 // endregion
@@ -93,8 +97,8 @@ export function getTsModule(tsPackage: TsPackage, moduleName: TsModule.Name | st
     dtsCacheKey,
 
     getCachedPatched() {
-      const jsFilePath = path.join(this.cachePath, 'patched.js');
-      const dtsFilePath = this.dtsCachePath && path.join(this.dtsCachePath, 'patched.d.ts');
+      const jsFilePath = path.join(this.cachePath, TsModule.cachedPatchFilename);
+      const dtsFilePath = this.dtsCachePath && path.join(this.dtsCachePath, TsModule.cachedPatchDtsFilename);
       if (!fs.existsSync(jsFilePath) || (dtsFilePath && !fs.existsSync(dtsFilePath))) return undefined;
 
       const js = fs.readFileSync(jsFilePath, 'utf-8');
@@ -104,8 +108,8 @@ export function getTsModule(tsPackage: TsPackage, moduleName: TsModule.Name | st
     },
 
     getCachedBackup() {
-      const jsFilePath = path.join(this.cachePath, 'backup.js');
-      const dtsFilePath = this.dtsCachePath && path.join(this.dtsCachePath, 'backup.d.ts');
+      const jsFilePath = path.join(this.cachePath, TsModule.cachedBackupFilename);
+      const dtsFilePath = this.dtsCachePath && path.join(this.dtsCachePath, TsModule.cachedBackupDtsFilename);
       if (!fs.existsSync(jsFilePath) || (dtsFilePath && !fs.existsSync(dtsFilePath))) return undefined;
 
       const js = fs.readFileSync(jsFilePath, 'utf-8');
