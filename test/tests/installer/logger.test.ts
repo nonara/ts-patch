@@ -1,7 +1,7 @@
-import { InstallerOptions, Log } from '../../../projects/installer/src';
+import { InstallerOptions, Log } from '../../../projects/core/src';
 import { mockConsoleLog, mockProcessStderr, mockProcessStdout } from 'jest-mock-process';
 // noinspection ES6PreferShortImport
-import { setOptions } from '../../../projects/installer/src/actions';
+import { setOptions } from '../../../projects/core/src/actions';
 
 
 /* ****************************************************************************************************************** */

@@ -1,6 +1,5 @@
-import { getInstallerOptions, InstallerOptions } from '../system';
 import chalk from 'chalk';
-import { patch } from '..';
+import { getInstallerOptions, InstallerOptions, patch } from '..';
 import { defaultInstallLibraries } from '../config';
 
 

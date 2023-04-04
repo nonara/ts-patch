@@ -1,6 +1,9 @@
-import { getInstallerOptions, InstallerOptions, LogLevel, PatchError } from '../system';
+import { LogLevel, PatchError } from '../system';
 import chalk from 'chalk';
-import { getTsPackage, PatchInfo } from '../ts-package';
+import { getTsPackage } from '../ts-package';
+import { PatchDetail } from "../patch/patch-detail";
+import { getTsModule } from "../module";
+import { getInstallerOptions, InstallerOptions } from "../options";
 
 
 /* ****************************************************************************************************************** */
@@ -8,7 +11,7 @@ import { getTsPackage, PatchInfo } from '../ts-package';
 /* ****************************************************************************************************************** */
 
 interface CheckResult {
-  [moduleName: string]: PatchInfo | undefined;
+  [moduleName: string]: PatchDetail | undefined;
 }
 
 // endregion
@@ -29,33 +32,39 @@ export function check(moduleNameOrNames?: string | string[], opts?: Partial<Inst
   const { logger: log, dir } = options;
 
   /* Load Package */
-  const { modulePatchInfo, packageDir, version, moduleNames } = getTsPackage(dir);
+  const tsPackage = getTsPackage(dir);
+  const { packageDir, version } = tsPackage;
 
-  targetModuleNames ??= moduleNames;
+
+  targetModuleNames ??= tsPackage.moduleNames;
 
   /* Check Modules */
   log(`Checking TypeScript ${chalk.blueBright(`v${version}`)} installation in ${chalk.blueBright(packageDir)}\r\n`);
 
+  let res: CheckResult = {};
   for (const moduleName of targetModuleNames) {
     /* Validate */
-    if (!modulePatchInfo.has(moduleName))
+    if (!tsPackage.moduleNames.includes(moduleName))
       throw new PatchError(`${moduleName} is not a valid TypeScript module in ${packageDir}`);
 
     /* Report */
-    const patchInfo = modulePatchInfo.get(moduleName);
+    const tsModule = getTsModule(tsPackage, moduleName, { skipCache: options.skipCache, headersOnly: true });
+    const { patchDetail } = tsModule.moduleFile;
 
-    if (patchInfo !== undefined) {
-      const { isOutdated } = patchInfo;
+    if (patchDetail !== undefined) {
+      const { isOutdated } = patchDetail;
       log([ '+',
         `${chalk.blueBright(moduleName)} is patched with ts-patch version ` +
-        `${chalk[isOutdated ? 'redBright' : 'blueBright'](patchInfo.patchVer)} ${isOutdated ? '(out of date)' : ''}`
+        `${chalk[isOutdated ? 'redBright' : 'blueBright'](patchDetail.tspVersion)} ${isOutdated ? '(out of date)' : ''}`
       ]);
     } else log([ '-', `${chalk.blueBright(moduleName)} is not patched.` ]);
+
+    res[moduleName] = patchDetail;
 
     log('', LogLevel.verbose);
   }
 
-  return Object.fromEntries(modulePatchInfo);
+  return res;
 }
 
 // endregion

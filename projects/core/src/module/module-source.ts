@@ -63,7 +63,7 @@ function getLeadingCommentsText(node: ts.Node, sourceFile: ts.SourceFile): strin
 // region: Utils
 /* ****************************************************************************************************************** */
 
-export function visitModule(sourceFile: ts.SourceFile): ModuleSource {
+export function getModuleSource(sourceFile: ts.SourceFile): ModuleSource {
   let bodyStatements: ts.Node[] | undefined;
   let footerNodes: ts.Node[] | undefined;
   let isWrapped: boolean | undefined;

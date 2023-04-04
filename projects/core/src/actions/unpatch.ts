@@ -1,9 +1,10 @@
-import { getInstallerOptions, InstallerOptions, LogLevel, PatchError, RestoreError } from '../system';
+import { copyFileWithLock, LogLevel, PatchError, RestoreError } from '../system';
 import chalk from 'chalk';
 import path from 'path';
-import { getPatchInfo, getTsPackage, PatchInfo } from '../ts-package';
-import { TsModule } from '../ts-module';
+import { getTsPackage } from '../ts-package';
+import { getModuleFile, getTsModule, ModuleFile } from '../module';
 import fs from 'fs';
+import { getInstallerOptions, InstallerOptions } from "../options";
 
 
 /* ****************************************************************************************************************** */
@@ -25,37 +26,27 @@ export function unpatch(moduleNameOrNames: string | string[], opts?: Partial<Ins
   const tsPackage = getTsPackage(dir);
 
   /* Get modules to patch and patch info */
-  const allModulePatchInfo = tsPackage.modulePatchInfo;
-  const targetModulePatchInfo = new Map<string, PatchInfo | undefined>();
-  for (const moduleName of targetModuleNames) {
-    const patchInfo = allModulePatchInfo.has(moduleName)
-      ? allModulePatchInfo.get(moduleName)
-      : getPatchInfo(tsPackage, moduleName);
+  const moduleFiles: [ string, ModuleFile ][] =
+    targetModuleNames.map(m => [ m, getModuleFile(tsPackage.getModulePath(m)) ]);
 
-    targetModulePatchInfo.set(moduleName, patchInfo);
-  }
-
-  const unpatchTargets = [] as [ TsModule, ReturnType<TsModule['getCachedBackup']> ][];
-  for (const [ moduleName, patchInfo ] of targetModulePatchInfo) {
-    if (!patchInfo) {
+  /* Determine patched files */
+  const unpatchableFiles = moduleFiles.filter(entry => {
+    const [ moduleName, moduleFile ] = entry;
+    if (moduleFile.patchDetail) return true;
+    else {
       log([ '!', `${chalk.blueBright(moduleName)} is not patched. For details, run: ` + chalk.bgBlackBright('ts-patch check') ]);
-      continue;
+      return false;
     }
-
-    const tsModule = tsPackage.getModule(moduleName, options.skipCache);
-
-    const backup = tsModule.getCachedBackup();
-    if (!backup) {
-      res = false;
-      log([ '!', `Missing backup for ${chalk.blueBright(moduleName)}. Cannot restore! Reinstall typescript to restore.` ]);
-    } else {
-      unpatchTargets.push([ tsModule, backup ]);
-    }
-  }
+  });
 
   /* Restore files */
   const errors: Record<string, Error> = {};
-  for (const [ tsModule, backup ] of unpatchTargets) {
+  for (const entry of unpatchableFiles) {
+    /* Load Module */
+    const { 1: moduleFile } = entry;
+    const tsModule = getTsModule(tsPackage, moduleFile, { skipCache: true });
+
+    const { moduleName, modulePath } = tsModule;
     try {
       log(
         [
@@ -65,8 +56,18 @@ export function unpatch(moduleNameOrNames: string | string[], opts?: Partial<Ins
         LogLevel.verbose
       );
 
-      fs.writeFileSync(tsModule.modulePath, backup!.js);
-      if (backup?.dts) fs.writeFileSync(tsModule.dtsPath!, backup.dts);
+      /* Get Backups */
+      const backupPaths: string[] = []
+      backupPaths.push(tsModule.backupCachePaths.js);
+      if (tsModule.backupCachePaths.dts) backupPaths.push(tsModule.backupCachePaths.dts);
+
+      /* Restore files */
+      for (const backupPath of backupPaths) {
+        if (!fs.existsSync(backupPath))
+          throw new Error(`Cannot find backup file: ${backupPath}. Try reinstalling typescript.`);
+
+        copyFileWithLock(backupPath, tsModule.modulePath);
+      }
 
       log([ '+', chalk.green(`Successfully restored ${chalk.bold.yellow(tsModule.moduleName)}.\r\n`) ], LogLevel.verbose);
     } catch (e) {

@@ -1,6 +1,6 @@
 import path from 'path';
-import { getTsPackage } from '../../../projects/installer/src/ts-package';
-import { patchModule } from '../../../projects/installer/src/ts-module/patch-module';
+import { getTsPackage } from '../../../projects/core/src/package';
+import { patchModule } from '../../../projects/core/src/module/patch-module';
 
 
 /* ****************************************************************************************************************** */

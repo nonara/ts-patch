@@ -1,9 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import resolve from 'resolve';
-import { PackageError } from '../system';
-import { getTsModule, TsModule } from '../ts-module';
-import { getPatchInfo, PatchInfo } from './patch-info';
+import { PackageError } from './system';
+import { TsModule } from './module';
 
 
 /* ****************************************************************************************************************** */
@@ -20,11 +19,11 @@ export interface TsPackage {
   libDir: string
 
   moduleNames: TsModule.Name[]
-  modulePatchInfo: Map<TsModule.Name | string, PatchInfo | undefined>
-  getModule: (name: TsModule.Name | string, skipCache?: boolean) => TsModule
 
   /** @internal */
-  moduleCache: Map<TsModule.Name | string, TsModule>
+  moduleCache: Map<TsModule.Name, TsModule>
+
+  getModulePath: (name: TsModule.Name) => string
 }
 
 // endregion
@@ -72,7 +71,7 @@ export function getTsPackage(dir: string = process.cwd()): TsPackage {
       /* Get all available module names in libDir */
       const moduleNames: TsModule.Name[] = [];
       for (const fileName of fs.readdirSync(libDir))
-        if (TsModule.names.includes(fileName as TsModule.Name)) moduleNames.push(fileName as TsModule.Name);
+        if ((<string[]><unknown>TsModule.names).includes(fileName)) moduleNames.push(fileName as TsModule.Name);
 
       const res: TsPackage = {
         version,
@@ -84,12 +83,11 @@ export function getTsPackage(dir: string = process.cwd()): TsPackage {
         cacheDir,
         libDir,
         moduleCache: new Map(),
-        modulePatchInfo: new Map(),
-        getModule: (moduleName: TsModule.Name | string, skipCache?: boolean) => getTsModule(res, moduleName, skipCache)
-      }
 
-      /* Get patch info for each module */
-      for (const moduleName of moduleNames) res.modulePatchInfo.set(moduleName, getPatchInfo(res, moduleName));
+        getModulePath: (moduleName: TsModule.Name) => {
+          return path.join(libDir, moduleName as string);
+        }
+      }
 
       return res;
     }

@@ -1,12 +1,12 @@
 import fs from 'fs';
 import {
   check, defaultInstallLibraries, install, parseFiles, patch, setOptions, SRC_FILES, uninstall
-} from '../../../projects/installer/src';
+} from '../../../projects/core/src';
 import { joinPaths, mockFs, resetFs, restoreFs } from '../../src/utils';
 import ts from 'typescript';
-import { tspPackageJSON } from '../../../projects/installer/src/system';
+import { tspPackageJSON } from '../../../projects/core/src/system';
 // noinspection ES6PreferShortImport
-import { getTSPackage } from '../../../projects/installer/src/file-utils';
+import { getTSPackage } from '../../../projects/core/src/file-utils';
 
 
 /* ****************************************************************************************************************** */
