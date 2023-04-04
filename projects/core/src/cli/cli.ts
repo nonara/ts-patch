@@ -1,11 +1,12 @@
 import minimist from 'minimist';
-import { createLogger, LogLevel, tspPackageJSON } from '../system';
+import { createLogger, LogLevel } from '../system';
 import { getTsPackage } from '../ts-package';
 import chalk from 'chalk';
 import * as actions from '../actions';
 import { getCliOptions, getInstallerOptionsFromCliOptions } from './options';
 import { getCliCommand } from './commands';
 import { getHelpMenu } from './help-menu';
+import { tspPackageJSON } from "../config";
 
 
 /* ****************************************************************************************************************** */
@@ -21,9 +22,9 @@ export type CliConfig = Record<string, { short?: string, caption: string, paramC
 // region: Utils
 /* ****************************************************************************************************************** */
 
-export function run(argStr?: string) {
+export function run(opt?: { cmdArgs?: string }) {
   /* Parse Input */
-  const args = minimist(instanceIsCLI ? process.argv.slice(2) : argStr!.split(' '));
+  const args = minimist(opt?.cmdArgs?.split(' ') ?? process.argv.slice(2));
   const cliOptions = getCliOptions(args);
   const cmd = getCliCommand(args);
 
@@ -74,15 +75,7 @@ export function run(argStr?: string) {
   }
 
   // Output for analysis by tests
-  return (!instanceIsCLI) ? ({ cmd, args, options }) : void 0;
+  return ({ cmd, args, options });
 }
 
 // endregion
-
-
-/* ****************************************************************************************************************** *
- * Entry
- * ****************************************************************************************************************** */
-
-const instanceIsCLI = (require.main === module);
-if (instanceIsCLI) run();

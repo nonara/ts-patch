@@ -1,22 +1,17 @@
 import ts, { nullTransformationContext } from 'typescript';
-import { TsModule } from './ts-module';
 import fs from 'fs';
-import path from 'path';
-import { appRoot, PatchError, tspPackageJSON } from '../system';
+import { dtsPatchFilePath, modulePatchFilePath } from "../config";
+import { getTsModule, TsModule } from "../module";
+import { PatchError, readFileWithLock } from "../system";
+import { PatchDetail } from "./patch-detail";
 
 
 /* ****************************************************************************************************************** */
 // region: Config
 /* ****************************************************************************************************************** */
 
-const getPatchHeader = (moduleName: string) => `/// tsp: ${tspPackageJSON.version}\n/// module: ${moduleName}\n\n`;
-const getPatchFooter = () => `/// endtsp\n\n`;
-
-const dtsPatchSrc = '\n' +
-  fs.readFileSync(path.resolve(appRoot, tspPackageJSON.directories.resources, 'module-patch.d.ts'), 'utf-8');
-
-const jsPatchSrc =
-  fs.readFileSync(path.resolve(appRoot, tspPackageJSON.directories.resources, 'module-patch.js'), 'utf-8')
+const dtsPatchSrc = '\n' + fs.readFileSync(dtsPatchFilePath, 'utf-8');
+const jsPatchSrc = fs.readFileSync(modulePatchFilePath, 'utf-8')
 
 // endregion
 
@@ -62,9 +57,7 @@ function mergeStatements(baseNodes: ts.Node[], addedNodes: ts.Node[]): ts.Node[]
 // region: Utils
 /* ****************************************************************************************************************** */
 
-export function patchModule(tsModule: TsModule, skipDts: boolean = false, skipCache: boolean = false):
-  { js: string, dts?: string }
-{
+export function patchModule(tsModule: TsModule, skipDts: boolean = false): { js: string, dts?: string } {
   const factory = nullTransformationContext.factory;
 
   /* Clone innerSourceFiles */
@@ -79,7 +72,7 @@ export function patchModule(tsModule: TsModule, skipDts: boolean = false, skipCa
   if (tsModule.moduleName !== 'typescript.js') {
     const innerSourceFileEntries = [ ...innerSourceFiles.entries() ];
 
-    const typescriptModule = tsModule.package.getModule('typescript.js', skipCache);
+    const typescriptModule = getTsModule(tsModule.package, 'typescript.js');
     const typescriptFiles = [ ...typescriptModule.source.innerSourceFiles.keys() ];
 
     /* Get composites of headers */
@@ -109,7 +102,7 @@ export function patchModule(tsModule: TsModule, skipDts: boolean = false, skipCa
   /* Patch createProgram */
   patchCreateProgram();
 
-  /* Write patched source file */
+  /* Print transformed JS */
   const printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed, removeComments: false });
 
   const printedFileHeaderNodes = printNodes(fileHeaderNodes);
@@ -121,25 +114,27 @@ export function patchModule(tsModule: TsModule, skipDts: boolean = false, skipCa
 
   // TODO drop
   if (tsModule.moduleName !== 'typescript.js')
-    printedBodyNodes = printedBodyNodes.replace(/^return require_typescript\(\);/, 'require_typescript();');
+    printedBodyNodes = printedBodyNodes.replace(/^return require_typescript\(\);/m, 'require_typescript();');
 
-  const jsBody =
-    getPatchHeader(tsModule.moduleName) +
+  /* Create JS body */
+  let jsBody =
     jsPatchSrc + '\n' +
-    getPatchFooter() +
     printedFileHeaderNodes + '\n' +
     printedBodyNodes + '\n' +
     printedFooterNodes;
 
-  /* Write patched dts file */
+  /* Create dts body */
   let dtsBody: string | undefined;
   if (!skipDts && tsModule.dtsPath) {
+    const dtsText = readFileWithLock(tsModule.dtsPath);
     dtsBody =
-      getPatchHeader(tsModule.moduleName) +
       dtsPatchSrc + '\n' +
-      getPatchFooter() +
-      tsModule.dtsText;
+      dtsText;
   }
+
+  /* Create PatchDetail & affix header to js */
+  const patchDetail = PatchDetail.fromModule(tsModule, jsBody);
+  jsBody = patchDetail.toHeader() + '\n' + jsBody;
 
   return { js: jsBody, dts: dtsBody };
 
@@ -192,7 +187,7 @@ export function patchModule(tsModule: TsModule, skipDts: boolean = false, skipCa
       undefined,
       [
         factory.createIdentifier("program"),
-        factory.createStringLiteral("allDiagnostics")
+        factory.createIdentifier("allDiagnostics")
       ]
     ))
 
@@ -211,8 +206,7 @@ export function patchModule(tsModule: TsModule, skipDts: boolean = false, skipCa
         ...emitFilesAndReportErrorsNode.body!.statements.slice(emitResultNodeIndex)
       ])
     );
-    // @ts-expect-error The parent property is readonly, but we need to set it to make printing
-    newEmitFilesAndReportErrorsNode.parent = emitFilesAndReportErrorsNode.parent;
+    (<any>newEmitFilesAndReportErrorsNode).parent = emitFilesAndReportErrorsNode.parent;
 
     /* Replace node */
     watchNodes.splice(watchNodes.indexOf(emitFilesAndReportErrorsNode), 1, newEmitFilesAndReportErrorsNode);
@@ -242,8 +236,7 @@ export function patchModule(tsModule: TsModule, skipDts: boolean = false, skipCa
       createProgramNode.type,
       createProgramNode.body
     );
-    // @ts-expect-error The parent property is readonly, but we need to set it to make printing
-    newCreateProgramNode.parent = createProgramNode.parent;
+    (<any>newCreateProgramNode).parent = createProgramNode.parent;
 
     // function createProgram() { return tsp.originalCreateProgram(...arguments); }
     const createProgramForwarderNode = factory.createFunctionDeclaration(

@@ -8,7 +8,7 @@ import * as path from 'path';
 // region: Config
 /* ****************************************************************************************************************** */
 
-const srcTypesFileName = path.resolve(__dirname, '../installer/shared/plugin-types.ts');
+const srcTypesFileName = path.resolve(__dirname, '../core/shared/plugin-types.ts');
 const destTypesFileName = path.resolve(__dirname, 'src/types/plugin-types.ts');
 
 // endregion

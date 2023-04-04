@@ -1,5 +1,4 @@
-import { PartialSome } from './helpers';
-import { createLogger, Logger, LogLevel } from './logger';
+import { createLogger, Logger, LogLevel, PartialSome } from './system';
 
 
 /* ****************************************************************************************************************** */
