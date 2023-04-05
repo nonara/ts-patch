@@ -1,15 +1,6 @@
-import fs from "fs";
-import path from "path";
-import * as os from "os";
-
-
-/* ****************************************************************************************************************** */
-// region: Locals
-/* ****************************************************************************************************************** */
-
-let cachePath: string | undefined;
-
-// endregion
+import path from 'path';
+import * as os from 'os';
+import { findCacheDirectory } from '../utils';
 
 
 /* ****************************************************************************************************************** */
@@ -17,17 +8,7 @@ let cachePath: string | undefined;
 /* ****************************************************************************************************************** */
 
 export function getCacheRoot() {
-  if (!cachePath) {
-    const envCachePath = process.env.TSP_CACHE_PATH;
-    if (envCachePath) {
-      cachePath = envCachePath;
-    } else {
-      const homeDir = os.homedir();
-      cachePath = path.join(homeDir, '.tsp');
-    }
-  }
-
-  return cachePath;
+  return process.env.TSP_CACHE_DIR || findCacheDirectory({ name: 'tsp' }) || path.join(os.tmpdir(), 'tsp');
 }
 
 export function getCachePath(key: string, ...p: string[]) {

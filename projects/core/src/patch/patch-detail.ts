@@ -1,7 +1,7 @@
-import { TsModule } from "../module";
-import { corePatchName, tspPackageJSON } from "../config";
-import semver from "semver";
-import { getHash } from "../system";
+import { TsModule } from '../module';
+import { corePatchName, tspPackageJSON } from '../config';
+import semver from 'semver';
+import { getHash } from '../utils';
 
 
 /* ****************************************************************************************************************** */
@@ -10,6 +10,7 @@ import { getHash } from "../system";
 
 export const tspHeaderBlockStart = '/// tsp-module:';
 export const tspHeaderBlockStop = '/// :tsp-module';
+export const currentPatchDetailVersion = '0.1.0';
 
 // endregion
 
@@ -21,6 +22,7 @@ export const tspHeaderBlockStop = '/// :tsp-module';
 export interface PatchDetail {
   tsVersion: string
   tspVersion: string
+  patchDetailVersion: string
   moduleName: TsModule.Name
   originalHash: string
   hash: string
@@ -29,8 +31,10 @@ export interface PatchDetail {
 
 export namespace PatchDetail {
   export interface PatchEntry {
-    name: string
+    library: string
     version: string
+    patchName?: string
+    hash?: string
     blocksCache?: boolean
   }
 }
@@ -81,16 +85,19 @@ export class PatchDetail {
   }
 
   static fromModule(tsModule: TsModule, patchedContent: string, patches: PatchDetail.PatchEntry[] = []) {
-    patches.unshift({name: corePatchName, version: tspPackageJSON.version});
+    patches.unshift({ library: 'ts-patch', patchName: corePatchName, version: tspPackageJSON.version });
 
-    return Object.assign(new PatchDetail(), {
+    const patchDetail = {
       tsVersion: tsModule.package.version,
       tspVersion: tspPackageJSON.version,
+      patchDetailVersion: currentPatchDetailVersion,
       moduleName: tsModule.moduleName,
       originalHash: tsModule.cacheKey,
       hash: getHash(patchedContent),
       patches: patches
-    });
+    } satisfies Omit<PatchDetail, 'toHeader' | 'isOutdated'>
+
+    return Object.assign(new PatchDetail(), patchDetail);
   }
 
   // endregion

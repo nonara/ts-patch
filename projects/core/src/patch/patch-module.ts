@@ -1,9 +1,11 @@
 import ts, { nullTransformationContext } from 'typescript';
 import fs from 'fs';
-import { dtsPatchFilePath, modulePatchFilePath } from "../config";
-import { getTsModule, TsModule } from "../module";
-import { PatchError, readFileWithLock } from "../system";
-import { PatchDetail } from "./patch-detail";
+import { dtsPatchFilePath, modulePatchFilePath } from '../config';
+import { getTsModule, TsModule } from '../module';
+import { PatchError } from '../system';
+import { PatchDetail } from './patch-detail';
+import path from 'path';
+import { readFileWithLock } from '../utils';
 
 
 /* ****************************************************************************************************************** */
@@ -108,7 +110,7 @@ export function patchModule(tsModule: TsModule, skipDts: boolean = false): { js:
   const printedFileHeaderNodes = printNodes(fileHeaderNodes);
   let printedBodyNodes = printNodes(
     [ ...(bodyHeaderNodes ?? []), ...innerSourceFiles.values() ].flat(),
-    tsModule.source.usesTsNamespace
+    true /* We pass `ts` instance to transformers, so we must always wrap */
   );
   const printedFooterNodes = tsModule.source.footerNodes?.length ? printNodes(tsModule.source.footerNodes) : '';
 
@@ -117,8 +119,10 @@ export function patchModule(tsModule: TsModule, skipDts: boolean = false): { js:
     printedBodyNodes = printedBodyNodes.replace(/^return require_typescript\(\);/m, 'require_typescript();');
 
   /* Create JS body */
+  const currentLibrary = path.basename(tsModule.modulePath, '.js');
   let jsBody =
     jsPatchSrc + '\n' +
+    `tsp.currentLibrary = '${currentLibrary}';\n` +
     printedFileHeaderNodes + '\n' +
     printedBodyNodes + '\n' +
     printedFooterNodes;

@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import { getTsPackage } from '../ts-package';
-import { PackageError } from './errors';
+import { PackageError } from "../system";
 
 
 /* ****************************************************************************************************************** */

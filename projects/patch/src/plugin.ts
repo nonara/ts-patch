@@ -223,7 +223,7 @@ namespace tsp {
             addDiagnostic,
             removeDiagnostic,
             diagnostics,
-            library: getCurrentLibrary()
+            library: tsp.currentLibrary
           });
           break;
 

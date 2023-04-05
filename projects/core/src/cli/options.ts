@@ -1,7 +1,8 @@
 import minimist from 'minimist';
 import type { CliConfig } from './cli';
-import { getGlobalTsDir, LogLevel, OptionsError } from '../system';
+import { LogLevel, OptionsError } from '../system';
 import { getInstallerOptions, InstallerOptions } from "../options";
+import { getGlobalTsDir } from "../utils";
 
 
 /* ****************************************************************************************************************** */

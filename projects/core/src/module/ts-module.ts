@@ -3,9 +3,10 @@ import ts from 'typescript';
 import fs from 'fs';
 import type { TsPackage } from '../ts-package';
 import { getModuleSource, ModuleSource } from './module-source';
-import { getCachePath, readFileWithLock } from '../system';
+import { getCachePath } from '../system';
 import { getModuleFile, ModuleFile } from "./module-file";
 import { cachedFilePatchedPrefix } from "../config";
+import { readFileWithLock } from "../utils";
 
 
 /* ****************************************************************************************************************** */

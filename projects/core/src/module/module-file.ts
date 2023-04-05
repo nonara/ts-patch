@@ -1,7 +1,7 @@
 import fs from "fs";
-import { getHash, withFileLock } from "../system";
 import { PatchDetail } from "../patch/patch-detail";
 import path from "path";
+import { getHash, withFileLock } from "../utils";
 
 
 /* ****************************************************************************************************************** */
