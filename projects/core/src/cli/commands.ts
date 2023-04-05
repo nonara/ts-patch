@@ -23,6 +23,7 @@ export const cliCommandsConfig: CliConfig = {
     short: void 0, paramCaption: '<module_file> | <glob>', caption:
       'Un-patch specific module(s) ' + chalk.yellow('(advanced)')
   },
+  'clear-cache': { caption: 'Clears cache and lock-files' },
   version: { short: 'v', caption: 'Show version' },
   help: { short: '/?', caption: 'Show help menu' },
 };
