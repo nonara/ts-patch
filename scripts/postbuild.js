@@ -13,6 +13,7 @@ const BASE_DIR = path.resolve('.');
 const SRC_DIR = path.resolve('./src');
 const DIST_DIR = path.resolve('./dist');
 const DIST_RESOURCE_DIR = path.join(DIST_DIR, 'resources');
+const LIVE_DIR = path.resolve('./projects/live');
 
 
 /* ********************************************************************************************************************
@@ -33,15 +34,40 @@ fs.writeFileSync(
   JSON.stringify(pkgJSON, null, 2).replace(/(?<=['"].*?)dist\//g, '')
 );
 
+/* Copy Live files */
+const liveFiles = glob
+  .sync(path.join(LIVE_DIR, '*.js'))
+  .map((filePath) => [
+    filePath,
+    fs
+      .readFileSync(filePath, 'utf8')
+      .replace(/^const indexPath.+$/m, `const indexPath = '..';`)
+  ]);
+
+shell.mkdir(path.join(DIST_DIR, 'lib'));
+
+for (const [filePath, fileContent] of liveFiles) {
+  const fileName = path.basename(filePath);
+  fs.writeFileSync(path.join(DIST_DIR, 'lib', fileName), fileContent, 'utf8');
+}
+
 /* Copy Readme & Changelog */
 shell.cp(path.resolve('./README.md'), DIST_DIR);
 shell.cp(path.resolve('./CHANGELOG.md'), DIST_DIR);
 shell.cp(path.resolve('./LICENSE.md'), DIST_DIR);
 
-/* Add shebang line to cli */
-const cliPath = path.join(DIST_DIR, '/cli/cli.js');
-const cliSrc = fs.readFileSync(cliPath, 'utf8');
-if (!/^#!\/usr\/bin\/env/.test(cliSrc)) fs.writeFileSync(cliPath, `#!/usr/bin/env node\n\n${cliSrc}`, 'utf8');
+/* Add shebang line to bin files */
+const binFiles = glob
+  .sync(path.join(DIST_DIR, 'bin', '*.js'))
+  .map((filePath) => [
+      filePath,
+      `#!/usr/bin/env node\n\n` + fs.readFileSync(filePath, 'utf8')
+  ]);
+
+for (const [ filePath, fileContent] of binFiles) {
+  const fileName = path.basename(filePath);
+  fs.writeFileSync(path.join(DIST_DIR, 'bin', fileName), fileContent, 'utf8');
+}
 
 /* Ensure EOL = LF in resources */
 const resFiles = glob.sync(path.join(DIST_RESOURCE_DIR, '*').replace(/\\/g, '/'));

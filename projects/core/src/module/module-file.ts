@@ -1,7 +1,7 @@
-import fs from "fs";
-import { PatchDetail } from "../patch/patch-detail";
-import path from "path";
-import { getHash, withFileLock } from "../utils";
+import fs from 'fs';
+import { PatchDetail } from '../patch/patch-detail';
+import path from 'path';
+import { getHash, withFileLock } from '../utils';
 
 
 /* ****************************************************************************************************************** */
@@ -19,16 +19,12 @@ const LONG_CHUNK_SIZE = 64_536;
 /* ****************************************************************************************************************** */
 
 export interface ModuleFile {
-  readonly moduleName: string
-  readonly patchDetail?: PatchDetail
-  readonly content?: string
-  readonly filePath: string
+  moduleName: string
+  patchDetail?: PatchDetail
+  filePath: string
+  get content(): string
 
   getHash(): string
-}
-
-export interface GetModuleFileOptions {
-  headersOnly?: boolean
 }
 
 // endregion
@@ -51,38 +47,44 @@ function readFile(filePath: string, headersOnly?: boolean) {
     const fd = fs.openSync(filePath, 'r');
 
     try {
-      while ((bytesRead = fs.readSync(fd, buffer, 0, CHUNK_SIZE, null)) > 0) {
-        const chunkString = buffer.toString('utf-8', 0, bytesRead);
+      readFileLoop:
+        while ((bytesRead = fs.readSync(fd, buffer, 0, CHUNK_SIZE, null)) > 0) {
+          const chunkString = buffer.toString('utf-8', 0, bytesRead);
 
-        /* Handle Header */
-        if (!doneReadingHeaders) {
-          const lines = chunkString.split('\n');
+          /* Handle Header */
+          if (!doneReadingHeaders) {
+            const lines = chunkString.split('\n');
 
-          for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            if (i === 0 && isLastHeaderIncomplete) {
-              headerLines[headerLines.length - 1] += line;
-            } else {
-              if (line.startsWith('///')) {
-                headerLines.push(line);
-              } else {
-                CHUNK_SIZE = LONG_CHUNK_SIZE;
-                doneReadingHeaders = true;
-                result += lines.slice(i).join('\n');
-                break;
+            lineLoop:
+              for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                if (i === 0 && isLastHeaderIncomplete) {
+                  headerLines[headerLines.length - 1] += line;
+                } else {
+                  if (line.startsWith('///')) {
+                    headerLines.push(line);
+                  } else {
+                    doneReadingHeaders = true;
+                    if (!headersOnly) {
+                      result += lines.slice(i).join('\n');
+                      CHUNK_SIZE = LONG_CHUNK_SIZE;
+                      buffer = Buffer.alloc(CHUNK_SIZE);
+                      break lineLoop;
+                    } else {
+                      break readFileLoop;
+                    }
+                  }
+                }
               }
-            }
-          }
 
-          if (!doneReadingHeaders) isLastHeaderIncomplete = !chunkString.endsWith('\n');
-          continue;
+            if (!doneReadingHeaders) isLastHeaderIncomplete = !chunkString.endsWith('\n');
+          } else {
+            /* Handle content */
+            result += chunkString;
+          }
         }
 
-        /* Handle content */
-        result += chunkString;
-      }
-
-      return { headerLines, content: result };
+      return { headerLines, content: headersOnly ? undefined : result };
     } finally {
       fs.closeSync(fd);
     }
@@ -96,8 +98,8 @@ function readFile(filePath: string, headersOnly?: boolean) {
 // region: Utils
 /* ****************************************************************************************************************** */
 
-export function getModuleFile(filePath: string, opt?: GetModuleFileOptions): ModuleFile {
-  const { headerLines, content } = readFile(filePath, opt?.headersOnly);
+export function getModuleFile(filePath: string, loadFullContent?: boolean): ModuleFile {
+  let { headerLines, content } = readFile(filePath, !loadFullContent);
 
   /* Get PatchDetail */
   const patchDetail = PatchDetail.fromHeader(headerLines);
@@ -106,9 +108,12 @@ export function getModuleFile(filePath: string, opt?: GetModuleFileOptions): Mod
     moduleName: path.basename(filePath),
     filePath,
     patchDetail,
-    content,
+    get content() {
+      if (content == null) content = readFile(filePath, false).content;
+      return content!;
+    },
     getHash(): string {
-      return getHash(content);
+      return getHash(this.content);
     }
   };
 }

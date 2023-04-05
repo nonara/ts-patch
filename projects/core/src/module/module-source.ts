@@ -100,7 +100,7 @@ export function getModuleSource(sourceFile: ts.SourceFile): ModuleSource {
     }
   }
 
-  if (!bodyStatements || !headerNodes) throw getError('ts', 'Could not find ts body statements!');
+  if (!bodyStatements || !headerNodes) throw getError('ts', 'Could not find ts body statements! Make sure you\'re using TS v5+');
 
   /* Find file code */
   const fileCode = new Map<string, ts.Node[]>();

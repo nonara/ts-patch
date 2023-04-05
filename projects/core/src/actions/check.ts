@@ -48,7 +48,7 @@ export function check(moduleNameOrNames?: string | string[], opts?: Partial<Inst
       throw new PatchError(`${moduleName} is not a valid TypeScript module in ${packageDir}`);
 
     /* Report */
-    const tsModule = getTsModule(tsPackage, moduleName, { skipCache: options.skipCache, headersOnly: true });
+    const tsModule = getTsModule(tsPackage, moduleName, { skipCache: options.skipCache });
     const { patchDetail } = tsModule.moduleFile;
 
     if (patchDetail !== undefined) {
