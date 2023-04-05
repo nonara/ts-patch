@@ -15,6 +15,7 @@
     "reset": "yarn run clean:global && yarn install && yarn build",
     "------------  ": "-------------",
     "test": "jest",
+    "perf": "cd test && yarn run perf",
     "------------": "-------------",
     "prepare": "ts-patch i -s && yarn prepare:patch && yarn prepare:test",
     "prepare:patch": "cd projects/patch && yarn install && tsc",
@@ -55,7 +56,7 @@
     "tspc": "./dist/bin/tspc.js"
   },
   "peerDependencies": {
-    "typescript": ">=4.0.0"
+    "typescript": ">=5.0.0"
   },
   "devDependencies": {
     "@phenomnomnominal/tsquery": "^4.1.0",

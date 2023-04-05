@@ -4,9 +4,9 @@ import fs from 'fs';
 import type { TsPackage } from '../ts-package';
 import { getModuleSource, ModuleSource } from './module-source';
 import { getCachePath } from '../system';
-import { getModuleFile, ModuleFile } from "./module-file";
-import { cachedFilePatchedPrefix } from "../config";
-import { readFileWithLock } from "../utils";
+import { getModuleFile, ModuleFile } from './module-file';
+import { cachedFilePatchedPrefix } from '../config';
+import { readFileWithLock } from '../utils';
 
 
 /* ****************************************************************************************************************** */
@@ -48,7 +48,6 @@ export namespace TsModule {
 
 export interface GetTsModuleOptions {
   skipCache?: boolean
-  headersOnly?: boolean
 }
 
 // endregion
@@ -85,7 +84,7 @@ export function getTsModule(
 
   /* Load File (if not already) */
   if (!modulePath) modulePath = path.join(tsPackage.libDir, moduleName);
-  if (!moduleFile) moduleFile = getModuleFile(modulePath, { headersOnly: options?.headersOnly });
+  if (!moduleFile) moduleFile = getModuleFile(modulePath);
 
   /* Get DTS if exists */
   const maybeDtsFile = modulePath.replace(/\.js$/, '.d.ts');
@@ -142,7 +141,7 @@ export function getTsModule(
       moduleSource = res;
 
       return res;
-    }
+    },
   }
 
   tsPackage.moduleCache.set(moduleName, tsModule);

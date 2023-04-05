@@ -1,5 +1,8 @@
 {
   "private": true,
+  "scripts" : {
+    "perf": "ts-node -T --project tsconfig.json --files ./src/perf.ts"
+  },
   "dependencies": {
     "ts-latest": "npm:typescript@latest",
     "ts-node": "latest",

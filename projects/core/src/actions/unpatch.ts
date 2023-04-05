@@ -47,7 +47,6 @@ export function unpatch(moduleNameOrNames: string | string[], opts?: Partial<Ins
     const { 1: moduleFile } = entry;
     const tsModule = getTsModule(tsPackage, moduleFile, { skipCache: true });
 
-    const { moduleName, modulePath } = tsModule;
     try {
       log(
         [

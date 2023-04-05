@@ -3,10 +3,9 @@ import { getTsPackage } from '../ts-package';
 import chalk from 'chalk';
 import { getModuleFile, getTsModule, ModuleFile } from '../module';
 import path from 'path';
-import fs from 'fs';
-import { patchModule } from '../patch/patch-module';
 import { getInstallerOptions, InstallerOptions } from '../options';
-import { copyFileWithLock, mkdirIfNotExist, readFileWithLock, writeFileWithLock } from '../utils';
+import { writeFileWithLock } from '../utils';
+import { getPatchedSource } from '../patch/get-patched-source';
 
 
 /* ****************************************************************************************************************** */
@@ -62,44 +61,14 @@ export function patch(moduleNameOrNames: string | string[], opts?: Partial<Insta
     );
 
     try {
-      const { backupCachePaths } = tsModule;
-
-      /* Write backup */
-      if (!tsModule.isPatched) {
-        for (const [ key, backupPath ] of Object.entries(backupCachePaths)) {
-          const srcPath = key === 'dts' ? tsModule.dtsPath : tsModule.modulePath;
-          if (!srcPath) continue;
-
-          log([ '~', `Writing backup to ${chalk.blueBright(backupPath)}` ], LogLevel.verbose);
-
-          const cacheDir = path.dirname(backupPath);
-          mkdirIfNotExist(cacheDir);
-          copyFileWithLock(srcPath, backupPath);
-        }
-      }
-
-      /* Get Patched Module */
-      const canUseCache = !skipCache
-        && (!backupCachePaths.dts || fs.existsSync(backupCachePaths.dts))
-        && fs.existsSync(backupCachePaths.js);
-
-      let js: string | undefined;
-      let dts: string | undefined;
-      if (canUseCache) {
-        js = readFileWithLock(backupCachePaths.js);
-        dts = backupCachePaths.dts && readFileWithLock(backupCachePaths.dts);
-      } else {
-        const res = patchModule(tsModule);
-        js = res.js;
-        dts = res.dts;
-      }
+      const { js, dts, loadedFromCache } = getPatchedSource(tsModule, { skipCache, log });
 
       /* Write Patched Module */
       log(
         [
           '~',
           `Writing patched ${chalk.blueBright(moduleName)} to ` +
-          `${chalk.blueBright(modulePath)}${canUseCache ? ' (cached)' : ''}`
+          `${chalk.blueBright(modulePath)}${loadedFromCache ? ' (cached)' : ''}`
         ],
         LogLevel.verbose
       );
