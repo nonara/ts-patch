@@ -1,7 +1,8 @@
 import path from 'path';
 import fs from 'fs';
 import { getTsPackage } from '../ts-package';
-import { PackageError } from "../system";
+import { getLockFilePath, PackageError } from '../system';
+import { getHash } from './general';
 
 
 /* ****************************************************************************************************************** */
@@ -24,7 +25,7 @@ function waitForLockRelease(lockFilePath: string) {
 
     if ((Date.now() - start) > lockFileWaitMs)
       throw new Error(
-        `Could not acquire lock to write file. If problem persists, manually delete lock file: ${lockFilePath}
+        `Could not acquire lock to write file. If problem persists, run ts-patch clear-cache and try again.
       `);
   }
 
@@ -67,7 +68,8 @@ export function getGlobalTsDir() {
 export const mkdirIfNotExist = (dir: string) => !fs.existsSync(dir) && fs.mkdirSync(dir, { recursive: true });
 
 export function withFileLock<T>(filePath: string, fn: () => T): T {
-  const lockFilePath = `${filePath}.lock`;
+  const lockFileName = getHash(filePath) + '.lock';
+  const lockFilePath = getLockFilePath(lockFileName);
   try {
     waitForLockRelease(lockFilePath);
     fs.writeFileSync(lockFilePath, '');

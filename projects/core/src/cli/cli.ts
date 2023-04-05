@@ -1,12 +1,13 @@
 import minimist from 'minimist';
-import { createLogger, LogLevel } from '../system';
+import { createLogger, getCacheRoot, getLockFilePath, LogLevel } from '../system';
 import { getTsPackage } from '../ts-package';
 import chalk from 'chalk';
 import * as actions from '../actions';
 import { getCliOptions, getInstallerOptionsFromCliOptions } from './options';
 import { getCliCommand } from './commands';
 import { getHelpMenu } from './help-menu';
-import { tspPackageJSON } from "../config";
+import { tspPackageJSON } from '../config';
+import fs from 'fs';
 
 
 /* ****************************************************************************************************************** */
@@ -62,8 +63,20 @@ export function run(opt?: { cmdArgs?: string }) {
         case 'check':
           return actions.check(undefined, options);
 
+        case 'clear-cache':
+          const cacheRoot = getCacheRoot();
+
+          /* Clear dir */
+          fs.rmSync(cacheRoot, { recursive: true, force: true });
+
+          /* Recreate Dirs */
+          getCacheRoot();
+          getLockFilePath('');
+
+          return log([ '+', 'Cleared cache & lock-files' ], LogLevel.system);
+
         default:
-          log('Invalid command. Try ts-patch /? for more info', LogLevel.system)
+          log([ '!', 'Invalid command. Try ts-patch /? for more info' ], LogLevel.system)
       }
     })();
   }

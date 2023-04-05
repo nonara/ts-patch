@@ -51,5 +51,6 @@ export const dtsPatchFilePath = path.resolve(appRoot, tspPackageJSON.directories
 /* ****************************************************************************************************************** */
 
 export const cachedFilePatchedPrefix = 'patched.';
+export const lockFileDir = 'locks';
 
 // endregion
