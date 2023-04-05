@@ -1,10 +1,11 @@
-import { copyFileWithLock, LogLevel, PatchError, RestoreError } from '../system';
+import { LogLevel, PatchError, RestoreError } from '../system';
 import chalk from 'chalk';
 import path from 'path';
 import { getTsPackage } from '../ts-package';
 import { getModuleFile, getTsModule, ModuleFile } from '../module';
 import fs from 'fs';
-import { getInstallerOptions, InstallerOptions } from "../options";
+import { getInstallerOptions, InstallerOptions } from '../options';
+import { copyFileWithLock } from '../utils';
 
 
 /* ****************************************************************************************************************** */

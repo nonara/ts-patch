@@ -4,8 +4,9 @@ namespace tsp {
    * ********************************************************* */
 
   export const diagnosticMap: tsp.DiagnosticMap = new WeakMap();
-  export declare let isTSC: boolean;
-  export declare let tspVersion: string;
+
+  /** Injected during patch — library name minus extension */
+  export declare const currentLibrary: string;
 
   /* ********************************************************* *
    * Utils
@@ -20,7 +21,4 @@ namespace tsp {
 
     return { addDiagnostic, removeDiagnostic, diagnostics };
   }
-
-  /** @internal */
-  export const getCurrentLibrary = () => require('path').basename(__filename, require('path').extname(__filename));
 }

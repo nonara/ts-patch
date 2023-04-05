@@ -1,4 +1,5 @@
-import { createLogger, Logger, LogLevel, PartialSome } from './system';
+import { createLogger, Logger, LogLevel } from './system';
+import { PartialSome } from "./utils";
 
 
 /* ****************************************************************************************************************** */

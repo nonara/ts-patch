@@ -1,13 +1,12 @@
-import {
-  copyFileWithLock, LogLevel, mkdirIfNotExist, PatchError, readFileWithLock, TspError, writeFileWithLock
-} from '../system';
+import { LogLevel, PatchError, TspError, } from '../system';
 import { getTsPackage } from '../ts-package';
 import chalk from 'chalk';
 import { getModuleFile, getTsModule, ModuleFile } from '../module';
 import path from 'path';
-import fs from "fs";
-import { patchModule } from "../patch/patch-module";
-import { getInstallerOptions, InstallerOptions } from "../options";
+import fs from 'fs';
+import { patchModule } from '../patch/patch-module';
+import { getInstallerOptions, InstallerOptions } from '../options';
+import { copyFileWithLock, mkdirIfNotExist, readFileWithLock, writeFileWithLock } from '../utils';
 
 
 /* ****************************************************************************************************************** */
