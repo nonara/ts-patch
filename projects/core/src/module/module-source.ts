@@ -42,7 +42,7 @@ function getTsWrappedStatements(declaration: ts.VariableDeclaration) {
     }
   }
 
-  throw getError('ts', 'Could not find ts body statements!');
+  throw getError('ts', 'Could not find ts body! Make sure you\'re using TS v5+');
 }
 
 function getLeadingCommentsText(node: ts.Node, sourceFile: ts.SourceFile): string[] {
