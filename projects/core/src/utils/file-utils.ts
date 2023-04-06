@@ -71,6 +71,8 @@ export function withFileLock<T>(filePath: string, fn: () => T): T {
   const lockFileName = getHash(filePath) + '.lock';
   const lockFilePath = getLockFilePath(lockFileName);
   try {
+    const lockFileDir = path.dirname(lockFilePath);
+    if (!fs.existsSync(lockFileDir)) fs.mkdirSync(lockFileDir, { recursive: true });
     waitForLockRelease(lockFilePath);
     fs.writeFileSync(lockFilePath, '');
     return fn();
