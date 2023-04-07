@@ -12,11 +12,10 @@ const config: Config.InitialOptions = {
     }
   },
   modulePaths: [ "<rootDir>/node_modules" ],
-  coveragePathIgnorePatterns: [
-    'src/installer/lib/system/errors.ts$'
-  ],
-  globalSetup: './test/src/setup.js',
-  globalTeardown: './test/src/teardown.js',
+  // coveragePathIgnorePatterns: [
+  //   'src/installer/lib/system/errors.ts$'
+  // ],
+  globalSetup: '<rootDir>/test/src/prepare.ts',
   testTimeout: 10000,
   transformIgnorePatterns: [
     '/node_modules/(?!(ts-transformer-keys|ts-transformer-enumerate|ts-nameof)/)'

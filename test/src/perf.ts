@@ -89,6 +89,8 @@ export function perfTsc() {
   );
 }
 
+// TODO - Add perfInstall with and without cache
+
 export function perfAll() {
   perfTsPackage();
   perfTsModule();
