@@ -7,11 +7,11 @@
       <excludeFolder url="file://$MODULE_DIR$/old" />
       <excludeFolder url="file://$MODULE_DIR$/temp" />
       <excludeFolder url="file://$MODULE_DIR$/test/assets" />
-      <excludeFolder url="file://$MODULE_DIR$/test/assets/transformers" />
       <excludeFolder url="file://$MODULE_DIR$/tmp" />
       <excludeFolder url="file://$MODULE_DIR$/ttypescript" />
-      <excludeFolder url="file://$MODULE_DIR$/test/tests/patch/assets" />
       <excludeFolder url="file://$MODULE_DIR$/test/.tmp" />
+      <excludeFolder url="file://$MODULE_DIR$/tmp/test-assets/transformers" />
+      <excludeFolder url="file://$MODULE_DIR$/tmp/tests/patch/assets" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

@@ -78,15 +78,15 @@ export function patch(moduleNameOrNames: string | string[], opts?: Partial<Insta
 
       log([ '+', chalk.green(`Successfully patched ${chalk.bold.yellow(moduleName)}.\r\n`) ], LogLevel.verbose);
     } catch (e) {
-      if (e instanceof TspError) log([ '!', e.message ]);
+      if (e instanceof TspError || options.logLevel >= LogLevel.verbose) log([ '!', e.message ]);
       failedModulePaths.push(tsModule.modulePath);
     }
   }
 
   if (failedModulePaths.length > 1) {
     log([ '!',
-      `Some files can't be patched! Try updating to a newer version of ts-patch. The following files are unable to be ` +
-      `patched. [${failedModulePaths.join(', ')}]`
+      `Some files can't be patched! You can run again with --verbose to get specific error detail. The following files are unable to be ` +
+      `patched:\n  - ${failedModulePaths.join('\n  - ')}`
     ]);
 
     return false;

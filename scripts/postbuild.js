@@ -20,6 +20,12 @@ const LIVE_DIR = path.resolve('./projects/live');
  * Post-Build Steps
  * ********************************************************************************************************************/
 
+/* Uncomment this if you need to temporarily build without patched ts */
+// shell.mv(path.join(DIST_DIR, 'src', '*'), DIST_DIR);
+// shell.mv(path.join(DIST_DIR, 'shared', '*'), DIST_DIR);
+// shell.rm('-rf', path.join(DIST_DIR, 'src'));
+// shell.rm('-rf', path.join(DIST_DIR, 'shared'));
+
 /* Build package.json */
 const pkgJSON = JSON.parse(fs.readFileSync(path.join(BASE_DIR, 'package.json'), 'utf8'));
 

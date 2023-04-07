@@ -6,7 +6,7 @@
 declare namespace ts {
   export type Program = import('typescript').Program;
   export type TypeChecker = import('typescript').TypeChecker;
-  export type Transformer<T> = import('typescript').Transformer<T>;
+  export type Transformer<T extends import('typescript').Node> = import('typescript').Transformer<T>;
   export type CompilerOptions = import('typescript').CompilerOptions;
   export type Diagnostic = import('typescript').Diagnostic;
   export type CreateProgramOptions = import('typescript').CreateProgramOptions;
@@ -16,7 +16,7 @@ declare namespace ts {
   export type EmitResult = import('typescript').EmitResult;
   export type CustomTransformers = import('typescript').CustomTransformers;
   export type LanguageService = import('typescript').LanguageService;
-  export type TransformerFactory<T> = import('typescript').TransformerFactory<T>;
+  export type TransformerFactory<T extends import('typescript').Node> = import('typescript').TransformerFactory<T>;
   export type TransformationContext = import('typescript').TransformationContext;
   export type SourceFile = import('typescript').SourceFile;
   export type Bundle = import('typescript').Bundle;
