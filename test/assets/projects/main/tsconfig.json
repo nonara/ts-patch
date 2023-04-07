@@ -1,0 +1,16 @@
+{
+  "include" : [ "src" ],
+  "compilerOptions": {
+    "outDir": "dist",
+    "esModuleInterop": true,
+    "strict": true,
+
+    "lib": [ "ESNext" ],
+    "target": "ESNext",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+
+    "newLine": "LF",
+    "allowSyntheticDefaultImports": true
+  }
+}
