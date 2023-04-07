@@ -1,5 +1,6 @@
-import ts from 'typescript';
-import { PackageError } from '../system';
+import { createSourceSection, SourceSection } from './source-section';
+import { TsModule } from './ts-module';
+import { sliceModule } from '../slice/module-slice';
 
 
 /* ****************************************************************************************************************** */
@@ -7,53 +8,12 @@ import { PackageError } from '../system';
 /* ****************************************************************************************************************** */
 
 export interface ModuleSource {
-  sourceFile: ts.SourceFile
-  fileHeaderNodes: ts.Node[]
-  bodyStatements: ts.Node[]
-  bodyHeaderNodes: ts.Node[] | undefined
-  footerNodes: ts.Node[] | undefined
-  innerSourceFiles: Map<string, ts.Node[]>
-  usesTsNamespace: boolean
-  sourceText: string
-}
-
-// endregion
-
-
-/* ****************************************************************************************************************** */
-// region: Helpers
-/* ****************************************************************************************************************** */
-
-const getError = (moduleName: string, msg = 'Unrecognized TS module format! Please file a bug report.') =>
-  new PackageError(`${moduleName} is not a valid typescript module! — ${msg}`);
-
-function getTsWrappedStatements(declaration: ts.VariableDeclaration) {
-  const initializer = declaration.initializer;
-  if (initializer && ts.isCallExpression(initializer)) {
-    const parenExpression = initializer.expression;
-
-    if (ts.isParenthesizedExpression(parenExpression)) {
-      const closureFuncExpr = parenExpression.expression;
-
-      if (ts.isArrowFunction(closureFuncExpr)) {
-        const closureBody = closureFuncExpr.body as ts.Block;
-        return [ ...closureBody.statements ];
-      }
-    }
-  }
-
-  throw getError('ts', 'Could not find ts body! Make sure you\'re using TS v5+');
-}
-
-function getLeadingCommentsText(node: ts.Node, sourceFile: ts.SourceFile): string[] {
-  const commentRanges = ts.getLeadingCommentRanges(sourceFile.text, node.getFullStart());
-  if (!commentRanges) {
-    return [];
-  }
-
-  return commentRanges.map((range) => {
-    return sourceFile.text.slice(range.pos, range.end);
-  });
+  fileHeader: SourceSection;
+  bodyHeader?: SourceSection;
+  body: SourceSection[];
+  fileFooter?: SourceSection;
+  usesTsNamespace: boolean;
+  getSections(): [ sectionName: SourceSection['sectionName'], section: SourceSection | undefined ][];
 }
 
 // endregion
@@ -63,89 +23,31 @@ function getLeadingCommentsText(node: ts.Node, sourceFile: ts.SourceFile): strin
 // region: Utils
 /* ****************************************************************************************************************** */
 
-export function getModuleSource(sourceFile: ts.SourceFile): ModuleSource {
-  let bodyStatements: ts.Node[] | undefined;
-  let footerNodes: ts.Node[] | undefined;
-  let isWrapped: boolean | undefined;
+export function getModuleSource(tsModule: TsModule): ModuleSource {
+  const { moduleFile } = tsModule;
 
-  /* Slice sections */
-  let headerNodes: ts.Node[] | undefined;
+  const { firstSourceFileStart, fileEnd, wrapperPos, bodyPos, sourceFileStarts } =
+    sliceModule(moduleFile, tsModule.package.version);
 
-  /* Find header & body nodes */
-  for (let i = 0; i < sourceFile.statements.length; i++) {
-    const statement = sourceFile.statements[i];
-
-    /* Handle wrapped statements */
-    if (ts.isVariableStatement(statement)) {
-      const declaration = statement.declarationList.declarations[0];
-      if (declaration.name.getText() === 'ts') {
-        headerNodes = sourceFile.statements.slice(0, i);
-        bodyStatements = getTsWrappedStatements(declaration);
-        footerNodes = sourceFile.statements.slice(i + 1);
-
-        isWrapped = true;
-
-        break;
-      }
-    }
-
-    /* Handle non-wrapped statements */
-    // If node has a comment matching // src/*
-    if (getLeadingCommentsText(statement, sourceFile).some((comment) => comment.includes('// src/'))) {
-      headerNodes = sourceFile.statements.slice(0, i);
-      bodyStatements = sourceFile.statements.slice(i);
-
-      isWrapped = false;
-      break;
-    }
-  }
-
-  if (!bodyStatements || !headerNodes) throw getError('ts', 'Could not find ts body statements! Make sure you\'re using TS v5+');
-
-  /* Find file code */
-  const fileCode = new Map<string, ts.Node[]>();
-  let currentFileName: string | undefined;
-  let currentFileStartNode: ts.Node | undefined;
-  let bodyHeaderNodes: ts.Node[] | undefined;
-
-  const assignWalkedStatements = (statement: ts.Node, statementIdx: number | undefined) => {
-    if (currentFileStartNode) {
-      fileCode.set(
-        currentFileName!,
-        bodyStatements!.slice(bodyStatements!.indexOf(currentFileStartNode!), statementIdx)
-      );
-    } else {
-      bodyHeaderNodes = bodyStatements!.slice(0, statementIdx);
-    }
-  };
-
-  bodyStatements.forEach((statement, statementIdx) => {
-    if (statementIdx === bodyStatements!.length - 1) {
-      assignWalkedStatements(statement, undefined);
-      return;
-    }
-
-    const comment = getLeadingCommentsText(statement, sourceFile).find((comment) => comment.includes('// src/'));
-    if (comment) {
-      const fileName = comment.match(/\/\/ src\/(.*)/)?.[1];
-      if (!fileName) return;
-
-      assignWalkedStatements(statement, statementIdx);
-
-      currentFileName = fileName;
-      currentFileStartNode = statement;
-    }
-  });
+  const fileHeaderEnd = wrapperPos?.start ?? firstSourceFileStart;
 
   return {
-    sourceFile,
-    bodyStatements,
-    fileHeaderNodes: headerNodes,
-    innerSourceFiles: fileCode,
-    usesTsNamespace: isWrapped!,
-    footerNodes,
-    bodyHeaderNodes,
-    sourceText: sourceFile.getFullText()
+    fileHeader: createSourceSection(moduleFile, 'file-header', 0, fileHeaderEnd),
+    bodyHeader: wrapperPos && createSourceSection(moduleFile, 'body-header', bodyPos.start, firstSourceFileStart, 2),
+    body: sourceFileStarts.map(([ srcFileName, startPos ], i) => {
+      const endPos = sourceFileStarts[i + 1]?.[1] ?? bodyPos?.end ?? fileEnd;
+      return createSourceSection(moduleFile, 'body', startPos, endPos, wrapperPos != null ? 2 :0, srcFileName);
+    }),
+    fileFooter: wrapperPos && createSourceSection(moduleFile, 'file-footer', wrapperPos.end, fileEnd),
+    usesTsNamespace: wrapperPos != null,
+    getSections() {
+      return [
+        [ 'file-header', this.fileHeader ],
+        [ 'body-header', this.bodyHeader ],
+        ...this.body.map((section, i) => [ `body`, section ] as [ SourceSection['sectionName'], SourceSection ]),
+        [ 'file-footer', this.fileFooter ],
+      ];
+    }
   }
 }
 

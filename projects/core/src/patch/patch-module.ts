@@ -1,11 +1,17 @@
-import ts, { nullTransformationContext } from 'typescript';
+import ts from 'typescript';
 import fs from 'fs';
-import { dtsPatchFilePath, modulePatchFilePath } from '../config';
+import {
+  defaultNodePrinterOptions, dtsPatchFilePath, execTscCmd, modulePatchFilePath, tsWrapperClose, tsWrapperOpen
+} from '../config';
 import { getTsModule, TsModule } from '../module';
+import {
+  addOriginalCreateProgramTransformer, createMergeStatementsTransformer, fixTsEarlyReturnTransformer,
+  hookTscExecTransformer, patchCreateProgramTransformer, patchEmitterTransformer
+} from './transformers';
+import { SourceSection } from '../module/source-section';
 import { PatchError } from '../system';
-import { PatchDetail } from './patch-detail';
-import path from 'path';
 import { readFileWithLock } from '../utils';
+import { PatchDetail } from './patch-detail';
 
 
 /* ****************************************************************************************************************** */
@@ -19,253 +25,172 @@ const jsPatchSrc = fs.readFileSync(modulePatchFilePath, 'utf-8')
 
 
 /* ****************************************************************************************************************** */
-// region: Helpers
-/* ****************************************************************************************************************** */
-
-function mergeStatements(baseNodes: ts.Node[], addedNodes: ts.Node[]): ts.Node[] {
-  const mergedNodesMap = new Map<string | symbol, ts.Node>();
-
-  baseNodes.forEach(addNode);
-  addedNodes.forEach(addNode);
-
-  function addNode(node: ts.Node) {
-    if (ts.isFunctionDeclaration(node) || ts.isVariableStatement(node)) {
-      const name = getNodeName(node) ?? Symbol();
-      if (!mergedNodesMap.has(name)) mergedNodesMap.set(name, node);
-    } else {
-      mergedNodesMap.set(Symbol(), node);
-    }
-  }
-
-  function getNodeName(node: ts.FunctionDeclaration | ts.VariableStatement): string | undefined {
-    if (ts.isFunctionDeclaration(node)) {
-      return node.name?.escapedText as string;
-    } else if (ts.isVariableStatement(node)) {
-      const declaration = node.declarationList.declarations[0];
-      return declaration.name.getText();
-    }
-
-    throw new PatchError('Unreachable - Invalid node type!');
-  }
-
-  return Array.from(mergedNodesMap.values());
-}
-
-
-// endregion
-
-
-/* ****************************************************************************************************************** */
 // region: Utils
 /* ****************************************************************************************************************** */
 
 export function patchModule(tsModule: TsModule, skipDts: boolean = false): { js: string, dts?: string } {
-  const factory = nullTransformationContext.factory;
+  let shouldWrap: boolean = false;
+  switch (tsModule.moduleName) {
+    case 'tsc.js':
+    case 'tsserver.js':
+    case 'tsserverlibrary.js':
+    case 'typescript.js':
+      shouldWrap = true;
+  }
 
-  /* Clone innerSourceFiles */
-  let innerSourceFiles: typeof tsModule.source.innerSourceFiles = new Map();
-  tsModule.source.innerSourceFiles.forEach((statements, fileName) => {
-    innerSourceFiles.set(fileName, [ ...statements ])
-  });
+  const source = tsModule.getSource();
+
+  const printableBodyFooters: (SourceSection | string)[] = [];
+  const printableFooters: (SourceSection | string)[] = [];
 
   /* Splice in full compiler functionality (if not already present) */
-  let fileHeaderNodes: ts.Node[] = [ ...tsModule.source.fileHeaderNodes ];
-  let bodyHeaderNodes = tsModule.source.bodyHeaderNodes && [ ...tsModule.source.bodyHeaderNodes ];
   if (tsModule.moduleName !== 'typescript.js') {
-    const innerSourceFileEntries = [ ...innerSourceFiles.entries() ];
-
     const typescriptModule = getTsModule(tsModule.package, 'typescript.js');
-    const typescriptFiles = [ ...typescriptModule.source.innerSourceFiles.keys() ];
+    const tsSource = typescriptModule.getSource();
 
-    /* Get composites of headers */
-    fileHeaderNodes = mergeStatements(fileHeaderNodes, typescriptModule.source.fileHeaderNodes);
-    bodyHeaderNodes = bodyHeaderNodes && mergeStatements(bodyHeaderNodes, typescriptModule.source.bodyHeaderNodes ?? []);
+    /* Merge Headers & Footer */
+    mergeStatements(source.fileHeader, tsSource.fileHeader);
+    source.bodyHeader = tsSource.bodyHeader;
+    mergeStatements(source.fileFooter, tsSource.fileFooter);
 
-    /* Find all existing compiler-related files & drop them */
-    let firstIndex: number | undefined;
-    for (let i = innerSourceFileEntries.length - 1; i >= 0; i--) {
-      const fileName = innerSourceFileEntries[i][0];
-      if (typescriptFiles.includes(fileName)) {
-        firstIndex = i;
-        innerSourceFileEntries.splice(i, 1);
+    /* Replace body */
+    for (let i = source.body.length - 1; i >= 0; i--) {
+      const bodySection = source.body[i];
+      if (tsSource.body.some(s => s.srcFileName === bodySection.srcFileName)) {
+        source.body.splice(i, 1);
       }
     }
 
-    /* Insert all from typescript.js */
-    innerSourceFileEntries.splice(firstIndex!, 0, ...typescriptModule.source.innerSourceFiles.entries());
+    source.body.unshift(...tsSource.body);
 
-    /* Rebuild innerSourceFiles */
-    innerSourceFiles = new Map(innerSourceFileEntries);
+    /* Fix early return */
+    const typescriptSection = source.body.find(s => s.srcFileName === 'src/typescript/typescript.ts');
+    if (!typescriptSection) throw new PatchError(`Could not find Typescript source section`);
+    typescriptSection.transform([ fixTsEarlyReturnTransformer ]);
+
+    printableBodyFooters.push(`return returnResult;`);
   }
 
-  /* Patch emitFilesAndReportErrors */
-  patchEmitFilesAndReportErrors();
+  /* Patch Program */
+  const programSection = source.body.find(s => s.srcFileName === 'src/compiler/program.ts');
+  if (!programSection) throw new PatchError(`Could not find Program source section`);
+  programSection.transform([ patchCreateProgramTransformer ]);
 
-  /* Patch createProgram */
-  patchCreateProgram();
+  /* Add originalCreateProgram to exports */
+  const namespacesTsSection = source.body.find(s => s.srcFileName === 'src/typescript/_namespaces/ts.ts');
+  if (!namespacesTsSection) throw new PatchError(`Could not find NamespacesTs source section`);
+  namespacesTsSection.transform([ addOriginalCreateProgramTransformer ]);
 
-  /* Print transformed JS */
-  const printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed, removeComments: false });
+  /* Patch emitter (for diagnostics tools) */
+  const emitterSection = source.body.find(s => s.srcFileName === 'src/compiler/watch.ts');
+  if (!emitterSection) throw new PatchError(`Could not find Emitter source section`);
+  emitterSection.transform([ patchEmitterTransformer ]);
 
-  const printedFileHeaderNodes = printNodes(fileHeaderNodes);
-  let printedBodyNodes = printNodes(
-    [ ...(bodyHeaderNodes ?? []), ...innerSourceFiles.values() ].flat(),
-    true /* We pass `ts` instance to transformers, so we must always wrap */
-  );
-  const printedFooterNodes = tsModule.source.footerNodes?.length ? printNodes(tsModule.source.footerNodes) : '';
+  /* Move executeCommandLine outside of closure */
+  if (tsModule.moduleName === 'tsc.js') {
+    const tscSection = source.body.find(s => s.srcFileName === 'src/tsc/tsc.ts');
+    if (!tscSection) throw new PatchError(`Could not find Tsc source section`);
 
-  // TODO drop
-  if (tsModule.moduleName !== 'typescript.js')
-    printedBodyNodes = printedBodyNodes.replace(/^return require_typescript\(\);/m, 'require_typescript();');
+    tscSection.transform([ hookTscExecTransformer ]);
 
-  /* Create JS body */
-  const currentLibrary = path.basename(tsModule.modulePath, '.js');
-  let jsBody =
-    jsPatchSrc + '\n' +
-    `tsp.currentLibrary = '${currentLibrary}';\n` +
-    printedFileHeaderNodes + '\n' +
-    printedBodyNodes + '\n' +
-    printedFooterNodes;
+    printableFooters.push(`tsp.${execTscCmd}();`);
+  }
 
-  /* Create dts body */
-  let dtsBody: string | undefined;
+  /* Print the module */
+  const printedJs = printModule();
+
+  /* Get Dts */
+  let dts: string | undefined;
   if (!skipDts && tsModule.dtsPath) {
     const dtsText = readFileWithLock(tsModule.dtsPath);
-    dtsBody =
+    dts =
       dtsPatchSrc + '\n' +
       dtsText;
   }
 
-  /* Create PatchDetail & affix header to js */
-  const patchDetail = PatchDetail.fromModule(tsModule, jsBody);
-  jsBody = patchDetail.toHeader() + '\n' + jsBody;
+  /* Get JS */
+  const patchDetail = PatchDetail.fromModule(tsModule, printedJs);
+  const js =
+    patchDetail.toHeader() + '\n' +
+    jsPatchSrc + '\n' +
+    printedJs;
 
-  return { js: jsBody, dts: dtsBody };
+  return { dts, js };
 
-  /* ********************************************************* *
-   * Helpers
-   * ********************************************************* */
+  function getPrintList() {
+    const list: [item: (string | SourceSection | undefined), indent?: number][] = [];
+    let indentLevel = 0;
 
-  function printNodes(nodes: ts.Node[], wrapWithTsClosure: boolean = false) {
-    const blankSourceFile = ts.createSourceFile(tsModule.moduleName, '', ts.ScriptTarget.Latest);
-    let res = nodes
-      .map(n => printer.printNode(ts.EmitHint.Unspecified, n, n.getSourceFile() ?? blankSourceFile))
-      .join('\n');
+    /* File Header */
+    list.push([ source.fileHeader, indentLevel ]);
 
-    if (wrapWithTsClosure) res = `var ts = (() => {\n${res}\n})();`;
+    /* Body Wrapper Open */
+    if (shouldWrap) {
+      list.push([ `\n${tsWrapperOpen}\n`, indentLevel ]);
+      indentLevel = 2;
+    }
 
-    return res;
+    /* Body Header*/
+    list.push([ source.bodyHeader, indentLevel ]);
+
+    /* Body */
+    source.body.forEach(section => list.push([ section, indentLevel ]));
+
+    /* Body Footers */
+    printableBodyFooters.forEach(f => list.push([ f, indentLevel ]));
+
+    /* Body Wrapper Close */
+    if (shouldWrap) {
+      indentLevel = 0;
+      list.push([ `\n${tsWrapperClose}\n`, indentLevel ]);
+    }
+
+    /* File Footer */
+    list.push([ source.fileFooter, indentLevel ]);
+    printableFooters.forEach(f => list.push([ f, indentLevel ]));
+
+    return list;
   }
 
-  // TODO - Manual update is breaking this
-  function patchEmitFilesAndReportErrors() {
-    const watchNodes = innerSourceFiles.get('compiler/watch.ts')!
+  function printModule() {
+    const printer = ts.createPrinter(defaultNodePrinterOptions);
+    let outputStr = ``;
 
-    /* Find Function Declaration */
-    let emitFilesAndReportErrorsNode =
-      watchNodes.find(node => ts.isFunctionDeclaration(node) && node.name?.escapedText === 'emitFilesAndReportErrors') as ts.FunctionDeclaration;
+    for (const [ item, indentLevel ] of getPrintList()) {
+      let printed: string;
+      let addedIndent: number | undefined;
+      if (item === undefined) continue;
+      if (typeof item === 'string') {
+        printed = item;
+      } else {
+        printed = item.print(printer);
+        if (indentLevel && item.indentLevel < indentLevel) {
+          addedIndent = indentLevel - item.indentLevel;
+        }
+      }
 
-    if (!emitFilesAndReportErrorsNode) throw new PatchError('Failed to find emitFilesAndReportErrors function!');
+      if (addedIndent) printed = printed.replace(/^/gm, ' '.repeat(addedIndent));
 
-    /* Find emitResult assignment */
-    let emitResultNodeIndex = emitFilesAndReportErrorsNode
-      .body!
-      .statements
-      .findIndex(node =>
-        ts.isVariableStatement(node) &&
-        node.declarationList.declarations.some(decl =>
-          ts.isIdentifier(decl.name) && decl.name.escapedText === 'emitResult'
-        )
-      );
+      outputStr += printed;
+    }
 
-    if (emitResultNodeIndex < 0) throw new PatchError('Failed to find emitResult assignment!');
-
-    const insertedMapSetterNode = factory.createExpressionStatement(factory.createCallExpression(
-      factory.createPropertyAccessExpression(
-        factory.createPropertyAccessExpression(
-          factory.createIdentifier("tsp"),
-          factory.createIdentifier("diagnosticMap")
-        ),
-        factory.createIdentifier("set")
-      ),
-      undefined,
-      [
-        factory.createIdentifier("program"),
-        factory.createIdentifier("allDiagnostics")
-      ]
-    ))
-
-    /* Insert map setter - prepend */
-    const newEmitFilesAndReportErrorsNode = factory.createFunctionDeclaration(
-      emitFilesAndReportErrorsNode.decorators,
-      emitFilesAndReportErrorsNode.modifiers,
-      emitFilesAndReportErrorsNode.asteriskToken,
-      emitFilesAndReportErrorsNode.name,
-      emitFilesAndReportErrorsNode.typeParameters,
-      emitFilesAndReportErrorsNode.parameters,
-      emitFilesAndReportErrorsNode.type,
-      factory.createBlock([
-          ...emitFilesAndReportErrorsNode.body!.statements.slice(0, emitResultNodeIndex),
-        insertedMapSetterNode,
-        ...emitFilesAndReportErrorsNode.body!.statements.slice(emitResultNodeIndex)
-      ])
-    );
-    (<any>newEmitFilesAndReportErrorsNode).parent = emitFilesAndReportErrorsNode.parent;
-
-    /* Replace node */
-    watchNodes.splice(watchNodes.indexOf(emitFilesAndReportErrorsNode), 1, newEmitFilesAndReportErrorsNode);
+    return outputStr;
   }
 
-  function patchCreateProgram() {
-    const programNodes = innerSourceFiles.get('compiler/program.ts')!
+  function mergeStatements(
+    baseSection: SourceSection | undefined,
+    addedSection: SourceSection | undefined,
+  ) {
+    if (!baseSection || !addedSection) {
+      if (addedSection) baseSection = addedSection;
+      return;
+    }
 
-    /* Find Function Declaration */
-    const createProgramIdx =
-      // Note, we use escapedText here instead of getText to support nodes created with nullTransformationContext
-      // factory
-      programNodes.findIndex(node => ts.isFunctionDeclaration(node) && node.name?.escapedText === 'createProgram');
+    const baseSourceFile = baseSection.getSourceFile();
+    const addedSourceFile = addedSection.getSourceFile();
 
-    if (createProgramIdx === -1) throw new PatchError('Could not find createProgram() in module source!');
-
-    /* Rename to originalCreateProgram */
-    const createProgramNode = programNodes[createProgramIdx] as ts.FunctionDeclaration;
-    const newCreateProgramNode = factory.updateFunctionDeclaration(
-      createProgramNode,
-      createProgramNode.decorators,
-      createProgramNode.modifiers,
-      createProgramNode.asteriskToken,
-      factory.createIdentifier('originalCreateProgram'),
-      createProgramNode.typeParameters,
-      createProgramNode.parameters,
-      createProgramNode.type,
-      createProgramNode.body
-    );
-    (<any>newCreateProgramNode).parent = createProgramNode.parent;
-
-    // function createProgram() { return tsp.originalCreateProgram(...arguments); }
-    const createProgramForwarderNode = factory.createFunctionDeclaration(
-      undefined,
-      undefined,
-      undefined,
-      factory.createIdentifier('createProgram'),
-      undefined,
-      [],
-      undefined,
-      factory.createBlock(
-        [ factory.createReturnStatement(factory.createCallExpression(
-          factory.createPropertyAccessExpression(
-            factory.createIdentifier('tsp'),
-            factory.createIdentifier('createProgram')
-          ),
-          undefined,
-          [ factory.createSpreadElement(factory.createIdentifier('arguments')) ]
-        )) ],
-        false
-      )
-    );
-
-    /* Splice in new nodes */
-    programNodes.splice(createProgramIdx, 1, newCreateProgramNode, createProgramForwarderNode);
+    const transformer = createMergeStatementsTransformer(baseSourceFile, addedSourceFile);
+    baseSection.transform([ transformer ]);
   }
 }
 

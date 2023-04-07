@@ -46,7 +46,7 @@ export namespace InstallerOptions {
 export function getInstallerOptions(options?: Partial<InstallerOptions>): InstallerOptions {
   if (!options && typeof options === "object" && Object.isSealed(options)) return options as InstallerOptions;
 
-  const res = { ...InstallerOptions.getDefaults(), options } as PreAppOptions;
+  const res = { ...InstallerOptions.getDefaults(), ...options } as PreAppOptions;
 
   return Object.seal({
     ...res,

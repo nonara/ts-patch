@@ -1,5 +1,4 @@
 import path from 'path';
-import ts from 'typescript';
 import fs from 'fs';
 import type { TsPackage } from '../ts-package';
 import { getModuleSource, ModuleSource } from './module-source';
@@ -39,7 +38,7 @@ export interface TsModule {
   backupCachePaths: { js: string, dts?: string };
   patchedCachePaths: { js: string, dts?: string };
 
-  source: ModuleSource;
+  getSource(): ModuleSource;
 }
 
 export namespace TsModule {
@@ -120,27 +119,24 @@ export function getTsModule(
     backupCachePaths,
     patchedCachePaths,
 
-    get source() {
-      if (moduleSource) return moduleSource;
+    getSource() {
+      if (!moduleSource) {
+        /* Load un-patched file */
+        let filePath: string;
+        let fileContent: string;
+        if (!isPatched) {
+          filePath = modulePath!;
+          fileContent = moduleFile!.content!;
+        } else {
+          filePath = patchedCachePaths.js;
+          fileContent = readFileWithLock(filePath);
+        }
 
-      /* Load un-patched file */
-      let filePath: string;
-      let fileContent: string;
-      if (!isPatched) {
-        filePath = modulePath!;
-        fileContent = moduleFile!.content!;
-      } else {
-        filePath = patchedCachePaths.js;
-        fileContent = readFileWithLock(filePath);
+        /* Get ModuleSource */
+        moduleSource = getModuleSource(this);
       }
 
-      /* Get Source */
-      const sourceFile = ts.createSourceFile(filePath, fileContent, ts.ScriptTarget.Latest, true);
-      const res = getModuleSource(sourceFile);
-
-      moduleSource = res;
-
-      return res;
+      return moduleSource;
     },
   }
 

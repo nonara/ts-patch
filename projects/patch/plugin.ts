@@ -50,9 +50,11 @@ function transformPluginTypes(this: typeof ts, ctx: ts.TransformationContext) {
         factory.createModuleBlock(
           sourceFile
             .statements
-            .filter(node => this.isDeclaration(node) && this.getCombinedModifierFlags(node) & this.ModifierFlags.Export)
+            // TODO - remove the casting once we have tsei again
+            .filter(node => (<any>this).isDeclaration(node) && this.getCombinedModifierFlags(node as unknown as ts.Declaration))
         ),
-        this.NodeFlags.Namespace | this.NodeFlags.ExportContext | this.NodeFlags.Ambient | this.NodeFlags.ContextFlags
+        // TODO - remove the casting once we have tsei again
+        this.NodeFlags.Namespace | this.NodeFlags.ExportContext | (<any>this.NodeFlags).Ambient | this.NodeFlags.ContextFlags
       );
 
     return factory.updateSourceFile(sourceFile, [ moduleDeclaration ]);
@@ -101,7 +103,7 @@ export function transformProgram(
       /* Strip comments from js */
       if (/module-patch.js$/.test(fileName)) {
         /* Wrap file in closure */
-        data = `var tsp = (function() {\n${data}\nreturn tsp;})();`;
+        data = `var tsp = (function() {\n${data.replace(/^/gm, '  ')}\nreturn tsp;})();`;
 
         const sourceFile = ts.createSourceFile(fileName, data, ts.ScriptTarget.ES2015, false);
         return (<any>originalWriteFile)(fileName, printer.printFile(sourceFile), ...args);
