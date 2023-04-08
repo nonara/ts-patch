@@ -17,7 +17,7 @@
     "test": "jest",
     "perf": "cd test && yarn run perf",
     "------------": "-------------",
-    "prepare": "echo todo replace",
+    "prepare": "ts-patch -s install",
     "prepare:patch": "cd projects/patch && yarn install && tsc",
     "prepare:test": "cd test && yarn install",
     "postbuild": "node scripts/postbuild.js"
@@ -75,7 +75,7 @@
     "standard-version": "^9.3.2",
     "ts-jest": "^28.0.7",
     "ts-node": "^10.4.0",
-    "ts-patch": "^2.0.2",
+    "ts-patch": "v3-beta",
     "tsconfig-paths": "^3.11.0",
     "typescript": "^5.0.4"
   },
