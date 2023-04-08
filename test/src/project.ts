@@ -109,8 +109,8 @@ export function prepareTestProject(opt: PrepareOptions.Configurable) {
   return { projectPath, tmpProjectPath };
 }
 
-export function clearProjectTempPath(projectName?: string) {
-  shell.rm('-rf', getProjectTempPath(projectName));
+export function cleanTemp() {
+  fs.rmSync(getProjectTempPath(), { recursive: true, force: true });
 }
 
 // endregion

@@ -16,6 +16,7 @@ const config: Config.InitialOptions = {
   //   'src/installer/lib/system/errors.ts$'
   // ],
   globalSetup: '<rootDir>/test/src/prepare.ts',
+  globalTeardown: '<rootDir>/test/src/cleanup.ts',
   testTimeout: 10000,
   transformIgnorePatterns: [
     '/node_modules/(?!(ts-transformer-keys|ts-transformer-enumerate|ts-nameof)/)'

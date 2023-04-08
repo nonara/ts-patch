@@ -4,7 +4,7 @@ import { TsModule } from '../../../dist/module';
 import { defaultInstallLibraries } from '../../../dist/config';
 import { getTsPackage, TsPackage } from '../../../dist/ts-package';
 import { PackageManager } from '../../src/config';
-import { clearProjectTempPath, prepareTestProject } from '../../src/project';
+import { prepareTestProject } from '../../src/project';
 import path from 'path';
 import { InstallerOptions } from '../../../dist';
 import { LogLevel } from '../../../dist/system';
@@ -119,10 +119,6 @@ function runUninstall(tspDir: string, kind: 'api' | 'cli') {
 describe(`Actions`, () => {
   // TODO - Parallelize
   describe.each(testingPackageManagers)(`%s`, (packageManager) => {
-    afterAll(() => {
-      clearProjectTempPath();
-    });
-
     /* Install */
     describe(`Install`, () => {
       let projectPath: string;
