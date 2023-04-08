@@ -1,6 +1,12 @@
 name: Build
 
-on: [ push ]
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+      - v3-beta
+      - next
 
 jobs:
   build:
@@ -8,16 +14,26 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [ 12.x, 14.x, 16.x ]
+        node-version: [ 16.x, 18.x, 19.x ]
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
+
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/yarn
+            node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
 
       - name: Install Packages
         run: yarn install --frozen-lockfile
@@ -30,4 +46,3 @@ jobs:
         env:
           CI: true
           FORCE_COLOR: 1
-          NODE_OPTIONS: --max-old-space-size=4096
