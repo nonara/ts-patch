@@ -24,7 +24,7 @@ export interface ModuleSource {
 /* ****************************************************************************************************************** */
 
 export function getModuleSource(tsModule: TsModule): ModuleSource {
-  const { moduleFile } = tsModule;
+  const moduleFile = tsModule.getUnpatchedModuleFile();
 
   const { firstSourceFileStart, fileEnd, wrapperPos, bodyPos, sourceFileStarts } =
     sliceModule(moduleFile, tsModule.package.version);

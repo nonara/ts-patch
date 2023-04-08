@@ -1,7 +1,7 @@
 import path from 'path';
 import * as os from 'os';
 import { findCacheDirectory } from '../utils';
-import { lockFileDir } from '../config';
+import { appRoot, lockFileDir } from '../config';
 import fs from 'fs';
 
 
@@ -21,7 +21,11 @@ let lockFileRoot: string | undefined;
 
 export function getCacheRoot() {
   if (!cacheRoot) {
-    cacheRoot = process.env.TSP_CACHE_DIR || findCacheDirectory({ name: 'tsp' }) || path.join(os.tmpdir(), 'tsp');
+    cacheRoot =
+      process.env.TSP_CACHE_DIR ||
+      findCacheDirectory({ name: 'ts-patch', cwd: path.resolve(appRoot, '..') }) ||
+      path.join(os.tmpdir(), 'ts-patch');
+
     if (!fs.existsSync(cacheRoot)) fs.mkdirSync(cacheRoot, { recursive: true });
   }
 

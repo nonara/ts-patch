@@ -5,7 +5,6 @@ import { getModuleSource, ModuleSource } from './module-source';
 import { getCachePath } from '../system';
 import { getModuleFile, ModuleFile } from './module-file';
 import { cachedFilePatchedPrefix } from '../config';
-import { readFileWithLock } from '../utils';
 
 
 /* ****************************************************************************************************************** */
@@ -38,7 +37,8 @@ export interface TsModule {
   backupCachePaths: { js: string, dts?: string };
   patchedCachePaths: { js: string, dts?: string };
 
-  getSource(): ModuleSource;
+  getUnpatchedModuleFile(): ModuleFile;
+  getUnpatchedSource(): ModuleSource;
 }
 
 export namespace TsModule {
@@ -104,6 +104,7 @@ export function getTsModule(
   /* Create Module */
   const isPatched = !!moduleFile.patchDetail;
   let moduleSource: ModuleSource | undefined;
+  let originalModuleFile: ModuleFile | undefined;
   const tsModule: TsModule = {
     package: tsPackage,
     majorVer: tsPackage.majorVer,
@@ -119,26 +120,16 @@ export function getTsModule(
     backupCachePaths,
     patchedCachePaths,
 
-    getSource() {
-      if (!moduleSource) {
-        /* Load un-patched file */
-        let filePath: string;
-        let fileContent: string;
-        if (!isPatched) {
-          filePath = modulePath!;
-          fileContent = moduleFile!.content!;
-        } else {
-          filePath = patchedCachePaths.js;
-          fileContent = readFileWithLock(filePath);
-        }
-
-        /* Get ModuleSource */
-        moduleSource = getModuleSource(this);
-      }
-
-      return moduleSource;
+    getUnpatchedSource() {
+      return getModuleSource(this);
     },
-  }
+
+    getUnpatchedModuleFile() {
+      if (!originalModuleFile) originalModuleFile = isPatched ? getModuleFile(backupCachePaths.js) : moduleFile!;
+
+      return originalModuleFile;
+    }
+  };
 
   tsPackage.moduleCache.set(moduleName, tsModule);
 

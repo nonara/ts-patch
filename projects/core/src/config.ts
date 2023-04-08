@@ -31,7 +31,10 @@ export const tspPackageJSON = require(path.resolve(appRoot, 'package.json'));
 
 export const RESOURCES_PATH = path.join(appRoot, tspPackageJSON.directories.resources);
 
-export const defaultNodePrinterOptions: ts.PrinterOptions = { newLine: ts.NewLineKind.LineFeed, removeComments: false };
+export const defaultNodePrinterOptions: ts.PrinterOptions = {
+  newLine: ts.NewLineKind.LineFeed,
+  removeComments: false
+};
 
 // endregion
 

@@ -76,7 +76,10 @@ export function transformProgram(
 )
 {
   host ??= ts.createCompilerHost(program.getCompilerOptions(), true);
-  const printer = ts.createPrinter({ removeComments: true });
+  const printer = ts.createPrinter({
+    removeComments: true,
+    newLine: ts.NewLineKind.LineFeed
+  });
   const srcFileName = ts.normalizePath(srcTypesFileName);
   const destFileName = ts.normalizePath(destTypesFileName);
 
@@ -95,7 +98,7 @@ export function transformProgram(
     host.writeFile = (fileName: string, data: string, ...args: any[]) => {
       /* Transform declarations */
       if (/module-patch.d.ts$/.test(fileName)) {
-        let sourceFile = ts.createSourceFile(fileName, data, ts.ScriptTarget.ES2015, true);
+        let sourceFile = ts.createSourceFile(fileName, data, ts.ScriptTarget.ES2016, true, ts.ScriptKind.TS);
         sourceFile = ts.transform(sourceFile, [ transformPatchDeclarationsFile.bind(ts) ]).transformed[0];
         return (<any>originalWriteFile)(fileName, printer.printFile(sourceFile), ...args);
       }
@@ -103,9 +106,9 @@ export function transformProgram(
       /* Strip comments from js */
       if (/module-patch.js$/.test(fileName)) {
         /* Wrap file in closure */
-        data = `var tsp = (function() {\n${data.replace(/^/gm, '  ')}\nreturn tsp;})();`;
+        data = `var tsp = (function() {\n${data}\nreturn tsp;})();`;
 
-        const sourceFile = ts.createSourceFile(fileName, data, ts.ScriptTarget.ES2015, false);
+        const sourceFile = ts.createSourceFile(fileName, data, ts.ScriptTarget.ES2016, false, ts.ScriptKind.JS);
         return (<any>originalWriteFile)(fileName, printer.printFile(sourceFile), ...args);
       }
 

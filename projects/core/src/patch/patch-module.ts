@@ -38,7 +38,7 @@ export function patchModule(tsModule: TsModule, skipDts: boolean = false): { js:
       shouldWrap = true;
   }
 
-  const source = tsModule.getSource();
+  const source = tsModule.getUnpatchedSource();
 
   const printableBodyFooters: (SourceSection | string)[] = [];
   const printableFooters: (SourceSection | string)[] = [];
@@ -46,7 +46,7 @@ export function patchModule(tsModule: TsModule, skipDts: boolean = false): { js:
   /* Splice in full compiler functionality (if not already present) */
   if (tsModule.moduleName !== 'typescript.js') {
     const typescriptModule = getTsModule(tsModule.package, 'typescript.js');
-    const tsSource = typescriptModule.getSource();
+    const tsSource = typescriptModule.getUnpatchedSource();
 
     /* Merge Headers & Footer */
     mergeStatements(source.fileHeader, tsSource.fileHeader);

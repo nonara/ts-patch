@@ -47,6 +47,7 @@ export function getPatchedSource(tsModule: TsModule, options?: GetPatchedSourceO
 
   /* Get Patched Module */
   const canUseCache = !skipCache
+    && !tsModule.moduleFile.patchDetail?.isOutdated
     && (!patchedCachePaths.dts || fs.existsSync(patchedCachePaths.dts))
     && fs.existsSync(patchedCachePaths.js);
 
