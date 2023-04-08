@@ -4,7 +4,7 @@ import { TsModule } from '../../../dist/module';
 import { defaultInstallLibraries } from '../../../dist/config';
 import { getTsPackage, TsPackage } from '../../../dist/ts-package';
 import { PackageManager } from '../../src/config';
-import { prepareTestProject } from '../../src/project';
+import { clearProjectTempPath, prepareTestProject } from '../../src/project';
 import path from 'path';
 import { InstallerOptions } from '../../../dist';
 import { LogLevel } from '../../../dist/system';
@@ -57,23 +57,19 @@ function resetRequireCache(dir: string) {
   }
 }
 
-function runInstall(tspDir: string, kind: 'api' | 'cli') {
+function runAction(tspDir: string, kind: 'api' | 'cli', cmd: string) {
   switch (kind) {
     case 'api':
-      const tspOptions: Partial<InstallerOptions> = {
-        logLevel: LogLevel.verbose,
-      };
-
       const scriptCode = `
-        require('ts-patch').install(${JSON.stringify(tspOptions)});
+        require('ts-patch').${cmd}
       `;
 
-      fs.writeFileSync(path.join(tspDir, 'run-install.js'), scriptCode, 'utf-8');
-      execSync(`node run-install.js`, { cwd: tspDir });
+      fs.writeFileSync(path.join(tspDir, 'run-cmd.js'), scriptCode, 'utf-8');
+      execSync(`node run-cmd.js`, { cwd: tspDir });
       break;
     case 'cli':
       const flags = `--verbose`;
-      execSync(`ts-patch install`, { cwd: tspDir });
+      execSync(`ts-patch ${cmd}`, { cwd: tspDir });
   }
 
   resetRequireCache(tspDir);
@@ -83,6 +79,34 @@ function runInstall(tspDir: string, kind: 'api' | 'cli') {
   const modules = defaultInstallLibraries.map((m: any) => getTsModule(tsPackage, m));
 
   return { modules, tsPackage };
+}
+
+function runInstall(tspDir: string, kind: 'api' | 'cli') {
+  let cmd: string;
+  if (kind === 'api') {
+    const tspOptions: Partial<InstallerOptions> = {
+      logLevel: LogLevel.verbose,
+    };
+    cmd = `install(${JSON.stringify(tspOptions)})`;
+  } else {
+    cmd = `install --verbose`;
+  }
+
+  return runAction(tspDir, kind, cmd);
+}
+
+function runUninstall(tspDir: string, kind: 'api' | 'cli') {
+  let cmd: string;
+  if (kind === 'api') {
+    const tspOptions: Partial<InstallerOptions> = {
+      logLevel: LogLevel.verbose,
+    };
+    cmd = `uninstall(${JSON.stringify(tspOptions)})`;
+  } else {
+    cmd = `uninstall --verbose`;
+  }
+
+  return runAction(tspDir, kind, cmd);
 }
 
 // endregion
@@ -96,7 +120,7 @@ describe(`Actions`, () => {
   // TODO - Parallelize
   describe.each(testingPackageManagers)(`%s`, (packageManager) => {
     afterAll(() => {
-      // clearProjectTempPath();
+      clearProjectTempPath();
     });
 
     /* Install */
@@ -140,11 +164,11 @@ describe(`Actions`, () => {
             const origSrcEntry = originalModulesSrc.get(m.moduleName)!;
             if (m.dtsPath) {
               const backupSrc = fs.readFileSync(m.backupCachePaths.dts!, 'utf-8');
-              expect(backupSrc).toEqual(origSrcEntry.dts);
+              expect(backupSrc).toBe(origSrcEntry.dts);
             }
 
             const backupSrc = fs.readFileSync(m.backupCachePaths.js!, 'utf-8');
-            expect(backupSrc).toEqual(origSrcEntry.js);
+            expect(backupSrc).toBe(origSrcEntry.js);
           }
         });
 
@@ -158,17 +182,76 @@ describe(`Actions`, () => {
         test(`check() is accurate`, () => {
           const checkResult = check();
           const unpatchedModuleNames = tsPackage.moduleNames.filter(m => !defaultInstallLibraries.includes(m));
-          unpatchedModuleNames.forEach(m => expect(checkResult[ m ]).toBeUndefined());
-          defaultInstallLibraries.forEach(m => expect(checkResult[ m ]?.tspVersion).toBe(installedTspVersion));
+          unpatchedModuleNames.forEach(m => expect(checkResult[m]).toBeUndefined());
+          defaultInstallLibraries.forEach(m => expect(checkResult[m]?.tspVersion).toBe(installedTspVersion));
         });
       });
     });
-    // TODO - Check other actions
+
+    /* Uninstall */
+    describe(`Uninstall`, () => {
+      let projectPath: string;
+      let tmpProjectPath: string;
+      let tspDir: string;
+      let tsDir: string;
+      let cachePath: string;
+      let modules: TsModule[];
+      let originalModulesSrc: Map<string, { js: string, dts: string | undefined }>;
+      let tsPackage: TsPackage;
+      beforeAll(() => {
+        const prepRes = prepareTestProject({ projectName: 'main', packageManager });
+        projectPath = prepRes.projectPath;
+        tmpProjectPath = prepRes.tmpProjectPath;
+
+        tsPackage = getTsPackage(tsDir);
+        originalModulesSrc = getModulesSources(tsPackage);
+
+        tspDir = path.resolve(tmpProjectPath, 'node_modules', 'ts-patch');
+        tsDir = path.resolve(tmpProjectPath, 'node_modules', 'typescript');
+        cachePath = path.resolve(tspDir, '../.cache/ts-patch');
+
+        /* Install */
+        let runRes = runInstall(tspDir, 'api');
+        modules = runRes.modules;
+        modules.forEach(m => {
+          expect(m.isPatched).toBe(true);
+        });
+
+        /* Uninstall */
+        runRes = runUninstall(tspDir, 'api');
+        modules = runRes.modules;
+      });
+
+      test(`All modules unpatched`, () => {
+        modules.forEach(m => {
+          expect(m.isPatched).toBe(false);
+          expect(m.moduleFile.patchDetail).toBeUndefined();
+        });
+      });
+
+      test(`All files match originals`, () => {
+        for (const m of modules) {
+          const origSrcEntry = originalModulesSrc.get(m.moduleName)!;
+          if (m.dtsPath) {
+            const src = fs.readFileSync(m.dtsPath, 'utf-8');
+            expect(src).toBe(origSrcEntry.dts);
+          }
+
+          const src = fs.readFileSync(m.modulePath, 'utf-8');
+          expect(src).toBe(origSrcEntry.js);
+        }
+      });
+
+      test(`check() is accurate`, () => {
+        const checkResult = check();
+        tsPackage.moduleNames.forEach(m => expect(checkResult[m]).toBeUndefined());
+      });
+    });
   });
 });
 
 
-// Leave this as the final test, as it resets the virtual FS
+// TODO
 // test(`No semantic errors in typescript.d.ts`, () => {
 //   const tsDtsFileSrc = fs.readFileSync(joinPaths(tsBackupDir, 'typescript.d.ts'), 'utf-8');
 //   restoreFs();
@@ -190,34 +273,6 @@ describe(`Actions`, () => {
 // });
 // });
 
-// describe(`Uninstall`, () => {
-//   beforeAll(() => {
-//     resetFs();
-//     install(TSP_OPTIONS);
-//     uninstall(TSP_OPTIONS);
-//   });
-//
-//   test(`Removes backup directory`, () => {
-//     expect(fs.existsSync(tsBackupDir)).toBe(false)
-//   });
-//
-//   test(`Restores original modules`, () => getModulePatchInfo(undefined, tsLibDir, defaultInstallLibraries));
-//
-//   test(`Restores typescript.d.ts`, () => {
-//     const src = fs.readFileSync(joinPaths(tsLibDir, 'typescript.d.ts'), 'utf-8');
-//     expect(src).toMatch(/declare\snamespace\sts\s{/);
-//     expect(src).not.toMatch(/const\stspVersion:/);
-//   });
-//
-//   test(`check() is accurate`, () => {
-//     const modules = check(SRC_FILES);
-//     expect(modules.unPatchable.length).toEqual(0);
-//     expect(modules.canUpdateOrPatch.length).toEqual(SRC_FILES.length);
-//     expect(modules.patched.length).toEqual(0);
-//     expect(modules.patchable.length).toEqual(SRC_FILES.length);
-//   });
-// });
-//
 // describe(`Patch`, () => {
 //   beforeEach(() => {
 //     resetFs();
