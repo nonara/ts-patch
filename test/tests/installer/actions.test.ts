@@ -1,14 +1,13 @@
 import fs from 'fs';
-import { check } from '../../../projects/core/src/actions';
-import { getTsModule, TsModule } from '../../../projects/core/src/module';
-import { getTsPackage, TsPackage } from '../../../projects/core/src/ts-package';
+import { check } from '../../../dist/actions';
+import { TsModule } from '../../../dist/module';
+import { defaultInstallLibraries } from '../../../dist/config';
+import { getTsPackage, TsPackage } from '../../../dist/ts-package';
 import { PackageManager } from '../../src/config';
 import { prepareTestProject } from '../../src/project';
 import path from 'path';
-import { defaultInstallLibraries } from 'ts-patch/lib/actions';
-import * as vm from 'vm';
-import { InstallerOptions } from '../../../projects/core/src';
-import { LogLevel } from '../../../projects/core/src/system';
+import { InstallerOptions } from '../../../dist';
+import { LogLevel } from '../../../dist/system';
 import { execSync } from 'child_process';
 
 
@@ -31,11 +30,6 @@ const testingPackageManagers = [
 // region: Helpers
 /* ****************************************************************************************************************** */
 
-function getModules(tsPackage: TsPackage, moduleNames?: string[]) {
-  moduleNames ??= defaultInstallLibraries;
-  return moduleNames.map(name => getTsModule(tsPackage, name, { skipCache: true }) as TsModule);
-}
-
 function getModulesSources(tsPackage: TsPackage, moduleNames?: string[]) {
   moduleNames ??= defaultInstallLibraries;
   return new Map(moduleNames.map(name => {
@@ -54,6 +48,15 @@ function updatePackageJson(pkgPath: string, cb: (pkgJson: any) => void) {
   fs.writeFileSync(pkgPath, JSON.stringify(pkgJson, null, 2));
 }
 
+function resetRequireCache(dir: string) {
+  dir = path.dirname(require.resolve(dir));
+  for (const key in require.cache) {
+    if (key.startsWith(dir)) {
+      delete require.cache[key];
+    }
+  }
+}
+
 function runInstall(tspDir: string, kind: 'api' | 'cli') {
   switch (kind) {
     case 'api':
@@ -66,11 +69,20 @@ function runInstall(tspDir: string, kind: 'api' | 'cli') {
       `;
 
       fs.writeFileSync(path.join(tspDir, 'run-install.js'), scriptCode, 'utf-8');
-      return execSync(`node run-install.js`, { cwd: tspDir });
+      execSync(`node run-install.js`, { cwd: tspDir });
+      break;
     case 'cli':
       const flags = `--verbose`;
-      return execSync(`ts-patch install`, { cwd: tspDir });
+      execSync(`ts-patch install`, { cwd: tspDir });
   }
+
+  resetRequireCache(tspDir);
+  const { getTsPackage } = require(path.join(tspDir, 'ts-package.js'));
+  const { getTsModule } = require(path.join(tspDir, 'module'));
+  const tsPackage = getTsPackage();
+  const modules = defaultInstallLibraries.map((m: any) => getTsModule(tsPackage, m));
+
+  return { modules, tsPackage };
 }
 
 // endregion
@@ -88,63 +100,69 @@ describe(`Actions`, () => {
     });
 
     /* Install */
-    describe.each([ [ '', '0.0.0' ], [ ' (overwrite w/ higher version)', '1.1.1' ] ])(`Install %s`, (caption, installedTspVersion) => {
+    describe(`Install`, () => {
       let projectPath: string;
       let tmpProjectPath: string;
-
-      let tsPackage: TsPackage;
-      let modules: TsModule[];
-      let originalModulesSrc: Map<string, { js: string, dts: string | undefined }>;
       let tspDir: string;
       let tsDir: string;
+      let cachePath: string;
+      let originalModulesSrc: Map<string, { js: string, dts: string | undefined }>;
       beforeAll(() => {
-        const res = prepareTestProject({ projectName: 'main', packageManager });
-        projectPath = res.projectPath;
-        tmpProjectPath = res.tmpProjectPath;
+        const prepRes = prepareTestProject({ projectName: 'main', packageManager });
+        projectPath = prepRes.projectPath;
+        tmpProjectPath = prepRes.tmpProjectPath;
+
+        const tsPackage = getTsPackage(tsDir);
+        originalModulesSrc = getModulesSources(tsPackage);
 
         tspDir = path.resolve(tmpProjectPath, 'node_modules', 'ts-patch');
         tsDir = path.resolve(tmpProjectPath, 'node_modules', 'typescript');
-
-        /* Set version */
-        updatePackageJson(path.join(tspDir, 'package.json'), (pkgData) => pkgData.version = installedTspVersion);
-
-        tsPackage = getTsPackage(tsDir);
-        originalModulesSrc = getModulesSources(tsPackage);
-
-        /* Install */
-        runInstall(tspDir, 'api');
-
-        modules = getModules(tsPackage);
+        cachePath = path.resolve(tspDir, '../.cache/ts-patch');
       });
 
-      test(`Original modules backed up`, () => {
-        for (const m of modules) {
-          const origSrcEntry = originalModulesSrc.get(m.moduleName)!;
-          if (m.dtsPath) {
-            const backupSrc = fs.readFileSync(m.backupCachePaths.dts!, 'utf-8');
-            expect(backupSrc).toEqual(origSrcEntry.dts);
+      describe.each([ [ '', '0.0.0' ], [ ' (overwrite w/ higher version)', '1.1.1' ] ])(`Install %s`, (caption, installedTspVersion) => {
+        let tsPackage: TsPackage;
+        let modules: TsModule[];
+        beforeAll(() => {
+          /* Set version */
+          updatePackageJson(path.join(tspDir, 'package.json'), (pkgData) => pkgData.version = installedTspVersion);
+
+          tsPackage = getTsPackage(tsDir);
+
+          /* Install */
+          const runRes = runInstall(tspDir, 'api');
+
+          modules = runRes.modules;
+        });
+
+        test(`Original modules backed up`, () => {
+          for (const m of modules) {
+            const origSrcEntry = originalModulesSrc.get(m.moduleName)!;
+            if (m.dtsPath) {
+              const backupSrc = fs.readFileSync(m.backupCachePaths.dts!, 'utf-8');
+              expect(backupSrc).toEqual(origSrcEntry.dts);
+            }
+
+            const backupSrc = fs.readFileSync(m.backupCachePaths.js!, 'utf-8');
+            expect(backupSrc).toEqual(origSrcEntry.js);
           }
+        });
 
-          const backupSrc = fs.readFileSync(m.backupCachePaths.js!, 'utf-8');
-          expect(backupSrc).toEqual(origSrcEntry.js);
-        }
-      });
+        test(`All modules patched`, () => {
+          modules.forEach(m => {
+            expect(m.isPatched).toBe(true);
+            expect(m.moduleFile.patchDetail?.tspVersion).toBe(installedTspVersion);
+          })
+        });
 
-      test(`All modules patched`, () => {
-        modules.forEach(m => {
-          expect(m.isPatched).toBe(true);
-          expect(m.moduleFile.patchDetail?.tspVersion).toBe(installedTspVersion);
-        })
-      });
-
-      test(`check() is accurate`, () => {
-        const checkResult = check();
-        const unpatchedModuleNames = tsPackage.moduleNames.filter(m => !defaultInstallLibraries.includes(m));
-        unpatchedModuleNames.forEach(m => expect(checkResult[ m ]).toBeUndefined());
-        defaultInstallLibraries.forEach(m => expect(checkResult[ m ]?.tspVersion).toBe(installedTspVersion));
+        test(`check() is accurate`, () => {
+          const checkResult = check();
+          const unpatchedModuleNames = tsPackage.moduleNames.filter(m => !defaultInstallLibraries.includes(m));
+          unpatchedModuleNames.forEach(m => expect(checkResult[ m ]).toBeUndefined());
+          defaultInstallLibraries.forEach(m => expect(checkResult[ m ]?.tspVersion).toBe(installedTspVersion));
+        });
       });
     });
-
     // TODO - Check other actions
   });
 });
