@@ -109,7 +109,7 @@ export function getModuleFile(filePath: string, loadFullContent?: boolean): Modu
     filePath,
     patchDetail,
     get content() {
-      if (content == null) content = readFile(filePath, false).content;
+      if (content == null) content = readFile(this.filePath, false).content;
       return content!;
     },
     getHash(): string {

@@ -48,28 +48,33 @@ export function unpatch(moduleNameOrNames: string | string[], opts?: Partial<Ins
     const tsModule = getTsModule(tsPackage, moduleFile, { skipCache: true });
 
     try {
-      log(
-        [
-          '~',
-          `Restoring ${chalk.blueBright(tsModule.moduleName)} in ${chalk.blueBright(path.dirname(tsPackage.libDir))}`
-        ],
-        LogLevel.verbose
-      );
-
       /* Get Backups */
       const backupPaths: string[] = []
       backupPaths.push(tsModule.backupCachePaths.js);
       if (tsModule.backupCachePaths.dts) backupPaths.push(tsModule.backupCachePaths.dts);
+
+      const baseNames = backupPaths.map(p => path.basename(p)).join(' & ');
+
+      log(
+        [
+          '~',
+          `Restoring ${chalk.blueBright(baseNames)} in ${chalk.blueBright(path.dirname(tsPackage.libDir))}`
+        ],
+        LogLevel.verbose
+      );
 
       /* Restore files */
       for (const backupPath of backupPaths) {
         if (!fs.existsSync(backupPath))
           throw new Error(`Cannot find backup file: ${backupPath}. Try reinstalling typescript.`);
 
-        copyFileWithLock(backupPath, tsModule.modulePath);
+        const moduleDir = path.dirname(tsModule.modulePath);
+        const destPath = path.join(moduleDir, path.basename(backupPath));
+
+        copyFileWithLock(backupPath, destPath);
       }
 
-      log([ '+', chalk.green(`Successfully restored ${chalk.bold.yellow(tsModule.moduleName)}.\r\n`) ], LogLevel.verbose);
+      log([ '+', chalk.green(`Successfully restored ${chalk.bold.yellow(baseNames)}.\r\n`) ], LogLevel.verbose);
     } catch (e) {
       errors[tsModule.moduleName] = e;
     }
