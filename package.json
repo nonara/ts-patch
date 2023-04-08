@@ -1,6 +1,6 @@
 {
   "name": "ts-patch",
-  "version": "2.1.0",
+  "version": "3.0.0-beta2",
   "description": "Patch typescript to support custom transformers in tsconfig.json",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -17,7 +17,7 @@
     "test": "jest",
     "perf": "cd test && yarn run perf",
     "------------": "-------------",
-    "prepare": "ts-patch -s install",
+    "prepare": "ts-patch install -s",
     "prepare:patch": "cd projects/patch && yarn install && tsc",
     "prepare:test": "cd test && yarn install",
     "postbuild": "node scripts/postbuild.js"
