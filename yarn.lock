@@ -911,13 +911,6 @@ brace-expansion@^1.1.7:
     balanced-match "^1.0.0"
     concat-map "0.0.1"
 
-brace-expansion@^2.0.1:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/brace-expansion/-/brace-expansion-2.0.1.tgz#1edc459e0f0c548486ecf9fc99f2221364b9a0ae"
-  integrity sha512-XnAIvQ8eM+kC6aULx6wuQiwVsnzsi9d3WxzV3FpWTGA19F621kwdbsAcFKXgKUHZWsy+mY6iL1sHTxWEFCytDA==
-  dependencies:
-    balanced-match "^1.0.0"
-
 braces@^3.0.2:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/braces/-/braces-3.0.2.tgz#3454e1a462ee8d599e236df336cd9ea4f8afe107"
@@ -1571,17 +1564,6 @@ glob@^7.0.0, glob@^7.1.3, glob@^7.1.4, glob@^7.1.7:
     minimatch "^3.1.1"
     once "^1.3.0"
     path-is-absolute "^1.0.0"
-
-glob@^8.0.3:
-  version "8.1.0"
-  resolved "https://registry.yarnpkg.com/glob/-/glob-8.1.0.tgz#d388f656593ef708ee3e34640fdfb99a9fd1c33e"
-  integrity sha512-r8hpEjiQEYlF2QU0df3dS+nxxSIreXQS1qRhMJM0Q5NDdR386C7jb7Hwwod8Fgiuex+k0GFjgft18yvxm5XoCQ==
-  dependencies:
-    fs.realpath "^1.0.0"
-    inflight "^1.0.4"
-    inherits "2"
-    minimatch "^5.0.1"
-    once "^1.3.0"
 
 global-prefix@^3.0.0:
   version "3.0.0"
@@ -2378,13 +2360,6 @@ minimatch@^3.0.4, minimatch@^3.1.1:
   dependencies:
     brace-expansion "^1.1.7"
 
-minimatch@^5.0.1:
-  version "5.1.6"
-  resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-5.1.6.tgz#1cfcb8cf5522ea69952cd2af95ae09477f122a96"
-  integrity sha512-lKwV/1brpG6mBUFHtb7NUmtABCb2WZZmm2wNiOA5hAb8VdCS4B3dtMWyvcoViccwAW/COERjXLt0zP1zXUN26g==
-  dependencies:
-    brace-expansion "^2.0.1"
-
 minimist-options@4.1.0:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/minimist-options/-/minimist-options-4.1.0.tgz#c0655713c53a8a2ebd77ffa247d342c40f010619"
@@ -2749,7 +2724,7 @@ resolve.exports@^1.1.0:
   resolved "https://registry.yarnpkg.com/resolve.exports/-/resolve.exports-1.1.1.tgz#05cfd5b3edf641571fd46fa608b610dda9ead999"
   integrity sha512-/NtpHNDN7jWhAaQ9BvBUYZ6YTXsRBgfqWFWP7BZBaoMJO/I3G5OFzvTuWNlZC3aPjins1F+TNrLKsGbH4rfsRQ==
 
-resolve@^1.1.6, resolve@^1.10.0, resolve@^1.20.0, resolve@^1.22.1, resolve@^1.22.2:
+resolve@^1.1.6, resolve@^1.10.0, resolve@^1.20.0, resolve@^1.22.2:
   version "1.22.2"
   resolved "https://registry.yarnpkg.com/resolve/-/resolve-1.22.2.tgz#0ed0943d4e301867955766c9f3e1ae6d01c6845f"
   integrity sha512-Sb+mjNHOULsBv818T40qSPeRiuWLyaGMa5ewydRLFimneixmVy2zdivRl+AF6jaYPC8ERxGDmFSiqui6SfPd+g==
@@ -3114,17 +3089,16 @@ ts-node@^10.4.0:
     v8-compile-cache-lib "^3.0.1"
     yn "3.1.1"
 
-ts-patch@^2.0.2:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/ts-patch/-/ts-patch-2.1.0.tgz#b4ba3e3f029144d7c4c6566916ebd5a453f070f5"
-  integrity sha512-+6LbQSGgHUnK+grgk9nvKhesc0/dDNxms0IL1XPZeTfmPFCx/QSuwz9k+9yFe0xYDD7xBlHYK0Zp0qrTCaJcAw==
+ts-patch@v3-beta:
+  version "3.0.0-beta2"
+  resolved "https://registry.yarnpkg.com/ts-patch/-/ts-patch-3.0.0-beta2.tgz#de1f46ad57fbd938a88c0b3c26c37deb5f918761"
+  integrity sha512-Ji1PX39mn6Rygk643rmV/Z+0SBWH9Om7bpTqT/Rc2lHiLdI8ZZpPSwSeSYYsUPDtB6Tsfv7/625m3uzL5wye9g==
   dependencies:
     chalk "^4.1.2"
-    glob "^8.0.3"
     global-prefix "^3.0.0"
-    minimist "^1.2.6"
-    resolve "^1.22.1"
-    shelljs "^0.8.5"
+    minimist "^1.2.8"
+    resolve "^1.22.2"
+    semver "^7.3.8"
     strip-ansi "^6.0.1"
 
 tsconfig-paths@^3.11.0:
