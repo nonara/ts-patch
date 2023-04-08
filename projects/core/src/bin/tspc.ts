@@ -1,4 +1,3 @@
-import { getLiveModule } from '../module';
 
 
 /* ****************************************************************************************************************** *
@@ -7,7 +6,7 @@ import { getLiveModule } from '../module';
 
 // Run if main module cli
 if (require.main === module) {
-  getLiveModule('tsc.js');
+  require('../lib/tsc');
 } else {
   throw new Error('tspc must be run as a CLI');
 }
