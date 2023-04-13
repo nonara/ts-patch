@@ -14,8 +14,8 @@
     "allowSyntheticDefaultImports": true,
     "stripInternal": true,
 
-    "target": "ES5",
-    "lib": [ "es2015", "es5" ],
+    "lib": [ "es2018" ],
+    "target": "ES2018",
     "downlevelIteration": true,
     "useUnknownInCatchVariables": false,
     "newLine": "LF",
