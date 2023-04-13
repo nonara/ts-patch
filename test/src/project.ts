@@ -110,7 +110,7 @@ export function prepareTestProject(opt: PrepareOptions.Configurable) {
 }
 
 export function cleanTemp() {
-  fs.rmSync(getProjectTempPath(), { recursive: true, force: true });
+  fs.rmSync(getProjectTempPath(), { recursive: true, force: true, retryDelay: 200, maxRetries: 5 });
 }
 
 // endregion
