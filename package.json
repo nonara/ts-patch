@@ -56,9 +56,6 @@
     "ts-patch": "./dist/bin/ts-patch.js",
     "tspc": "./dist/bin/tspc.js"
   },
-  "peerDependencies": {
-    "typescript": ">=5.0.0"
-  },
   "devDependencies": {
     "@types/jest": "^28.1.6",
     "@types/minimist": "^1.2.2",
