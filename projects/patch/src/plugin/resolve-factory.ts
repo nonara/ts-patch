@@ -1,6 +1,7 @@
 namespace tsp {
   const requireStack: string[] = [];
   const path = require('path');
+  const crypto = require('crypto');
 
   export function resolveFactory(pluginCreator: PluginCreator, config: PluginConfig): PluginFactory | ProgramTransformer | undefined {
     let originalRequire: any;
@@ -195,9 +196,9 @@ namespace tsp {
         let requireFilePath = filePath;
         if (isBuiltFile) {
           /* Write to temp file */
-          let tempFilename = path.join(os.tmpdir(), path.basename(filePath));
-          // Note: This is a workaround to prevent ts-node's require hook from preventing esm from working
-          if (tempFilename.endsWith('.mts')) tempFilename = tempFilename.slice(0, -4) + '.ts';
+          // Note: We force conversion to .ts to avoid issues with other library's require extensions (like ts-node)
+          const extName = extension === '.mts' ? '.ts' : extension;
+          let tempFilename = path.join(os.tmpdir(), crypto.randomBytes(16).toString('hex') + extName);
 
           fs.writeFileSync(tempFilename, code, 'utf8');
 
