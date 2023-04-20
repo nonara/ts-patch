@@ -21,9 +21,9 @@ export type Logger = (msg: string | [ string, string ], logLevel?: LogLevel) => 
 // region: Utils
 /* ****************************************************************************************************************** */
 
-export function createLogger(logLevel: LogLevel, useColour: boolean = true) {
+export function createLogger(logLevel: LogLevel, useColour: boolean = true, isSilent: boolean = false): Logger {
   return function log(msg: string | [ string, string ], msgLogLevel: LogLevel = LogLevel.normal) {
-    if (msgLogLevel > logLevel) return;
+    if (isSilent || msgLogLevel > logLevel) return;
 
     /* Handle Icon */
     const printIcon = (icon: string) => chalk.bold.cyanBright(`[${icon}] `);

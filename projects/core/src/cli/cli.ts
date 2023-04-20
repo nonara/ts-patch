@@ -31,7 +31,7 @@ export function run(opt?: { cmdArgs?: string }) {
 
   /* Setup */
   const options = getInstallerOptionsFromCliOptions(cliOptions);
-  const log = createLogger(options.logLevel, options.useColor);
+  const log = createLogger(options.logLevel, options.useColor, options.silent);
 
   try {
     /* Handle commands */

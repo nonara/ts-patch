@@ -50,6 +50,6 @@ export function getInstallerOptions(options?: Partial<InstallerOptions>): Instal
 
   return Object.seal({
     ...res,
-    logger: res.logger ?? createLogger(res.logLevel, res.useColor)
+    logger: res.logger ?? createLogger(res.logLevel, res.useColor, res.silent)
   });
 }
