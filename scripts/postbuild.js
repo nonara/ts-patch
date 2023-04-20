@@ -13,7 +13,7 @@ const BASE_DIR = path.resolve('.');
 const SRC_DIR = path.resolve('./src');
 const DIST_DIR = path.resolve('./dist');
 const DIST_RESOURCE_DIR = path.join(DIST_DIR, 'resources');
-const LIVE_DIR = path.resolve('./projects/live');
+const COMPILER_DIR = path.resolve('./projects/core/src/compiler');
 
 
 /* ********************************************************************************************************************
@@ -41,21 +41,7 @@ fs.writeFileSync(
 );
 
 /* Copy Live files */
-const liveFiles = glob
-  .sync(path.join(LIVE_DIR, '*.js'))
-  .map((filePath) => [
-    filePath,
-    fs
-      .readFileSync(filePath, 'utf8')
-      .replace(/^const indexPath.+$/m, `const indexPath = '..';`)
-  ]);
-
-shell.mkdir(path.join(DIST_DIR, 'lib'));
-
-for (const [filePath, fileContent] of liveFiles) {
-  const fileName = path.basename(filePath);
-  fs.writeFileSync(path.join(DIST_DIR, 'lib', fileName), fileContent, 'utf8');
-}
+shell.cp('-r', COMPILER_DIR, DIST_DIR);
 
 /* Copy Readme & Changelog */
 shell.cp(path.resolve('./README.md'), DIST_DIR);

@@ -1,4 +1,5 @@
 import type { Config } from '@jest/types';
+import * as os from 'os';
 
 const config: Config.InitialOptions = {
   testEnvironment: "node",
@@ -20,7 +21,8 @@ const config: Config.InitialOptions = {
   testTimeout: 10000,
   transformIgnorePatterns: [
     '/node_modules/(?!(ts-transformer-keys|ts-transformer-enumerate|ts-nameof)/)'
-  ]
+  ],
+  maxConcurrency: os.cpus().length
 }
 
 export default config;

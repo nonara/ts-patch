@@ -12,9 +12,9 @@ import { execSync } from 'child_process';
 /* ****************************************************************************************************************** */
 
 const pkgManagerInstallCmd = {
-  npm: 'npm install --prefer-offline --no-audit --progress=false',
-  yarn: 'yarn --prefer-offline --no-progress --check-cache --no-audit',
-  pnpm: 'pnpm install --prefer-offline --no-audit --progress=false',
+  npm: 'npm install --no-audit --progress=false',
+  yarn: 'yarn --no-progress --check-cache --no-audit',
+  pnpm: 'pnpm install --no-audit --progress=false',
   yarn3: 'yarn install --immutable --mode update-lockfile --skip-builds'
 } satisfies Record<PackageManager, string>;
 

@@ -7,7 +7,7 @@
     "forceConsistentCasingInFileNames": true,
     "useUnknownInCatchVariables": false,
 
-    "lib": [ "es2018" ],
+    "lib": [ "es2018", "dom" ],
     "outDir": "dist",
     "target": "ES2018",
     "module": "CommonJS",

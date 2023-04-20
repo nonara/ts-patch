@@ -1,13 +1,13 @@
 import fs from 'fs';
-import { check } from '../../../dist/actions';
-import { TsModule } from '../../../dist/module';
-import { defaultInstallLibraries } from '../../../dist/config';
-import { getTsPackage, TsPackage } from '../../../dist/ts-package';
-import { PackageManager } from '../../src/config';
-import { prepareTestProject } from '../../src/project';
+import { check } from '../../dist/actions';
+import { TsModule } from '../../dist/module';
+import { defaultInstallLibraries } from '../../dist/config';
+import { getTsPackage, TsPackage } from '../../dist/ts-package';
+import { PackageManager } from '../src/config';
+import { prepareTestProject } from '../src/project';
 import path from 'path';
-import { InstallerOptions } from '../../../dist';
-import { LogLevel } from '../../../dist/system';
+import { InstallerOptions } from '../../dist';
+import { LogLevel } from '../../dist/system';
 import { execSync } from 'child_process';
 
 
@@ -116,7 +116,7 @@ function runUninstall(tspDir: string, kind: 'api' | 'cli') {
  * Tests
  * ********************************************************************************************************************/
 
-describe(`Actions`, () => {
+describe(`TSP Actions`, () => {
   // TODO - Parallelize
   describe.each(testingPackageManagers)(`%s`, (packageManager) => {
     /* Install */

@@ -22,8 +22,9 @@ export default function transformProgram(
   return ts.createProgram(program.getRootFileNames(), program.getCompilerOptions(), host, program);
 
   function hookWriteRootDirsFilenames() {
-    const sourceDir = program.getCommonSourceDirectory();
-    const outputDir = program.getCompilerOptions().outDir;
+    // TODO - tsei
+    const sourceDir = (<any>program).getCommonSourceDirectory();
+    const outputDir = program.getCompilerOptions().outDir!;
 
     const originalWriteFile = host.writeFile;
     host.writeFile = (fileName: string, data: string, ...args: any[]) => {
@@ -31,7 +32,8 @@ export default function transformProgram(
 
       for (const dir of rootDirs) {
         const relPath = path.relative(dir, srcPath);
-        if (relPath.slice(0, 2) !== '..') fileName = ts.normalizePath(path.resolve(outputDir, relPath));
+        // TODO - tsei
+        if (relPath.slice(0, 2) !== '..') fileName = (<any>ts).normalizePath(path.resolve(outputDir, relPath));
       }
 
       return (<any>originalWriteFile)(fileName, data, ...args);

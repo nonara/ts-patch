@@ -3,7 +3,7 @@ import chalk from 'chalk';
 import path from 'path';
 import { copyFileWithLock, mkdirIfNotExist, readFileWithLock, writeFileWithLock } from '../utils';
 import fs from 'fs';
-import { TsModule } from '../module';
+import { getModuleFile, TsModule } from '../module';
 import { patchModule } from './patch-module';
 
 
@@ -49,7 +49,8 @@ export function getPatchedSource(tsModule: TsModule, options?: GetPatchedSourceO
   const canUseCache = !skipCache
     && !tsModule.moduleFile.patchDetail?.isOutdated
     && (!patchedCachePaths.dts || fs.existsSync(patchedCachePaths.dts))
-    && fs.existsSync(patchedCachePaths.js);
+    && fs.existsSync(patchedCachePaths.js)
+    && !getModuleFile(patchedCachePaths.js).patchDetail?.isOutdated;
 
   let js: string | undefined;
   let dts: string | undefined;

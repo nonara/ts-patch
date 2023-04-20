@@ -1,0 +1,5 @@
+{
+  "name": "path-mapping-test",
+  "main": "src/index.ts",
+  "dependencies": {}
+}

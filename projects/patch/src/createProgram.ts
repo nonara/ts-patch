@@ -11,17 +11,17 @@ namespace tsp {
    * Helpers
    * ********************************************************* */
 
-  function getProjectDir(compilerOptions: ts.CompilerOptions) {
+  function getProjectDir(compilerOptions: tsShim.CompilerOptions) {
     return compilerOptions.configFilePath && dirname(compilerOptions.configFilePath);
   }
 
-  function getProjectConfig(compilerOptions: ts.CompilerOptions, rootFileNames: ReadonlyArray<string>) {
+  function getProjectConfig(compilerOptions: tsShim.CompilerOptions, rootFileNames: ReadonlyArray<string>) {
     let configFilePath = compilerOptions.configFilePath;
     let projectDir = getProjectDir(compilerOptions);
 
     if (configFilePath === undefined) {
       const baseDir = (rootFileNames.length > 0) ? dirname(rootFileNames[0]) : projectDir ?? process.cwd();
-      configFilePath = shim.findConfigFile(baseDir, shim.sys.fileExists);
+      configFilePath = tsShim.findConfigFile(baseDir, tsShim.sys.fileExists);
 
       if (configFilePath) {
         const config = readConfig(configFilePath);
@@ -35,11 +35,11 @@ namespace tsp {
 
   function readConfig(configFileNamePath: string) {
     const projectDir = dirname(configFileNamePath);
-    const result = shim.readConfigFile(configFileNamePath, shim.sys.readFile);
+    const result = tsShim.readConfigFile(configFileNamePath, tsShim.sys.readFile);
 
     if (result.error) throw new Error('Error in tsconfig.json: ' + result.error.messageText);
 
-    return shim.parseJsonConfigFileContent(result.config, shim.sys, projectDir, undefined, configFileNamePath);
+    return tsShim.parseJsonConfigFileContent(result.config, tsShim.sys, projectDir, undefined, configFileNamePath);
   }
 
   function preparePluginsFromCompilerOptions(plugins: any): PluginConfig[] {
@@ -63,16 +63,16 @@ namespace tsp {
    * ********************************************************* */
 
   export function createProgram(
-    rootNamesOrOptions: ReadonlyArray<string> | ts.CreateProgramOptions,
-    options?: ts.CompilerOptions,
-    host?: ts.CompilerHost,
-    oldProgram?: ts.Program,
-    configFileParsingDiagnostics?: ReadonlyArray<ts.Diagnostic>
-  ): ts.Program {
+    rootNamesOrOptions: ReadonlyArray<string> | tsShim.CreateProgramOptions,
+    options?: tsShim.CompilerOptions,
+    host?: tsShim.CompilerHost,
+    oldProgram?: tsShim.Program,
+    configFileParsingDiagnostics?: ReadonlyArray<tsShim.Diagnostic>
+  ): tsShim.Program {
     let rootNames;
 
     /* Determine options */
-    const createOpts = !Array.isArray(rootNamesOrOptions) ? <ts.CreateProgramOptions>rootNamesOrOptions : void 0;
+    const createOpts = !Array.isArray(rootNamesOrOptions) ? <tsShim.CreateProgramOptions>rootNamesOrOptions : void 0;
     if (createOpts) {
       rootNames = createOpts.rootNames;
       options = createOpts.options;
@@ -92,10 +92,10 @@ namespace tsp {
     }
 
     /* Invoke TS createProgram */
-    let program: ts.Program & { originalEmit?: ts.Program['emit'] } =
+    let program: tsShim.Program & { originalEmit?: tsShim.Program['emit'] } =
       createOpts ?
-      shim.originalCreateProgram(createOpts) :
-      shim.originalCreateProgram(rootNames, options, host, oldProgram, configFileParsingDiagnostics);
+      tsShim.originalCreateProgram(createOpts) :
+      tsShim.originalCreateProgram(rootNames, options, host, oldProgram, configFileParsingDiagnostics);
 
     /* Prepare Plugins */
     const plugins = preparePluginsFromCompilerOptions(options.plugins);
@@ -123,18 +123,18 @@ namespace tsp {
     }
 
     function newEmit(
-      targetSourceFile?: ts.SourceFile,
-      writeFile?: ts.WriteFileCallback,
-      cancellationToken?: ts.CancellationToken,
+      targetSourceFile?: tsShim.SourceFile,
+      writeFile?: tsShim.WriteFileCallback,
+      cancellationToken?: tsShim.CancellationToken,
       emitOnlyDtsFiles?: boolean,
-      customTransformers?: ts.CustomTransformers,
+      customTransformers?: tsShim.CustomTransformers,
       ...additionalArgs: any
-    ): ts.EmitResult {
+    ): tsShim.EmitResult {
       /* Merge in our transformers */
       const transformers = pluginCreator.createTransformers({ program }, customTransformers);
 
       /* Invoke TS emit */
-      const result: ts.EmitResult = program.originalEmit!(
+      const result: tsShim.EmitResult = program.originalEmit!(
         targetSourceFile,
         writeFile,
         cancellationToken,
@@ -146,7 +146,7 @@ namespace tsp {
 
       /* Merge in transformer diagnostics */
       for (const diagnostic of tsp.diagnosticMap.get(program) || [])
-        if (!result.diagnostics.includes(diagnostic)) (<ts.Diagnostic[]>result.diagnostics).push(diagnostic)
+        if (!result.diagnostics.includes(diagnostic)) (<tsShim.Diagnostic[]>result.diagnostics).push(diagnostic)
 
       return result;
     }

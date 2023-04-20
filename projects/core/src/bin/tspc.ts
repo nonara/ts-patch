@@ -6,7 +6,7 @@
 
 // Run if main module cli
 if (require.main === module) {
-  require('../lib/tsc');
+  require('../compiler/tsc');
 } else {
   throw new Error('tspc must be run as a CLI');
 }

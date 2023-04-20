@@ -10,7 +10,7 @@ import ts from 'typescript';
 /**
  * Root directory for ts-patch
  */
-// TODO - This logic should not be present in dist
+// TODO - This should be improved at some point
 export const appRoot = (() => {
   const moduleDir = __dirname;
 

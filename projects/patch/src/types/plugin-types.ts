@@ -1,3 +1,4 @@
+// @ts-nocheck
 /** AUTO-GENERATED - DO NOT EDIT */
 
 /** @build-types */
@@ -8,6 +9,7 @@ declare namespace tsp {
         transform?: string;
         tsConfig?: string;
         import?: string;
+        isEsm?: boolean;
         type?: 'ls' | 'program' | 'config' | 'checker' | 'raw' | 'compilerOptions';
         after?: boolean;
         afterDeclarations?: boolean;

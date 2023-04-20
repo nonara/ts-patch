@@ -120,7 +120,7 @@ export function transformProgram(
     let sourceFile = ts.createSourceFile(srcFileName, fs.readFileSync(srcFileName, 'utf8'), ts.ScriptTarget.ES2015, true);
     sourceFile = ts.transform(sourceFile, [ transformPluginTypes.bind(ts) ]).transformed[0];
 
-    const moduleBody = `/** AUTO-GENERATED - DO NOT EDIT */\n\n/** @build-types */\n` + printer.printFile(sourceFile);
+    const moduleBody = `// @ts-nocheck\n/** AUTO-GENERATED - DO NOT EDIT */\n\n/** @build-types */\n` + printer.printFile(sourceFile);
 
     fs.writeFileSync(destFileName, moduleBody);
   }
