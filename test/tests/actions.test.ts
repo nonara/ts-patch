@@ -15,6 +15,8 @@ import { execSync } from 'child_process';
 // region: Config
 /* ****************************************************************************************************************** */
 
+const verboseMode = !!process.env.VERBOSE;
+
 /* Options to use with install/uninstall */
 const testingPackageManagers = [
   'npm',
@@ -22,6 +24,11 @@ const testingPackageManagers = [
   // 'pnpm',
   // 'yarn3'
 ] satisfies PackageManager[];
+
+const tspOptions: Partial<InstallerOptions> = {
+  logLevel: verboseMode ? LogLevel.verbose : LogLevel.system,
+  silent: !verboseMode
+};
 
 // endregion
 
@@ -68,8 +75,8 @@ function runAction(tspDir: string, kind: 'api' | 'cli', cmd: string) {
       execSync(`node run-cmd.js`, { cwd: tspDir });
       break;
     case 'cli':
-      const flags = `--verbose`;
-      execSync(`ts-patch ${cmd}`, { cwd: tspDir });
+      const flags = verboseMode ? `--verbose` : '--silent';
+      execSync(`ts-patch ${cmd} ${flags}`, { cwd: tspDir });
   }
 
   resetRequireCache(tspDir);
@@ -84,12 +91,9 @@ function runAction(tspDir: string, kind: 'api' | 'cli', cmd: string) {
 function runInstall(tspDir: string, kind: 'api' | 'cli') {
   let cmd: string;
   if (kind === 'api') {
-    const tspOptions: Partial<InstallerOptions> = {
-      logLevel: LogLevel.verbose,
-    };
     cmd = `install(${JSON.stringify(tspOptions)})`;
   } else {
-    cmd = `install --verbose`;
+    cmd = `install ${verboseMode ? '--verbose' : '--silent'}`;
   }
 
   return runAction(tspDir, kind, cmd);
@@ -176,7 +180,7 @@ describe(`TSP Actions`, () => {
         });
 
         test(`check() is accurate`, () => {
-          const checkResult = check();
+          const checkResult = check(undefined, tspOptions);
           const unpatchedModuleNames = tsPackage.moduleNames.filter(m => !defaultInstallLibraries.includes(m));
           unpatchedModuleNames.forEach(m => expect(checkResult[m]).toBeUndefined());
           defaultInstallLibraries.forEach(m => expect(checkResult[m]?.tspVersion).toBe(installedTspVersion));
@@ -239,7 +243,7 @@ describe(`TSP Actions`, () => {
       });
 
       test(`check() is accurate`, () => {
-        const checkResult = check();
+        const checkResult = check(undefined, tspOptions);
         tsPackage.moduleNames.forEach(m => expect(checkResult[m]).toBeUndefined());
       });
     });
