@@ -14,7 +14,7 @@
     "allowSyntheticDefaultImports": true,
     "stripInternal": true,
 
-    "target": "ES2018",
+    "target": "ES2020",
     "downlevelIteration": true,
     "useUnknownInCatchVariables": false,
     "newLine": "LF",
