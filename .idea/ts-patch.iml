@@ -12,7 +12,9 @@
       <excludeFolder url="file://$MODULE_DIR$/test/.tmp" />
       <excludeFolder url="file://$MODULE_DIR$/tmp/test-assets/transformers" />
       <excludeFolder url="file://$MODULE_DIR$/tmp/tests/patch/assets" />
+      <excludeFolder url="file://$MODULE_DIR$/test/assets/projects" />
     </content>
+    <content url="file://$MODULE_DIR$/test/assets/projects" />
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="TypeScript" level="application" />
