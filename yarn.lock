@@ -3089,10 +3089,10 @@ ts-node@^10.9.1:
     v8-compile-cache-lib "^3.0.1"
     yn "3.1.1"
 
-ts-patch@3.0.0-beta3:
-  version "3.0.0-beta3"
-  resolved "https://registry.yarnpkg.com/ts-patch/-/ts-patch-3.0.0-beta3.tgz#59ea941a07c2fcde6ac8ab0a4665af1a396603e8"
-  integrity sha512-WAuauq0u3jPWJLJRVQi4tz01XQ1KHi05sPxUrzjGx4xUweoCzYtpLHaTlbcBVw0u7iptQQ8hPZNCS36C6Uu8vw==
+ts-patch@3.0.0-rc2:
+  version "3.0.0-rc2"
+  resolved "https://registry.yarnpkg.com/ts-patch/-/ts-patch-3.0.0-rc2.tgz#6b9d9ae3704fbf32698caa83f8979b33a5f88cf6"
+  integrity sha512-dsu+3k1cKJ1HVQlCimddJxRfq48XBAQHGAmLyKrIn8pGzz9dhTGsjo/bQFUDicVD2KZB72U+aN82sGkqqThEnQ==
   dependencies:
     chalk "^4.1.2"
     global-prefix "^3.0.0"
