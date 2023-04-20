@@ -58,6 +58,7 @@ namespace tsp {
         compilerOptions.allowNonTsExtensions = true;
         compilerOptions.suppressOutputPathCheck = true;
         compilerOptions.inlineSourceMap = true;
+        compilerOptions.esModuleInterop = true;
 
         compilerOptions = tsShim.fixupCompilerOptions(compilerOptions) as tsShim.CompilerOptions;
 
@@ -192,52 +193,61 @@ namespace tsp {
         //   `code: ${code}\n
         // `);
 
-        /* Write temp file if built */
-        let requireFilePath = filePath;
-        if (isBuiltFile) {
-          /* Write to temp file */
-          // Note: We force conversion to .ts to avoid issues with other library's require extensions (like ts-node)
-          const extName = extension === '.mts' ? '.ts' : extension;
-          let tempFilename = path.join(os.tmpdir(), crypto.randomBytes(16).toString('hex') + extName);
-
-          fs.writeFileSync(tempFilename, code, 'utf8');
-
-          requireFilePath = tempFilename;
-        }
-
         /* Perform Require */
         try {
-          return isEsm ? requireEsm.call(this, requireFilePath, filePath) : requireCjs.call(this, requireFilePath);
+          return isEsm ? requireEsm.call(this) : requireCjs.call(this);
         } catch (error) {
           if (error.code === 'ERR_REQUIRE_ESM') {
             // process.stderr.write(`cjsFail: ${requireFilePath}\n`);
-            return requireEsm.call(this, requireFilePath, filePath);
+            return requireEsm.call(this);
           } else {
             throw error;
           }
-        } finally {
-          if (isBuiltFile)
-            try { fs.unlinkSync(requireFilePath); }
-            catch {}
         }
 
-        function requireCjs(this: any, requireFilePath: string) {
-          return originalRequire.call(this, requireFilePath);
+        function requireCjs(this: any) {
+          /* Setup Module */
+          const newModule = new Module(request, this);
+          newModule.filename = filePath;
+          newModule.paths = Module._nodeModulePaths(filePath);
+          newModule._compile(code, filePath);
+
+          return newModule.exports;
         }
 
-        function requireEsm(this: any, requireFilePath: string, filePath: string) {
+        function requireEsm(this: any) {
           // process.stderr.write(`requireEsm: ${requireFilePath}\n`);
           const esm = requireCustom<typeof import('esm')>(this, 'esm', () =>
             new Error(`The transformer "${request}" is an esm file. Add "esm" to your dependencies to enable esm transformers.`)
           );
 
-          /* Setup Module */
-          const newModule = new Module(request, this);
-          newModule.filename = filePath;
-          newModule.paths = Module._nodeModulePaths(filePath);
+          /* Write temp file */
+          let tempFilePath = filePath;
+          if (isBuiltFile) {
+            /* Write to temp file */
+            // Note: We force conversion to .ts to avoid issues with other library's require extensions (like ts-node)
+            const extName = extension === '.mts' ? '.ts' : extension;
+            tempFilePath = path.join(os.tmpdir(), crypto.randomBytes(16).toString('hex') + extName);
 
-          /* Load temp file with esm package */
-          return esm(newModule)(requireFilePath);
+            fs.writeFileSync(tempFilePath, code, 'utf8');
+          }
+
+          try {
+            /* Setup Module */
+            const newModule = new Module(request, this);
+            newModule.filename = filePath;
+            newModule.paths = Module._nodeModulePaths(filePath);
+
+            const res = esm(newModule)(tempFilePath);
+
+            newModule.filename = filePath;
+
+            return res;
+          } finally {
+            if (tempFilePath)
+              try { fs.unlinkSync(tempFilePath); }
+              catch {}
+          }
         }
       };
 

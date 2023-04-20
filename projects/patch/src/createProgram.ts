@@ -4,7 +4,7 @@
  */
 
 namespace tsp {
-  const activeProgramTransformers = new Set<ProgramTransformer>();
+  const activeProgramTransformers = new Set<string>();
   const { dirname } = require('path');
 
   /* ********************************************************* *
@@ -102,19 +102,18 @@ namespace tsp {
     const pluginCreator = new PluginCreator(plugins, projectConfig.projectDir ?? process.cwd());
 
     /* Prevent recursion in Program transformers */
-    const programTransformers = new Map(pluginCreator.getProgramTransformers());
-    for (const [ transformer ] of pluginCreator.getProgramTransformers()) {
-      if (activeProgramTransformers.has(transformer)) programTransformers.delete(transformer);
-      else activeProgramTransformers.add(transformer);
-    }
+    const programTransformers = pluginCreator.getProgramTransformers();
 
     /* Transform Program */
-    for (const [ programTransformer, config ] of programTransformers) {
+    for (const [ transformerKey, [ programTransformer, config ] ] of programTransformers) {
+      if (activeProgramTransformers.has(transformerKey)) continue;
+      activeProgramTransformers.add(transformerKey);
+
       const newProgram: any = programTransformer(program, host, config, { ts: <any>ts });
       if (typeof newProgram?.['emit'] === 'function') program = newProgram;
-    }
 
-    programTransformers.forEach((c, transformer) => activeProgramTransformers.delete(transformer));
+      activeProgramTransformers.delete(transformerKey);
+    }
 
     /* Hook emit method */
     if (!program.originalEmit) {

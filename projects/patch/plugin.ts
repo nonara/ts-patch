@@ -80,8 +80,9 @@ export function transformProgram(
     removeComments: true,
     newLine: ts.NewLineKind.LineFeed
   });
-  const srcFileName = ts.normalizePath(srcTypesFileName);
-  const destFileName = ts.normalizePath(destTypesFileName);
+  // TODO - remove the casting once we have tsei again
+  const srcFileName = (<any>ts).normalizePath(srcTypesFileName);
+  const destFileName = (<any>ts).normalizePath(destTypesFileName);
 
   hookWriteFile();
   generatePluginTypesAndInjectToProgram();

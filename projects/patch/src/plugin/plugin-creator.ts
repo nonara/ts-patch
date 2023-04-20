@@ -4,6 +4,8 @@
  */
 
 namespace tsp {
+  const crypto = require('crypto');
+
   /* ********************************************************* *
    * PluginCreator (Class)
    * ********************************************************* */
@@ -65,15 +67,20 @@ namespace tsp {
       return transformers;
     }
 
-    public getProgramTransformers(): [ ProgramTransformer, PluginConfig ][] {
-      const res: [ ProgramTransformer, PluginConfig ][] = [];
+    public getProgramTransformers(): Map<string, [ ProgramTransformer, PluginConfig ]> {
+      const res = new Map<string, [ ProgramTransformer, PluginConfig ]>();
       for (const config of this.configs) {
         if (!config.transform || !config.transformProgram) continue;
 
         const factory = resolveFactory(this, config) as ProgramTransformer;
         if (factory === undefined) continue;
 
-        res.push([ factory, config ]);
+        const transformerKey = crypto
+          .createHash('md5')
+          .update(JSON.stringify({ factory, config }))
+          .digest('hex');
+
+        res.set(transformerKey, [ factory, config ]);
       }
 
       return res;
