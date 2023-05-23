@@ -179,8 +179,17 @@ namespace tsp {
         const filePath = Module._resolveFilename(request, this);
         const extension = path.extname(filePath);
 
-        /* Pass through for unsupported extensions */
-        if (!supportedExtensions.includes(extension)) return originalRequire.call(this, request);
+        /*
+          Default to the original require for
+          - unsupported extensions
+          - and compiled CJS files to support circular requires
+         */
+        if (
+          (!isEsm && /^\.c?js/.test(extension)) ||
+          !supportedExtensions.includes(extension)
+        ) {
+          return originalRequire.call(this, request);
+        }
 
         /* Load Code */
         const cacheKey = getCachePath(filePath);
