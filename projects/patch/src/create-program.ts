@@ -1,8 +1,3 @@
-/*
- * The logic in this file is based on TTypescript (https://github.com/cevek/ttypescript)
- * Credit & thanks go to cevek (https://github.com/cevek) for the incredible work!
- */
-
 namespace tsp {
   const activeProgramTransformers = new Set<string>();
   const { dirname } = require('path');

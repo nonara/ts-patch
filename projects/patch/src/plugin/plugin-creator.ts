@@ -1,10 +1,116 @@
-/*
- * The logic in this file is based on TTypescript (https://github.com/cevek/ttypescript)
- * Credit & thanks go to cevek (https://github.com/cevek) for the incredible work!
- */
-
 namespace tsp {
   const crypto = require('crypto');
+
+  /* ********************************************************* */
+  // region: Types
+  /* ********************************************************* */
+
+  /** @internal */
+  interface CreateTransformerFromPatternOptions {
+    factory: PluginFactory;
+    config: PluginConfig;
+    requireConfig: RequireConfig;
+    program: tsShim.Program;
+    ls?: tsShim.LanguageService;
+  }
+
+  // endregion
+
+  /* ********************************************************* */
+  // region: Helpers
+  /* ********************************************************* */
+
+  function validateConfigs(configs: PluginConfig[]) {
+    for (const config of configs)
+      if (!config.name && !config.transform) throw new Error('tsconfig.json plugins error: transform must be present');
+  }
+
+  function createTransformerFromPattern(opt: CreateTransformerFromPatternOptions): TransformerBasePlugin {
+    const { factory, config, program, ls, requireConfig } = opt;
+    const { transform, after, afterDeclarations, name, type, transformProgram, ...cleanConfig } = config;
+
+    if (!transform) throw new Error('Not a valid config entry: "transform" key not found');
+
+    let transformerFn: PluginFactory;
+    switch (config.type) {
+      case 'ls':
+        if (!ls) throw new Error(`Plugin ${transform} needs a LanguageService`);
+        transformerFn = (factory as LSPattern)(ls, cleanConfig);
+        break;
+
+      case 'config':
+        transformerFn = (factory as ConfigPattern)(cleanConfig);
+        break;
+
+      case 'compilerOptions':
+        transformerFn = (factory as CompilerOptionsPattern)(program.getCompilerOptions(), cleanConfig);
+        break;
+
+      case 'checker':
+        transformerFn = (factory as TypeCheckerPattern)(program.getTypeChecker(), cleanConfig);
+        break;
+
+      case undefined:
+      case 'program':
+        const { addDiagnostic, removeDiagnostic, diagnostics } = diagnosticExtrasFactory(program);
+
+        transformerFn = (factory as ProgramPattern)(program, cleanConfig, {
+          ts: <any>ts,
+          addDiagnostic,
+          removeDiagnostic,
+          diagnostics,
+          library: tsp.currentLibrary
+        });
+        break;
+
+      case 'raw':
+        transformerFn = (ctx: tsShim.TransformationContext) => (factory as RawPattern)(ctx, program, cleanConfig);
+        break;
+
+      default:
+        throw new Error(`Invalid plugin type found in tsconfig.json: '${config.type}'`);
+    }
+
+    /* Wrap w/ require hook */
+    const wrapper = wrapTransformer(transformerFn, requireConfig, true);
+
+    const res: TransformerBasePlugin =
+      after ? ({ after: wrapper }) :
+        afterDeclarations ? ({ afterDeclarations: wrapper as tsShim.TransformerFactory<tsShim.SourceFile | tsShim.Bundle> }) :
+          { before: wrapper };
+
+    return res;
+  }
+
+  function wrapTransformer<T extends PluginFactory | ProgramTransformer>(
+    transformerFn: T,
+    requireConfig: RequireConfig,
+    wrapInnerFunction: boolean
+  ): T {
+    const wrapper = function tspWrappedFactory(...args: any[]) {
+      let res: any;
+      try {
+        hookRequire(requireConfig);
+        if (!wrapInnerFunction) {
+          res = (transformerFn as Function)(...args);
+        } else {
+          const resFn = (transformerFn as Function)(...args);
+          if (typeof resFn !== 'function') throw new Error('Invalid plugin: expected a function');
+          res = wrapTransformer(resFn, requireConfig, false);
+        }
+      } finally {
+        unhookRequire();
+        const err = new Error();
+        console.log(err.stack);
+      }
+
+      return res;
+    } as T;
+
+    return wrapper;
+  }
+
+  // endregion
 
   /* ********************************************************* *
    * PluginCreator (Class)
@@ -25,7 +131,7 @@ namespace tsp {
       public resolveBaseDir: string = process.cwd()
     )
     {
-      PluginCreator.validateConfigs(configs);
+      validateConfigs(configs);
 
       // Support for deprecated 1.1 name
       for (const config of configs) if (config['beforeEmit']) config.transformProgram = true;
@@ -52,12 +158,20 @@ namespace tsp {
       for (const config of this.configs) {
         if (!config.transform || config.transformProgram) continue;
 
-        const factory = tsp.resolveFactory(this, config);
-        if (factory === undefined) continue;
+        const resolvedFactory = tsp.resolveFactory(this, config);
+        if (!resolvedFactory) continue;
+
+        const { factory, requireConfig } = resolvedFactory;
 
         this.mergeTransformers(
           transformers,
-          PluginCreator.createTransformerFromPattern({ factory: <PluginFactory>factory, config, program, ls })
+          createTransformerFromPattern({
+            factory: factory as PluginFactory,
+            requireConfig,
+            config,
+            program,
+            ls
+          })
         );
       }
 
@@ -72,8 +186,11 @@ namespace tsp {
       for (const config of this.configs) {
         if (!config.transform || !config.transformProgram) continue;
 
-        const factory = resolveFactory(this, config) as ProgramTransformer;
-        if (factory === undefined) continue;
+        const resolvedFactory = resolveFactory(this, config);
+        if (resolvedFactory === undefined) continue;
+
+        const { requireConfig } = resolvedFactory;
+        const factory = wrapTransformer(resolvedFactory.factory as ProgramTransformer, requireConfig, false);
 
         const transformerKey = crypto
           .createHash('md5')
@@ -84,74 +201,6 @@ namespace tsp {
       }
 
       return res;
-    }
-
-    /* ********************************************************* *
-     * Static
-     * ********************************************************* */
-
-    static validateConfigs(configs: PluginConfig[]) {
-      for (const config of configs)
-        if (!config.name && !config.transform) throw new Error('tsconfig.json plugins error: transform must be present');
-    }
-
-    static createTransformerFromPattern({ factory, config, program, ls }: {
-      factory: PluginFactory;
-      config: PluginConfig;
-      program: tsShim.Program;
-      ls?: tsShim.LanguageService;
-    }): TransformerBasePlugin
-    {
-      const { transform, after, afterDeclarations, name, type, transformProgram, ...cleanConfig } = config;
-
-      if (!transform) throw new Error('Not a valid config entry: "transform" key not found');
-
-      let ret: TransformerPlugin;
-      switch (config.type) {
-        case 'ls':
-          if (!ls) throw new Error(`Plugin ${transform} needs a LanguageService`);
-          ret = (factory as LSPattern)(ls, cleanConfig);
-          break;
-
-        case 'config':
-          ret = (factory as ConfigPattern)(cleanConfig);
-          break;
-
-        case 'compilerOptions':
-          ret = (factory as CompilerOptionsPattern)(program.getCompilerOptions(), cleanConfig);
-          break;
-
-        case 'checker':
-          ret = (factory as TypeCheckerPattern)(program.getTypeChecker(), cleanConfig);
-          break;
-
-        case undefined:
-        case 'program':
-          const { addDiagnostic, removeDiagnostic, diagnostics } = diagnosticExtrasFactory(program);
-
-          ret = (factory as ProgramPattern)(program, cleanConfig, {
-            ts: <any>ts,
-            addDiagnostic,
-            removeDiagnostic,
-            diagnostics,
-            library: tsp.currentLibrary
-          });
-          break;
-
-        case 'raw':
-          ret = (ctx: tsShim.TransformationContext) => (factory as RawPattern)(ctx, program, cleanConfig);
-          break;
-
-        default:
-          throw new Error(`Invalid plugin type found in tsconfig.json: '${config.type}'`);
-      }
-
-      if (typeof ret === 'function')
-        return after ? ({ after: ret }) :
-          afterDeclarations ? ({ afterDeclarations: ret as tsShim.TransformerFactory<tsShim.SourceFile | tsShim.Bundle> }) :
-            { before: ret };
-
-      return ret;
     }
   }
 }

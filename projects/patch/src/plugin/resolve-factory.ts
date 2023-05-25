@@ -1,42 +1,69 @@
 namespace tsp {
-  const requireStack: string[] = [];
   const path = require('path');
-  const crypto = require('crypto');
 
-  export function resolveFactory(pluginCreator: PluginCreator, config: PluginConfig): PluginFactory | ProgramTransformer | undefined {
-    let originalRequire: any;
-    let requireHooked = false;
+  const requireStack: string[] = [];
+
+  /* ********************************************************* */
+  // region: Types
+  /* ********************************************************* */
+
+  /** @internal */
+  export interface ResolveFactoryResult {
+    factory: PluginFactory | ProgramTransformer
+    requireConfig: RequireConfig
+  }
+
+  // endregion
+
+  /* ********************************************************* */
+  // region: Utils
+  /* ********************************************************* */
+
+  export function resolveFactory(pluginCreator: PluginCreator, pluginConfig: PluginConfig): ResolveFactoryResult | undefined {
     let compilerOptions: tsShim.CompilerOptions | undefined;
     let moduleResolutionCache: tsShim.ModuleResolutionCache | undefined;
 
-    const tsConfig = config.tsConfig && path.resolve(pluginCreator.resolveBaseDir, config.tsConfig);
-    const transform = config.transform!;
-    const importKey = config.import || 'default';
+    const tsConfig = pluginConfig.tsConfig && path.resolve(pluginCreator.resolveBaseDir, pluginConfig.tsConfig);
+    const transform = pluginConfig.transform!;
+    const importKey = pluginConfig.import || 'default';
     const builtFiles = new Map<string, string>();
     const transformerPath = require.resolve(transform, { paths: [ pluginCreator.resolveBaseDir ] });
+
+    if (pluginConfig.resolvePathAliases && !tsConfig) {
+      console.warn(`[ts-patch] Warning: resolvePathAliases needs a tsConfig value pointing to a tsconfig.json for transformer" ${transform}.`);
+    }
 
     /* Prevent circular require */
     // process.stderr.write('PRE: ' + transformerPath + '\n');
     if (requireStack.includes(transformerPath)) return;
     requireStack.push(transformerPath);
 
+    let isEsm: boolean | undefined = pluginConfig.isEsm;
+    /* Check if ESM */
+    if (isEsm == null) {
+      const impliedModuleFormat = tsShim.getImpliedNodeFormatForFile(
+        transformerPath as tsShim.Path,
+        undefined,
+        tsShim.sys,
+        { moduleResolution: tsShim.ModuleResolutionKind.Node16 }
+      );
+      // process.stderr.write('impliedModuleFormat: ' + impliedModuleFormat + '\n');
+
+      isEsm = impliedModuleFormat === tsShim.ModuleKind.ESNext;
+    }
+
+    const requireConfig: RequireConfig = {
+      builtFiles,
+      isEsm,
+      tsConfig,
+      compilerOptions,
+      moduleResolutionCache,
+      pluginConfig
+    };
+
+    hookRequire(requireConfig);
+
     try {
-      let isEsm: boolean | undefined = config.isEsm;
-      /* Check if ESM */
-      if (isEsm == null) {
-        const impliedModuleFormat = tsShim.getImpliedNodeFormatForFile(
-          transformerPath as tsShim.Path,
-          undefined,
-          tsShim.sys,
-          { moduleResolution: tsShim.ModuleResolutionKind.Node16 }
-        );
-        // process.stderr.write('impliedModuleFormat: ' + impliedModuleFormat + '\n');
-
-        isEsm = impliedModuleFormat === tsShim.ModuleKind.ESNext;
-      }
-
-      hookRequire(isEsm, builtFiles);
-
       /* Add support for TS transformers */
       if (transform!.match(/\.[mc]?ts$/)) {
         /* Load tsconfig */
@@ -44,9 +71,12 @@ namespace tsp {
         const parsedConfigFile = configFile && tsShim.parseJsonConfigFileContent(configFile.config, tsShim.sys, path.dirname(tsConfig));
         compilerOptions = parsedConfigFile?.options;
         compilerOptions ??= {};
+        requireConfig.compilerOptions = compilerOptions;
 
         /* Set CompilerOptions overrides */
-        // TODO - can possibly optimize this later by either ts.transpileModule or doing single file compilation
+        // TODO - It may be a good idea to swap this out in favour of adapting ts-node's ts-create-transpile-module
+        //  approach. We should also add a way to disable our internal handling of this to allow custom solutions like
+        //  ts-node to handle it all, if desired
         compilerOptions.target = tsShim.ScriptTarget.ES2020;
         compilerOptions.module = isEsm ? tsShim.ModuleKind.ESNext : tsShim.ModuleKind.CommonJS;
         compilerOptions.noEmit = false;
@@ -69,6 +99,7 @@ namespace tsp {
               : (<any>tsShim.sys).getCanonicalFileName
           ),
         );
+        requireConfig.moduleResolutionCache = moduleResolutionCache;
 
         /* Create Program */
         const program = tsShim.createProgram([ transformerPath ], compilerOptions);
@@ -121,145 +152,24 @@ namespace tsp {
 
       // process.stderr.write('POST: ' + transformerPath + '\n');
 
-      return factory;
+      return {
+        factory,
+        requireConfig,
+      };
     }
     finally {
       requireStack.pop();
-    }
-
-    /* ********************************************************* *
-     * Helpers
-     * ********************************************************* */
-
-    function requireCustom<T = any>(ctx: any, request: string, onNotFound: (e?: any) => Error): T {
-      let res: any;
-      try {
-        res = originalRequire.call(ctx, request);
-      }
-      catch (error) {
-        if (error.code === 'MODULE_NOT_FOUND') throw onNotFound(error);
-        throw error;
-      }
-
-      return res;
-    }
-
-    function resolveMappedPath(moduleName: string, containingFile: string) {
-      const resolved = tsShim.resolveModuleName(
-        moduleName,
-        containingFile,
-        compilerOptions!,
-        tsShim.sys,
-        moduleResolutionCache
-      );
-
-      const res = resolved.resolvedModule?.resolvedFileName || undefined;
-      // process.stderr.write(`resolveMappedPath: ${moduleName} -> ${res}\n`);
-
-      return res;
-    }
-
-    function hookRequire(isEsm: boolean | undefined, builtFiles: Map<string, string>) {
-      const fs = require('fs');
-      const os = require('os');
-      const Module = require('module');
-
-      originalRequire = Module.prototype.require;
-      Module.prototype.require = function (request: string) {
-        // process.stderr.write(`require: ${request}\n`);
-
-        /* Handle mapped paths */
-        const resolvedPath = compilerOptions?.paths
-          && !process.env.TSP_IGNORE_PATH_ALIASES
-          && resolveMappedPath(request, this.filename);
-
-        if (resolvedPath) request = resolvedPath;
-
-        /* Resolve file path */
-        const filePath = Module._resolveFilename(request, this);
-        const extension = path.extname(filePath);
-
-        /* Pass through for unsupported extensions */
-        if (!supportedExtensions.includes(extension)) return originalRequire.call(this, request);
-
-        /* Load Code */
-        const cacheKey = getCachePath(filePath);
-        const isBuiltFile = builtFiles.has(cacheKey);
-        const code = isBuiltFile ? builtFiles.get(cacheKey)! : fs.readFileSync(filePath, 'utf8');
-
-        // process.stderr.write(
-        //   `require: ${request} -> ${filePath} (${isBuiltFile ? 'built' : 'original'}) \n` +
-        //   `isEsm: ${isEsm}\n` +
-        //   `code: ${code}\n
-        // `);
-
-        /* Perform Require */
-        try {
-          return isEsm ? requireEsm.call(this) : requireCjs.call(this);
-        } catch (error) {
-          if (error.code === 'ERR_REQUIRE_ESM') {
-            // process.stderr.write(`cjsFail: ${requireFilePath}\n`);
-            return requireEsm.call(this);
-          } else {
-            throw error;
-          }
-        }
-
-        function requireCjs(this: any) {
-          /* Setup Module */
-          const newModule = new Module(request, this);
-          newModule.filename = filePath;
-          newModule.paths = Module._nodeModulePaths(filePath);
-          newModule._compile(code, filePath);
-
-          return newModule.exports;
-        }
-
-        function requireEsm(this: any) {
-          // process.stderr.write(`requireEsm: ${requireFilePath}\n`);
-          const esm = requireCustom<typeof import('esm')>(this, 'esm', () =>
-            new Error(`The transformer "${request}" is an esm file. Add "esm" to your dependencies to enable esm transformers.`)
-          );
-
-          /* Write temp file */
-          let tempFilePath = filePath;
-          if (isBuiltFile) {
-            /* Write to temp file */
-            // Note: We force conversion to .ts to avoid issues with other library's require extensions (like ts-node)
-            const extName = extension === '.mts' ? '.ts' : extension;
-            tempFilePath = path.join(os.tmpdir(), crypto.randomBytes(16).toString('hex') + extName);
-
-            fs.writeFileSync(tempFilePath, code, 'utf8');
-          }
-
-          try {
-            /* Setup Module */
-            const newModule = new Module(request, this);
-            newModule.filename = filePath;
-            newModule.paths = Module._nodeModulePaths(filePath);
-
-            const res = esm(newModule)(tempFilePath);
-
-            newModule.filename = filePath;
-
-            return res;
-          } finally {
-            if (tempFilePath)
-              try { fs.unlinkSync(tempFilePath); }
-              catch {}
-          }
-        }
-      };
-
-      requireHooked = true;
-    }
-
-    function getCachePath(filePath: string) {
-      const basedir = path.dirname(filePath);
-      const basename = path.basename(filePath, path.extname(filePath));
-      return tsShim.normalizePath(path.join(basedir, basename));
+      unhookRequire();
     }
   }
+
+  export function getCachePath(filePath: string) {
+    const basedir = path.dirname(filePath);
+    const basename = path.basename(filePath, path.extname(filePath));
+    return tsShim.normalizePath(path.join(basedir, basename));
+  }
+
+  // endregion
 }
 
 // endregion
