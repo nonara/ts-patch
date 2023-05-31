@@ -100,8 +100,6 @@ namespace tsp {
         }
       } finally {
         unhookRequire();
-        const err = new Error();
-        console.log(err.stack);
       }
 
       return res;
