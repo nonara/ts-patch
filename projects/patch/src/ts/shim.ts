@@ -43,7 +43,6 @@ namespace tsp {
     export type Node = import('typescript').Node;
     export type TransformerFactory<T extends Node> = import('typescript').TransformerFactory<T>;
     export type Bundle = import('typescript').Bundle;
-    export type ModuleResolutionCache = import('typescript').ModuleResolutionCache;
     export type Path = import('typescript').Path;
   }
 }

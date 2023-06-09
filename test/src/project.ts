@@ -57,11 +57,27 @@ export namespace PrepareOptions {
 
 
 /* ****************************************************************************************************************** */
+// region: Helpers
+/* ****************************************************************************************************************** */
+
+function execCmd(cmd: string) {
+  try {
+    execSync(cmd, { stdio: [ 'ignore', 'pipe', 'pipe' ] });
+  } catch (e) {
+    throw new Error(`Error during project cmd: ${e.stderr?.toString() ?? "<unknown>"}`);
+  }
+}
+
+// endregion
+
+
+/* ****************************************************************************************************************** */
 // region: Utils
 /* ****************************************************************************************************************** */
 
 export function getProjectTempPath(projectName?: string, packageManager?: string, wipe?: boolean) {
-  const tmpProjectPath = path.join(os.tmpdir(), '.tsp-test/project', projectName ?? '', packageManager ?? '');
+  const tmpBasePath = process.env.TSP_TMP_DIR ?? os.tmpdir();
+  const tmpProjectPath = path.resolve(tmpBasePath, '.tsp-test/project', projectName ?? '', packageManager ?? '');
   if (!fs.existsSync(tmpProjectPath)) fs.mkdirSync(tmpProjectPath, { recursive: true });
   else if (wipe) shell.rm('-rf', path.join(tmpProjectPath, '*'));
 
@@ -92,25 +108,27 @@ export function prepareTestProject(opt: PrepareOptions.Configurable) {
   shell.cp('-R', path.join(rootDir, 'dist/*'), tspDir);
 
   /* Install package manager */
-  if (pkgManagerInstallerCmd[packageManager]) shell.exec(pkgManagerInstallerCmd[packageManager]);
+  if (pkgManagerInstallerCmd[packageManager])
+    execCmd(pkgManagerInstallerCmd[packageManager]);
 
   /* Install dependencies */
   const pkgJson = JSON.parse(fs.readFileSync(path.join(tmpProjectPath, 'package.json'), 'utf8'));
   pkgJson.dependencies = {
     ...pkgJson.dependencies,
     ...options.dependencies,
-    "typescript": options.tsVersion,
-    "ts-patch": "file:./.tsp"
+    'typescript': options.tsVersion,
+    'ts-patch': 'file:./.tsp'
   };
   fs.writeFileSync(path.join(tmpProjectPath, 'package.json'), JSON.stringify(pkgJson, null, 2));
 
-  execSync(pkgManagerInstallCmd[packageManager]);
+  execCmd(pkgManagerInstallCmd[packageManager]);
 
   return { projectPath, tmpProjectPath };
 }
 
 export function cleanTemp() {
-  fs.rmSync(getProjectTempPath(), { recursive: true, force: true, retryDelay: 200, maxRetries: 5 });
+  if (!process.env.TSP_TMP_DIR)
+    fs.rmSync(getProjectTempPath(), { recursive: true, force: true, retryDelay: 200, maxRetries: 5 });
 }
 
 // endregion

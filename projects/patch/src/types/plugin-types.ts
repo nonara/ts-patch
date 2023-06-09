@@ -7,6 +7,7 @@ declare namespace tsp {
         [x: string]: any;
         name?: string;
         transform?: string;
+        resolvePathAliases?: boolean;
         tsConfig?: string;
         import?: string;
         isEsm?: boolean;

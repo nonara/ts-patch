@@ -9,7 +9,7 @@ namespace tsp {
   interface CreateTransformerFromPatternOptions {
     factory: PluginFactory;
     config: PluginConfig;
-    requireConfig: RequireConfig;
+    registerConfig: RegisterConfig;
     program: tsShim.Program;
     ls?: tsShim.LanguageService;
   }
@@ -22,19 +22,19 @@ namespace tsp {
 
   function validateConfigs(configs: PluginConfig[]) {
     for (const config of configs)
-      if (!config.name && !config.transform) throw new Error('tsconfig.json plugins error: transform must be present');
+      if (!config.name && !config.transform) throw new TsPatchError('tsconfig.json plugins error: transform must be present');
   }
 
   function createTransformerFromPattern(opt: CreateTransformerFromPatternOptions): TransformerBasePlugin {
-    const { factory, config, program, ls, requireConfig } = opt;
+    const { factory, config, program, ls, registerConfig } = opt;
     const { transform, after, afterDeclarations, name, type, transformProgram, ...cleanConfig } = config;
 
-    if (!transform) throw new Error('Not a valid config entry: "transform" key not found');
+    if (!transform) throw new TsPatchError('Not a valid config entry: "transform" key not found');
 
     let transformerFn: PluginFactory;
     switch (config.type) {
       case 'ls':
-        if (!ls) throw new Error(`Plugin ${transform} needs a LanguageService`);
+        if (!ls) throw new TsPatchError(`Plugin ${transform} needs a LanguageService`);
         transformerFn = (factory as LSPattern)(ls, cleanConfig);
         break;
 
@@ -68,11 +68,11 @@ namespace tsp {
         break;
 
       default:
-        throw new Error(`Invalid plugin type found in tsconfig.json: '${config.type}'`);
+        throw new TsPatchError(`Invalid plugin type found in tsconfig.json: '${config.type}'`);
     }
 
-    /* Wrap w/ require hook */
-    const wrapper = wrapTransformer(transformerFn, requireConfig, true);
+    /* Wrap w/ register */
+    const wrapper = wrapTransformer(transformerFn, registerConfig, true);
 
     const res: TransformerBasePlugin =
       after ? ({ after: wrapper }) :
@@ -84,24 +84,22 @@ namespace tsp {
 
   function wrapTransformer<T extends PluginFactory | ProgramTransformer>(
     transformerFn: T,
-    requireConfig: RequireConfig,
+    requireConfig: RegisterConfig,
     wrapInnerFunction: boolean
   ): T {
     const wrapper = function tspWrappedFactory(...args: any[]) {
       let res: any;
       try {
-        hookRequire(requireConfig);
+        registerPlugin(requireConfig);
         if (!wrapInnerFunction) {
           res = (transformerFn as Function)(...args);
         } else {
           const resFn = (transformerFn as Function)(...args);
-          if (typeof resFn !== 'function') throw new Error('Invalid plugin: expected a function');
+          if (typeof resFn !== 'function') throw new TsPatchError('Invalid plugin: expected a function');
           res = wrapTransformer(resFn, requireConfig, false);
         }
       } finally {
-        unhookRequire();
-        const err = new Error();
-        console.log(err.stack);
+        unregisterPlugin();
       }
 
       return res;
@@ -161,13 +159,13 @@ namespace tsp {
         const resolvedFactory = tsp.resolveFactory(this, config);
         if (!resolvedFactory) continue;
 
-        const { factory, requireConfig } = resolvedFactory;
+        const { factory, registerConfig } = resolvedFactory;
 
         this.mergeTransformers(
           transformers,
           createTransformerFromPattern({
             factory: factory as PluginFactory,
-            requireConfig,
+            registerConfig,
             config,
             program,
             ls
@@ -189,8 +187,8 @@ namespace tsp {
         const resolvedFactory = resolveFactory(this, config);
         if (resolvedFactory === undefined) continue;
 
-        const { requireConfig } = resolvedFactory;
-        const factory = wrapTransformer(resolvedFactory.factory as ProgramTransformer, requireConfig, false);
+        const { registerConfig } = resolvedFactory;
+        const factory = wrapTransformer(resolvedFactory.factory as ProgramTransformer, registerConfig, false);
 
         const transformerKey = crypto
           .createHash('md5')

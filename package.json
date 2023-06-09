@@ -1,6 +1,6 @@
 {
   "name": "ts-patch",
-  "version": "3.0.0-rc3",
+  "version": "3.0.0-rc4",
   "description": "Patch typescript to support custom transformers in tsconfig.json",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

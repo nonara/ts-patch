@@ -22,6 +22,11 @@ export interface PluginConfig {
   transform?: string;
 
   /**
+   * Resolve Path Aliases?
+   */
+  resolvePathAliases?: boolean;
+
+  /**
    * tsconfig.json file (for transformer)
    */
   tsConfig?: string;

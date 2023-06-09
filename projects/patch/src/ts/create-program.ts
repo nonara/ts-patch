@@ -2,9 +2,9 @@ namespace tsp {
   const activeProgramTransformers = new Set<string>();
   const { dirname } = require('path');
 
-  /* ********************************************************* *
-   * Helpers
-   * ********************************************************* */
+  /* ********************************************************* */
+  // region: Helpers
+  /* ********************************************************* */
 
   function getProjectDir(compilerOptions: tsShim.CompilerOptions) {
     return compilerOptions.configFilePath && dirname(compilerOptions.configFilePath);
@@ -32,7 +32,7 @@ namespace tsp {
     const projectDir = dirname(configFileNamePath);
     const result = tsShim.readConfigFile(configFileNamePath, tsShim.sys.readFile);
 
-    if (result.error) throw new Error('Error in tsconfig.json: ' + result.error.messageText);
+    if (result.error) throw new TsPatchError('Error in tsconfig.json: ' + result.error.messageText);
 
     return tsShim.parseJsonConfigFileContent(result.config, tsShim.sys, projectDir, undefined, configFileNamePath);
   }
@@ -52,6 +52,8 @@ namespace tsp {
 
     return plugins;
   }
+
+  // endregion
 
   /* ********************************************************* *
    * Patched createProgram()
