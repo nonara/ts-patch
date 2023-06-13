@@ -17,8 +17,7 @@
     "test": "jest",
     "perf": "cd test && yarn run perf",
     "------------": "-------------",
-    "prepare": "ts-patch install -s",
-    "prepare:patch": "cd projects/patch && yarn install && tsc",
+    "prepare": "ts-patch install -s && yarn prepare:test",
     "prepare:test": "cd test && yarn install",
     "postbuild": "node scripts/postbuild.js"
   },
