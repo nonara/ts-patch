@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.0.0](https://github.com/nonara/ts-patch/compare/v2.1.0...v3.0.0) (2023-06-13)
+
+
+### ⚠ BREAKING CHANGES
+
+* Rewrote for new major v3 (see detail) ([cd69c1c](https://github.com/nonara/ts-patch/commit/cd69c1c02b2e4674731178def7d217d5699bde25)), closes [#58](https://github.com/nonara/ts-patch/issues/58) [#75](https://github.com/nonara/ts-patch/issues/75) [#83](https://github.com/nonara/ts-patch/issues/83) [#93](https://github.com/nonara/ts-patch/issues/93) [#85](https://github.com/nonara/ts-patch/issues/85)
+
+### Features
+
+* Added Live Compiler (on-the-fly, in-memory patching), which allows ttypescript migration
+* Added experimental ES Module support (closes #58)
+* Added mutex locks (closes #75)
+* Updated to support TS v5+ (closes #83 closes #93)
+* Added caching
+
+### Bug Fixes
+
+* Fixed patching for non-standard libraries (cannot guarantee they will work as expected in IDEs) (closes #85)
+
 ## [2.1.0](https://github.com/nonara/ts-patch/compare/v2.0.2...v2.1.0) (2022-12-08)
 
 
