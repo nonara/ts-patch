@@ -62,7 +62,7 @@ _Migrating from ttypescript is easy! See: [Method 1: Live Compiler](#method-1-li
 
 ## Method 1: Live Compiler
 
-The live compiler patches on-the-fly each it is run.
+The live compiler patches on-the-fly, each time it is run.
 
 **Via commandline:** Simply use `tspc` (instead of `tsc`)
 
