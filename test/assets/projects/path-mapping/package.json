@@ -1,0 +1,8 @@
+{
+  "name": "path-mapping-test",
+  "main": "src/index.ts",
+  "dependencies": {
+    "ts-node" : "^10.9.1",
+    "tsconfig-paths" : "^4.2.0"
+  }
+}

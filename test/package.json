@@ -1,14 +1,14 @@
 {
   "private": true,
+  "scripts" : {
+    "perf": "ts-node -T --project tsconfig.json --files ./src/perf.ts"
+  },
   "dependencies": {
-    "ts-40": "npm:typescript@4.0.*",
-    "ts-48": "npm:typescript@4.8.*",
     "ts-latest": "npm:typescript@latest",
     "ts-node": "latest",
     "ts-patch": "link:..",
     "tsconfig-paths": "latest",
     "fs-extra": "^10.0.0",
-    "@types/fs-extra": "^9.0.13",
-    "tsp-old": "npm:ts-patch@1.4.5"
+    "@types/fs-extra": "^9.0.13"
   }
 }

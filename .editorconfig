@@ -22,8 +22,7 @@ ij_editorconfig_space_before_colon = false
 ij_editorconfig_space_before_comma = false
 ij_editorconfig_spaces_around_assignment_operators = true
 
-
-[{*.js, *.cjs}]
+[{*.js,*.cjs}]
 tab_width = 2
 ij_continuation_indent_size = 2
 ij_javascript_align_imports = false
@@ -34,7 +33,7 @@ ij_javascript_align_multiline_extends_list = false
 ij_javascript_align_multiline_for = true
 ij_javascript_align_multiline_parameters = true
 ij_javascript_align_multiline_parameters_in_calls = false
-ij_javascript_align_multiline_ternary_operation = true
+ij_javascript_align_multiline_ternary_operation = false
 ij_javascript_align_object_properties = 0
 ij_javascript_align_union_types = false
 ij_javascript_align_var_statements = 0
@@ -177,7 +176,6 @@ ij_javascript_ternary_operation_wrap = off
 ij_javascript_union_types_wrap = on_every_item
 ij_javascript_use_chained_calls_group_indents = false
 ij_javascript_use_double_quotes = true
-ij_javascript_use_explicit_js_extension = auto
 ij_javascript_use_path_mapping = always
 ij_javascript_use_public_modifier = false
 ij_javascript_use_semicolon_after_statement = true
@@ -187,7 +185,7 @@ ij_javascript_while_on_new_line = false
 ij_javascript_wrap_comments = false
 
 
-[{*.zsh, *.bash, *.sh}]
+[{*.zsh,*.bash,*.sh}]
 ij_shell_binary_ops_start_line = false
 ij_shell_keep_column_alignment_padding = false
 ij_shell_minify_program = false
@@ -195,7 +193,7 @@ ij_shell_redirect_followed_by_space = false
 ij_shell_switch_cases_indented = false
 
 
-[{.babelrc, .prettierrc, .stylelintrc, .eslintrc, jest.config, *.json, *.jsb3, *.jsb2, *.bowerrc}]
+[{.babelrc,.prettierrc,.stylelintrc,.eslintrc,jest.config,*.json,*.jsb3,*.jsb2,*.bowerrc}]
 ij_json_keep_blank_lines_in_code = 2
 ij_json_keep_indents_on_empty_lines = false
 ij_json_keep_line_breaks = true
@@ -207,7 +205,7 @@ ij_json_spaces_within_braces = true
 ij_json_spaces_within_brackets = true
 ij_json_wrap_long_lines = false
 
-[{*.ats, *.ts, *.tsx}]
+[{*.ats,*.ts,*.tsx}]
 tab_width = 2
 ij_continuation_indent_size = 2
 ij_typescript_align_imports = false
@@ -218,7 +216,7 @@ ij_typescript_align_multiline_extends_list = false
 ij_typescript_align_multiline_for = true
 ij_typescript_align_multiline_parameters = true
 ij_typescript_align_multiline_parameters_in_calls = false
-ij_typescript_align_multiline_ternary_operation = true
+ij_typescript_align_multiline_ternary_operation = false
 ij_typescript_align_object_properties = 0
 ij_typescript_align_union_types = false
 ij_typescript_align_var_statements = 0
@@ -364,11 +362,10 @@ ij_typescript_ternary_operation_wrap = off
 ij_typescript_union_types_wrap = on_every_item
 ij_typescript_use_chained_calls_group_indents = false
 ij_typescript_use_double_quotes = false
-ij_typescript_use_explicit_js_extension = auto
 ij_typescript_use_path_mapping = always
 ij_typescript_use_public_modifier = false
 ij_typescript_use_semicolon_after_statement = true
 ij_typescript_var_declaration_wrap = normal
 ij_typescript_while_brace_force = never
 ij_typescript_while_on_new_line = false
-ij_typescript_wrap_comments = true
+ij_typescript_wrap_comments = false

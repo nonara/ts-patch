@@ -10,13 +10,13 @@
     <inspection_tool class="JSEqualityComparisonWithCoercion.TS" enabled="true" level="WARNING" enabled_by_default="false">
       <scope name="Source" level="WARNING" enabled="true" />
     </inspection_tool>
-    <inspection_tool class="JSUnusedAssignment" enabled="true" level="WARNING" enabled_by_default="false">
+    <inspection_tool class="JSUnusedAssignment" enabled="true" level="WARNING" enabled_by_default="true">
       <scope name="Source" level="WARNING" enabled="true" />
     </inspection_tool>
-    <inspection_tool class="JSUnusedGlobalSymbols" enabled="true" level="WARNING" enabled_by_default="false">
+    <inspection_tool class="JSUnusedGlobalSymbols" enabled="true" level="WARNING" enabled_by_default="true">
       <scope name="Source" level="WARNING" enabled="true" />
     </inspection_tool>
-    <inspection_tool class="JSUnusedLocalSymbols" enabled="true" level="WARNING" enabled_by_default="false">
+    <inspection_tool class="JSUnusedLocalSymbols" enabled="true" level="WARNING" enabled_by_default="true">
       <scope name="Source" level="WARNING" enabled="true" />
     </inspection_tool>
     <inspection_tool class="Json5StandardCompliance" enabled="true" level="ERROR" enabled_by_default="false">

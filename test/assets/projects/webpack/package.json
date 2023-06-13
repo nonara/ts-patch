@@ -1,0 +1,14 @@
+{
+  "name": "webpack-tspatch-project",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "webpack"
+  },
+  "devDependencies" : {
+    "ts-loader": "^9.4.2",
+    "webpack": "^5.79.0",
+    "webpack-cli": "^5.0.1",
+    "esm": "^3.2.25",
+    "ts-node" : "^10.9.1"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "include": [
+    "src"
+  ],
+
+  "compilerOptions": {
+    "outFile": "../../dist/resources/module-patch.js",
+    "declaration": true,
+    "types": [ "@types/node" ],
+
+    "strict": true,
+    "noUnusedLocals": false,
+    "noImplicitReturns": true,
+    "allowSyntheticDefaultImports": true,
+    "stripInternal": true,
+
+    "target": "ES2020",
+    "downlevelIteration": true,
+    "useUnknownInCatchVariables": false,
+    "newLine": "LF",
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+
+    "plugins": [
+      {
+        "transform": "./plugin.ts",
+        "transformProgram": true,
+        "import": "transformProgram"
+      }
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "extends" : "./tsconfig",
+  "compilerOptions" : {
+    "module" : "CommonJS",
+    "plugins": [
+      {
+        "transform": "./transformers/cjs/plugin.cts",
+        "tsConfig": "./transformers/cjs/tsconfig.json"
+      }
+    ]
+  }
+}
