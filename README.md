@@ -4,19 +4,11 @@
 
 # ts-patch
 
-Patch typescript to allow custom transformers (plugins) during build.  
+Patch typescript to allow custom transformers (plugins) during build.
 
 Plugins are specified in `tsconfig.json`, or provided programmatically in `CompilerOptions`.
 
 _Migrating from ttypescript is easy! See: [Method 1: Live Compiler](#method-1-live-compiler)_
-
-## TypeScript v5 Note
-
-TS v5 has made some fundamental changes which affect the current process. As a result, it is not yet supported.
-
-We're working on adding support. More notes on that here:
-
-- [Issue #93 — Not working with TypeScript v5 (author's note)](https://github.com/nonara/ts-patch/issues/93)
 
 ## Features
 
@@ -78,7 +70,7 @@ The live compiler patches on-the-fly each it is run.
 
 ## Method 2: Persistent Patch
 
-Persistent patch modifies the typescript installation within the node_modules path. It requires additional configuration 
+Persistent patch modifies the typescript installation within the node_modules path. It requires additional configuration
 to remain persisted, but it carries less load time and complexity compared to the live compiler.
 
 1. Install the patch
@@ -99,7 +91,7 @@ ts-patch install
   }
 }
  ```
- 
+
 # Configuration
 
 **tsconfig.json**: Add transformers to `compilerOptions` in `plugins` array.
@@ -143,7 +135,7 @@ _Note: Required options are bold_
 
 ## Source Transformers
 
-Source Transformers will transform the AST of SourceFiles during compilation, allowing you to alter the output of the JS or declarations files. 
+Source Transformers will transform the AST of SourceFiles during compilation, allowing you to alter the output of the JS or declarations files.
 
 ### Source Transformer Entry Point
 
@@ -153,7 +145,7 @@ Source Transformers will transform the AST of SourceFiles during compilation, al
 
 **PluginConfig**: [Type Declaration](https://github.com/nonara/ts-patch/blob/master/projects/core/shared/plugin-types.ts)  
 **TransformerExtras**: [Type Declaration](https://github.com/nonara/ts-patch/blob/master/projects/core/shared/plugin-types.ts)  
-**ts.TransformerFactory**: `(context: ts.TransformationContext) => (sourceFile: ts.SourceFile) => ts.SourceFile`  
+**ts.TransformerFactory**: `(context: ts.TransformationContext) => (sourceFile: ts.SourceFile) => ts.SourceFile`
 
 _Note: Additional [legacy signatures](https://github.com/cevek/ttypescript#pluginconfigtype) are supported, but it is not recommended to develop a new transformer using them._
 
@@ -188,9 +180,9 @@ export default function (program: ts.Program, pluginConfig: PluginConfig, { ts: 
 
 [`{ transform: "typescript-transform-paths" }`](https://github.com/LeDDGroup/typescript-transform-paths)
 
-[`{ transform: "typescript-is/lib/transform-inline/transformer" }`](https://github.com/woutervh-/typescript-is) 
+[`{ transform: "typescript-is/lib/transform-inline/transformer" }`](https://github.com/woutervh-/typescript-is)
 
-[`{ transform: "typia/lib/transform" }`](https://github.com/samchon/typia) 
+[`{ transform: "typia/lib/transform" }`](https://github.com/samchon/typia)
 
 ### Altering Diagnostics
 
