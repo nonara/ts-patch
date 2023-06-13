@@ -2,41 +2,83 @@
 [![NPM Downloads](https://img.shields.io/npm/dm/ts-patch.svg?style=flat)](https://npmjs.org/package/ts-patch)
 ![Build Status](https://github.com/nonara/ts-patch/workflows/Build/badge.svg)
 
-# TS Patch
+# ts-patch
 
-Directly patch typescript installation to allow custom transformers (plugins).  
+Patch typescript to allow custom transformers (plugins) during build.  
 
-- Plugins are specified in `tsconfig.json`, or provided programmatically in `CompilerOptions`.
-- Based on [ttypescript](https://github.com/cevek/ttypescript) - Fully compatible + offers more features
-
-## TypeScript v5 Note
-
-TS v5 has made some fundamental changes which affect the current process. As a result, it is not yet supported.
-
-We're working on adding support. More notes on that here:
-
-- [Issue #93 — Not working with TypeScript v5 (author's note)](https://github.com/nonara/ts-patch/issues/93)
+Plugins are specified in `tsconfig.json`, or provided programmatically in `CompilerOptions`.
 
 ## Features
-* Patch / unpatch any version of typescript (4.*)
-* Advanced options for patching individual libraries, specific locations, etc. (see `ts-patch /?`)
-* _(New)_ Supports 'transforming' the `Program` instance during creation. (see: [Transforming Program](#transforming-program))
-* _(New)_ Add, remove, or modify diagnostics! (see: [Altering Diagnostics](#altering-diagnostics))
 
-## Setup
+* Patch typescript installation via on-the-fly, in-memory patching _or_ as a persistent patch
+* Can patch individual libraries (see `ts-patch /?`)
+* Hook build process by transforming the `Program` (see: [Transforming Program](#transforming-program))
+* Add, remove, or modify diagnostics (see: [Altering Diagnostics](#altering-diagnostics))
+* Fully compatible with legacy [ttypescript](https://github.com/cevek/ttypescript) projects
+* **(new)** Experimental support for ES Module based transformers
+
+# Table of Contents
+
+<!-- TOC -->
+* [ts-patch](#ts-patch)
+  * [Features](#features)
+* [Table of Contents](#table-of-contents)
+* [Installation](#installation)
+* [Usage](#usage)
+  * [Method 1: Live Compiler](#method-1-live-compiler)
+  * [Method 2: Persistent Patch](#method-2-persistent-patch)
+* [Configuration](#configuration)
+  * [Plugin Options](#plugin-options)
+* [Writing Transformers](#writing-transformers)
+  * [Source Transformers](#source-transformers)
+    * [Source Transformer Entry Point](#source-transformer-entry-point)
+    * [Source Transformer Example](#source-transformer-example)
+    * [Altering Diagnostics](#altering-diagnostics)
+    * [Note](#note)
+  * [Program Transformers](#program-transformers)
+    * [Program Transformer Entry Point](#program-transformer-entry-point)
+    * [Configuring Program Transformers](#configuring-program-transformers)
+    * [Example Program Transformer](#example-program-transformer)
+  * [Resources](#resources)
+    * [Recommended Reading](#recommended-reading)
+    * [Recommended Tools](#recommended-tools)
+    * [Discussion](#discussion)
+* [Advanced Options](#advanced-options)
+* [Maintainers](#maintainers)
+  * [Help Wanted](#help-wanted)
+* [License](#license)
+<!-- TOC -->
+
+# Installation
 
 1. Install package
 ```sh
 <yarn|npm|pnpm> add -D ts-patch
 ```
 
-2. Patch typescript
+# Usage
+
+## Method 1: Live Compiler
+
+The live compiler patches on-the-fly each it is run.
+
+**Via commandline:** Simply use `tspc` (instead of `tsc`)
+
+**With tools such as ts-node, webpack, etc:** specify the compiler as  `ts-patch/compiler`
+
+## Method 2: Persistent Patch
+
+Persistent patch modifies the typescript installation within the node_modules path. It requires additional configuration 
+to remain persisted, but it carries less load time and complexity compared to the live compiler.
+
+1. Install the patch
+
 ```shell
 # For advanced options, see: ts-patch /?
 ts-patch install
 ```
 
-3. Add `prepare` script (keeps patch persisted after npm install)
+2. Add `prepare` script (keeps patch persisted after npm install)
 
 `package.json`
  ```jsonc
@@ -47,159 +89,116 @@ ts-patch install
   }
 }
  ```
-
-## Table of Contents
-  - [Configuring](#configuring)
-      - [tsconfig.json](#tsconfigjson)
-      - [Plugin Options](#plugin-options)
-      - [Source Transformer Signatures](#source-transformer-signatures)
-  - [Usage](#usage)
-      - [Transforming AST Nodes](#transforming-ast-nodes)
-          - [Example Node Transformers](#example-node-transformers)
-      - [Transforming Program](#transforming-program)
-          - [Example Program Transformer](#example-program-transformer)
-      - [Altering Diagnostics](#altering-diagnostics)  
-  - [Resources](#resources)
-      - [Recommended Reading](#recommended-reading)
-      - [Recommended Tools](#recommended-tools)
-  - [Credit](#credit)
-  - [HALP!!!](#halp)
-  - [License](#license)
   
-## Configuring
-### tsconfig.json
+# Configuration
 
-Add transformers to `compilerOptions` in `plugins` array.  
+**tsconfig.json**: Add transformers to `compilerOptions` in `plugins` array.
 
 **Examples**
 ```jsonc
 {
     "compilerOptions": {
         "plugins": [
-            // Source Transformer: 'type' defaults to 'program'
-            { "transform": "transformer-module", "someOption1": 123, "someOption2": 321 },
+            // Source Transformers
+            { "transform": "transformer-module" },
+            { "transform": "transformer2", "extraOption": 123 },
+            { "transform": "trans-with-mapping", "resolvePathAliases": true },
+            { "transform": "esm-transformer, "isEsm": true },
 
-            // Source Transformer: program signature 
-            { "transform": "./transformers/my-transformer.ts", "type": "program" },
-
-            // Source Transformer: program signature, applies after TS transformers
-            { "transform": "transformer-module1", "type": "config", "after": true },
-
-            // Source Transformer: checker signature, applies to TS declarations
-            { "transform": "transformer-module2", "type": "checker", "afterDeclarations": true }, 
-            
-            // Source Transformer: raw signature
-            { "transform": "transformer-module3", "type": "raw" },
-
-            // Source Transformer: compilerOptions signature 
-            { "transform": "transformer-module4", "type": "compilerOptions" },
-
-            // Program Transformer: Only has one signature - no type specified, because it does not apply
+            // Program Transformer
             { "transform": "transformer-module5", "transformProgram": true }
         ]
     }
 }
 ```
 
-### Plugin Options
-| Option            | Type    | Description |
-| ------------------| ------- | :----------- |
-| **transform**     | string  | Module name or path to transformer _(*.ts or *.js)_ |
-| type              | string  | *Source Transformer* entry point signature _(see: [Source Transformer Signatures](#source-transformer-signatures))_ |
-| import            | string  | Name of exported transformer function _(defaults to `default` export)_ |
-| tsConfig          | string  | tsconfig.json file _for transformer_ (allows specifying compileOptions, path mapping support, etc) |
-| after             | boolean | Apply transformer after stock TS transformers. |
-| afterDeclarations | boolean | Apply transformer to declaration (*.d.ts) files _(TypeScript 2.9+)_. |
-| transformProgram  | boolean | Transform `Program` during `ts.createProgram()` _(see: [Transforming Program](#transforming-program))_ |
-| _..._             |         | Provide your own custom options, which will be passed to the transformer |
+## Plugin Options
+
+| Option             | Type    | Description                                                                                                   |
+|--------------------|---------|:--------------------------------------------------------------------------------------------------------------|
+| **transform**      | string  | Module name or path to transformer _(*.ts or *.js)_                                                           |
+| after              | boolean | Apply transformer after stock TS transformers                                                                 |
+| afterDeclarations  | boolean | Apply transformer to declaration (*.d.ts) files                                                               |
+| transformProgram   | boolean | Transform `Program` during `ts.createProgram()` _(see: [Program Transformers](#program-transformers))_        |
+| isEsm              | boolean | Transformer is ES Module (_note: experimental_ — requires [esm](https://www.npmjs.com/package/esm))           |
+| resolvePathAliases | boolean | Resolve path aliases in transformer (requires [tsconfig-paths](https://www.npmjs.com/package/tsconfig-paths)) |
+| type               | string  | See: [Source Transformer Entry Point](#source-transformer-entry-point) (default: 'program')                   |
+| import             | string  | Name of exported transformer function _(defaults to `default` export)_                                        |
+| tsConfig           | string  | tsconfig.json file _for transformer_ (allows specifying compileOptions, path mapping support, etc)            |
+| _..._              |         | Provide your own custom options, which will be passed to the transformer                                      |
 
 _Note: Required options are bold_
 
-### Source Transformer Signatures
-The following are the possible values for the `type` option and their corresponding entry point signatures.  
-_Note: These apply to Source Transformers only._
+# Writing Transformers
 
-#### program (default)
+## Source Transformers
 
-Signature with `ts.Program` instance:
+Source Transformers will transform the AST of SourceFiles during compilation, allowing you to alter the output of the JS or declarations files. 
+
+### Source Transformer Entry Point
+
 ```ts
 (program: ts.Program, config: PluginConfig, extras: TransformerExtras) => ts.TransformerFactory
 ```
 
-_ts.TransformerFactory_ >>> `(context: ts.TransformationContext) => (sourceFile: ts.SourceFile) => ts.SourceFile`  
-_TransformerExtras_ >>> [See Type Declaration](https://github.com/nonara/ts-patch/blob/master/src/installer/plugin-types.ts#L76)  
+**PluginConfig**: [Type Declaration](https://github.com/nonara/ts-patch/blob/master/projects/core/shared/plugin-types.ts)  
+**TransformerExtras**: [Type Declaration](https://github.com/nonara/ts-patch/blob/master/projects/core/shared/plugin-types.ts)  
+**ts.TransformerFactory**: `(context: ts.TransformationContext) => (sourceFile: ts.SourceFile) => ts.SourceFile`  
 
-_Note: This is *not* the configuration for a [Program Transformer](#transforming-program)._
+_Note: Additional [legacy signatures](https://github.com/cevek/ttypescript#pluginconfigtype) are supported, but it is not recommended to develop a new transformer using them._
 
-#### config
-Signature with transformer's config:
-```ts
-(config: PluginConfig) => ts.TransformerFactory
-```
-
-#### checker
-Signature with `ts.TypeChecker`:
-```ts
-(checker: ts.TypeChecker, config: PluginConfig) => ts.TransformerFactory
-```
-
-#### raw
-Signature without `ts-patch` wrapper:
-```ts
-/* ts.TransformerFactory */ 
-(context: ts.TransformationContext) => (sourceFile: ts.SourceFile) => ts.SourceFile
-```
-
-#### compilerOptions
-```ts
-(compilerOpts: ts.CompilerOptions, config: PluginConfig) => ts.TransformerFactory
-```
-
-## Usage
-### Transforming AST Nodes
+### Source Transformer Example
 
 Transformers can be written in JS or TS.
 
 ```ts
-// transformer1-module
-import * as ts from 'typescript';
-export default function(program: ts.Program, pluginOptions: any) {
-    return (ctx: ts.TransformationContext) => {
-        return (sourceFile: ts.SourceFile) => {
-            function visitor(node: ts.Node): ts.Node {
-                // if (ts.isCallExpression(node)) {
-                //     return ts.createLiteral('call');
-                // }
-                return ts.visitEachChild(node, visitor, ctx);
-            }
-            return ts.visitEachChild(sourceFile, visitor, ctx);
-        };
+import type * as ts from 'typescript';
+import type { TransformerExtras, PluginConfig } from 'ts-patch';
+
+/** Changes string literal 'before' to 'after' */
+export default function (program: ts.Program, pluginConfig: PluginConfig, { ts: tsInstance }: TransformerExtras) {
+  return (ctx: ts.TransformationContext) => {
+    const { factory } = ctx;
+    
+    return (sourceFile: ts.SourceFile) => {
+      function visit(node: ts.Node): ts.Node {
+        if (tsInstance.isStringLiteral(node) && node.text === 'before') {
+          return factory.createStringLiteral('after');
+        }
+        return tsInstance.visitEachChild(node, visit, ctx);
+      }
+      return tsInstance.visitNode(sourceFile, visit);
     };
+  };
 }
 
 ```
 
-#### Example Node Transformers
+**Live Examples**:
 
 [`{ transform: "typescript-transform-paths" }`](https://github.com/LeDDGroup/typescript-transform-paths)
 
 [`{ transform: "typescript-is/lib/transform-inline/transformer" }`](https://github.com/woutervh-/typescript-is) 
 
-[`{ transform: "ts-transform-img/dist/transform", type: "config" }`](https://github.com/longlho/ts-transform-img) 
-
-[`{ transform: "ts-transform-css-modules/dist/transform", type: "config" }`](https://github.com/longlho/ts-transform-css-modules) 
-
-[`{ transform: "ts-transform-react-intl/dist/transform", import: "transform", type: "config" }`](https://github.com/longlho/ts-transform-react-intl) 
-
-[`{ transform: "ts-nameof", type: "raw" }`](https://github.com/dsherret/ts-nameof) 
-
-[`{ transform: "typescript-transform-jsx" }`](https://github.com/LeDDGroup/typescript-transform-jsx) 
-
-[`{ transform: "ts-transformer-minify-privates" }`](https://github.com/timocov/ts-transformer-minify-privates) 
-
 [`{ transform: "typia/lib/transform" }`](https://github.com/samchon/typia) 
 
-### Transforming Program
+### Altering Diagnostics
+
+Diagnostics can be altered in a Source Transformer.
+
+To alter diagnostics you can use the following, provided from the `TransformerExtras` parameter:
+
+| property           | description                                         |
+|--------------------|-----------------------------------------------------|
+| diagnostics        | Reference to `Diagnostic` array                     |   
+| addDiagnostic()    | Safely add `Diagnostic` to `diagnostics` array      |
+| removeDiagnostic() | Safely remove `Diagnostic` from `diagnostics` array | 
+
+### Note
+
+_This alters diagnostics during _emit only_. If you want to alter diagnostics in your IDE as well, you'll need to create a LanguageService plugin to accompany your source transformer_
+
+## Program Transformers
 
 Sometimes you want to do more than just transform source code. For example you may want to:
 
@@ -210,32 +209,30 @@ Sometimes you want to do more than just transform source code. For example you m
 For this, we've introduced what we call a Program Transformer. The transform action takes place during `ts.createProgram`, and allows
 re-creating the `Program` instance that typescript uses.
 
-#### Configuring Program Transformer
+### Program Transformer Entry Point
 
-To configure a Program Transformer, supply `"transformProgram": true` in the config transformer entry.
-
-_Note: The `type`, `before`, and `after` options do not apply to a Program Transformer and will be ignored_
-
-[See Config Example](#tsconfigjson)
-
-#### Signature
-
-There is only one possible signature for a Program Transformer entry point.
-
-```TS
+```ts
 (program: ts.Program, host: ts.CompilerHost | undefined, options: PluginConfig, extras: ProgramTransformerExtras) => ts.Program
 ```
 
-_ProgramTransformerExtras_ >>> [See Type Declaration](https://github.com/nonara/ts-patch/blob/master/src/installer/plugin-types.ts#L90)  
+**ProgramTransformerExtras** >>> [Type Declaration](https://github.com/nonara/ts-patch/blob/master/projects/core/shared/plugin-types.ts)
 
-#### Example Program Transformer
+### Configuring Program Transformers
+
+To configure a Program Transformer, supply `"transformProgram": true` in the config transformer entry.
+
+_Note: The `before`, `after`, and `afterDeclarations` options do not apply to a Program Transformer and will be ignored_
+
+[See Config Example](#configuration)
+
+### Example Program Transformer
 ```TypeScript
 /** 
  * Add a file to Program
  */
-import * as ts from 'typescript';
 import * as path from 'path';
-import { ProgramTransformerExtras, PluginConfig } from 'ts-patch';
+import type * as ts from 'typescript';
+import type { ProgramTransformerExtras, PluginConfig } from 'ts-patch';
 
 export const newFile = path.resolve(__dirname, 'added-file.ts');
 
@@ -256,53 +253,59 @@ export default function (
 
 **Note:** For a more complete example, see [Transforming Program with additional AST transformations](https://github.com/nonara/ts-patch/discussions/29#discussioncomment-325979)
 
-### Altering Diagnostics
-
-Diagnostics can be altered in a Source Transformer.
-
-To alter diagnostics, use the [program type signature](#program-default), and use the following properties from the 
-`TransformerExtras` parameter
-
-| property | description |
-| -------- |----------- |
-| diagnostics | Reference to `Diagnostic` array
-| addDiagnostic() | Directly add `Diagnostic` to `diagnostics` array |
-| removeDiagnostic() | Directly remove `Diagnostic` from `diagnostics` array (uses splice, for safe removal)
-
-#### Notes
-- This alters diagnostics during _emit only_. If you want to alter diagnostics in your IDE as well, you'll need to create a LanguageService plugin to accompany your source transformer
-
 ## Resources
 
 ### Recommended Reading
 
-- [Advice for working with the TS Compiler API](https://github.com/nonara/ts-patch/discussions/31) (**must read**)
-- [TypeScript Transformer Handbook](https://github.com/madou/typescript-transformer-handbook) (**must read**)
+- How-To: [Advice for working with the TS Compiler API](https://github.com/nonara/ts-patch/discussions/31)
+- How-To: [TypeScript Transformer Handbook](https://github.com/madou/typescript-transformer-handbook)
 - Article: [How to Write a TypeScript Transform (Plugin)](https://dev.doctorevidence.com/how-to-write-a-typescript-transform-plugin-fc5308fdd943)
 - Article: [Creating a TypeScript Transformer](https://43081j.com/2018/08/creating-a-typescript-transform?source=post_page-----731e2b0b66e6----------------------)
 
 ### Recommended Tools
 
-| Tool | Type | Description |
-| ---- | ---- | ----------- |
-| [TS AST Viewer](https://ts-ast-viewer.com/) | Website | Allows you to see the `Node` structure and other TS properties of your source code.
-| [ts-query](https://www.npmjs.com/package/@phenomnomnominal/tsquery) | NPM Package |  Perform fast CSS-like queries on AST to find specific nodes (by attribute, kind, name, etc)
-| [ts-query Playground](https://tsquery-playground.firebaseapp.com/) | Website | Test `ts-query` in realtime
-| [ts-expose-internals](https://github.com/nonara/ts-expose-internals) | NPM Package | Exposes internal types and methods of the TS compiler API 
+| Tool                                                                 | Type        | Description                                                                                 |
+|----------------------------------------------------------------------|-------------|---------------------------------------------------------------------------------------------|
+| [TS AST Viewer](https://ts-ast-viewer.com/)                          | Web App     | Allows you to see the `Node` structure and other TS properties of your source code.         |
+| [ts-expose-internals](https://github.com/nonara/ts-expose-internals) | NPM Package | Exposes internal types and methods of the TS compiler API                                   |
 
-## Credit
-| Author                |  Module |
-| --------------------- |  ----------- |
-| [Ron S.](https://twitter.com/Ron) | [ts-patch](https://github.com/nonara/ts-patch/) |
-| [cevek](https://github.com/cevek) | [ttypescript](https://github.com/cevek/ttypescript) |
+### Discussion
 
-## HALP!!!
+- `#compiler-internals-and-api` on [TypeScript Discord Server](https://discord.com/invite/typescript)
+- TSP [Discussions](https://github.com/nonara/ts-patch/discussions) Board
 
-- Start here: [Recommended Reading](#recommended-reading)
-- Ask on [StackOverflow](https://stackoverflow.com/questions/tagged/typescript-compiler-api) with the `#typescript-compiler-api` tag
-- Read the handbook and still stuck? [Ask in Discussions](https://github.com/nonara/ts-patch/discussions) - someone may answer if they have time.
-- Check out the `#compiler-api` room on the [TypeScript Discord Server](https://discord.com/invite/typescript).
+# Advanced Options
 
-## License
+**(env) `TSP_SKIP_CACHE`**
+
+Skips patch cache when patching via cli or live compiler.
+
+**(env) `TSP_COMPILER_TS_PATH`**
+
+Specify typescript library path to use for `ts-patch/compiler` (defaults to `require.resolve('typescript')`)
+
+**(env) `TSP_CACHE_DIR`**
+
+Override patch cache directory
+
+**(cli) `ts-patch clear-cache`**
+
+Cleans patch cache & lockfiles
+
+# Maintainers
+
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tr>
+    <td align="center"><a href="https://github.com/nonara"><img src="https://avatars0.githubusercontent.com/u/1427565?v=4" width="100px;" alt=""/><br /><sub><b>Ron S.</b></sub></a></td>
+  </tr>
+</table>
+
+## Help Wanted
+
+If you're interested in helping and have a _high level_ of skill with the TS compiler API, please reach out!
+
+# License
 
 This project is licensed under the MIT License, as described in `LICENSE.md`
