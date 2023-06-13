@@ -10,6 +10,14 @@ Plugins are specified in `tsconfig.json`, or provided programmatically in `Compi
 
 _Migrating from ttypescript is easy! See: [Method 1: Live Compiler](#method-1-live-compiler)_
 
+## TypeScript v5 Note
+
+TS v5 has made some fundamental changes which affect the current process. As a result, it is not yet supported.
+
+We're working on adding support. More notes on that here:
+
+- [Issue #93 — Not working with TypeScript v5 (author's note)](https://github.com/nonara/ts-patch/issues/93)
+
 ## Features
 
 * Patch typescript installation via on-the-fly, in-memory patching _or_ as a persistent patch
@@ -91,7 +99,7 @@ ts-patch install
   }
 }
  ```
-  
+ 
 # Configuration
 
 **tsconfig.json**: Add transformers to `compilerOptions` in `plugins` array.
