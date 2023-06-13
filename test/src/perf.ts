@@ -67,7 +67,7 @@ export function perfTspc(opt: { skipCache?: boolean } = {}) {
         env: {
           ...process.env,
           TSP_SKIP_CACHE: opt.skipCache ? 'true' : 'false',
-          TSP_TS_PATH: tsLatestPath,
+          TSP_COMPILER_TS_PATH: tsLatestPath,
         }
       });
     }
@@ -82,7 +82,7 @@ export function perfTsc() {
       child_process.execSync(`node ${path.join(tsLatestPath, 'lib/tsc.js')} --help`, {
         env: {
           ...process.env,
-          TSP_TS_PATH: tsLatestPath,
+          TSP_COMPILER_TS_PATH: tsLatestPath,
         }
       });
     }
