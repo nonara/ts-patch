@@ -59,7 +59,7 @@ export function perfGetPatchedSource(opt: { tsModule?: TsModule } & GetPatchedSo
 export function perfTspc(opt: { skipCache?: boolean } = {}) {
   opt.skipCache ??= false;
   perf(
-    `tsc`,
+    `tspc`,
     printOpt(opt),
     () => {
       // Execute tspc command with node in a child process
