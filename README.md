@@ -8,6 +8,8 @@ Patch typescript to allow custom transformers (plugins) during build.
 
 Plugins are specified in `tsconfig.json`, or provided programmatically in `CompilerOptions`.
 
+_Migrating from ttypescript is easy! See: [Method 1: Live Compiler](#method-1-live-compiler)_
+
 ## Features
 
 * Patch typescript installation via on-the-fly, in-memory patching _or_ as a persistent patch
