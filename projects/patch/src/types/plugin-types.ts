@@ -15,7 +15,6 @@ declare namespace tsp {
         after?: boolean;
         afterDeclarations?: boolean;
         transformProgram?: boolean;
-        beforeEmit?: boolean;
     }
     export type TransformerList = Required<ts.CustomTransformers>;
     export type TransformerPlugin = TransformerBasePlugin | ts.TransformerFactory<ts.SourceFile>;
