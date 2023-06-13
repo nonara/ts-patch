@@ -29,7 +29,6 @@ namespace tsp {
 
   export function registerEsmIntercept(registerConfig: RegisterConfig): () => void {
     const originalRequire = Module.prototype.require;
-    const originalReadFileSync = fs.readFileSync;
     const builtFiles = new Map<string, string>();
 
     const getHash = () => {
@@ -47,7 +46,7 @@ namespace tsp {
       for (const { 1: filePath } of builtFiles) {
         delete require.cache[filePath];
         try {
-          fs.readFileSync(filePath, 'utf8');
+          fs.rmSync(filePath, { force: true, maxRetries: 3 });
         } catch (e) {
           if (process.env.NODE_ENV !== 'production')
             console.warn(`[ts-patch] Warning: Failed to delete temporary esm cache file: ${filePath}.`);
@@ -83,7 +82,7 @@ namespace tsp {
           let targetFilePath: string;
           if (tsExtensions.includes(resolvedPathExt)) {
             if (!builtFiles.has(resolvedPath)) {
-              const tsCode = originalReadFileSync(resolvedPath, 'utf8');
+              const tsCode = fs.readFileSync(resolvedPath, 'utf8');
               const jsCode = registerConfig.tsNodeInstance!.compile(tsCode, resolvedPath);
               const outputFileName = getHash() + '.mjs';
               const outputFilePath = path.join(getTmpDir('esm'), outputFileName);
