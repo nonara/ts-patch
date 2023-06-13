@@ -14,14 +14,14 @@ import { execSync } from 'child_process';
 const pkgManagerInstallCmd = {
   npm: 'npm install --no-audit --progress=false',
   yarn: 'yarn --no-progress --check-cache --no-audit',
-  pnpm: 'pnpm install --no-audit --progress=false',
-  yarn3: 'yarn install --immutable --mode update-lockfile --skip-builds'
+  pnpm: 'npx pnpm install',
+  yarn3: 'npx yarn install --skip-builds'
 } satisfies Record<PackageManager, string>;
 
 const pkgManagerInstallerCmd = {
   npm: '',
   yarn: 'npm install --no-save --legacy-peer-deps yarn',
-  yarn3: 'npm install --no-save --legacy-peer-deps yarn@3',
+  yarn3: 'npm install --no-save --legacy-peer-deps yarn@berry',
   pnpm: 'npm install --no-save --legacy-peer-deps pnpm'
 } satisfies Record<PackageManager, string>;
 
@@ -64,7 +64,7 @@ function execCmd(cmd: string) {
   try {
     execSync(cmd, { stdio: [ 'ignore', 'pipe', 'pipe' ] });
   } catch (e) {
-    throw new Error(`Error during project cmd: ${e.stderr?.toString() ?? "<unknown>"}`);
+    throw new Error(`Error during project cmd: ${e.stdout?.toString() + '\n' + e.stderr?.toString()}`);
   }
 }
 

@@ -9,6 +9,7 @@ import path from 'path';
 import { InstallerOptions } from '../../dist';
 import { LogLevel } from '../../dist/system';
 import { execSync } from 'child_process';
+import ts from 'typescript';
 
 
 /* ****************************************************************************************************************** */
@@ -21,7 +22,7 @@ const verboseMode = !!process.env.VERBOSE;
 const testingPackageManagers = [
   'npm',
   'yarn',
-  // 'pnpm',
+  'pnpm',
   // 'yarn3'
 ] satisfies PackageManager[];
 
@@ -185,6 +186,23 @@ describe(`TSP Actions`, () => {
           unpatchedModuleNames.forEach(m => expect(checkResult[m]).toBeUndefined());
           defaultInstallLibraries.forEach(m => expect(checkResult[m]?.tspVersion).toBe(installedTspVersion));
         });
+
+
+        test(`No semantic errors in typescript.d.ts`, () => {
+          const dtsFilePath = path.join(tsDir, 'typescript.d.ts');
+
+          const compilerOptions = Object.assign(ts.getDefaultCompilerOptions(), {
+            target: 'ES2018',
+            lib: [ 'es2018' ],
+            skipDefaultLibCheck: true
+          });
+
+          const program = ts.createProgram([ dtsFilePath ], compilerOptions);
+          const diagnostics = program.getSemanticDiagnostics();
+
+          // Using toHaveLength causes indefinite hang
+          expect(diagnostics.length).toBe(0);
+        });
       });
     });
 
@@ -249,54 +267,3 @@ describe(`TSP Actions`, () => {
     });
   });
 });
-
-
-// TODO
-// test(`No semantic errors in typescript.d.ts`, () => {
-//   const tsDtsFileSrc = fs.readFileSync(joinPaths(tsBackupDir, 'typescript.d.ts'), 'utf-8');
-//   restoreFs();
-//
-//   const compilerOptions = Object.assign(ts.getDefaultCompilerOptions(), {
-//     target: 'ES5',
-//     lib: [ "es2015" ],
-//     skipDefaultLibCheck: true
-//   });
-//   const host = ts.createCompilerHost(compilerOptions, false);
-//   const originalReadFile = host.readFile;
-//   host.readFile = fileName => (fileName === 'typescript.d.ts') ? tsDtsFileSrc : originalReadFile(fileName);
-//
-//   const program = ts.createProgram([ 'typescript.d.ts' ], compilerOptions, host);
-//   const diagnostics = program.getSemanticDiagnostics();
-//
-//   // Using toHaveLength causes indefinite hang
-//   expect(diagnostics.length).toBe(0);
-// });
-// });
-
-// describe(`Patch`, () => {
-//   beforeEach(() => {
-//     resetFs();
-//   });
-//
-//   test(`Patches single file`, () => {
-//     patch(SRC_FILES[0], TSP_OPTIONS);
-//     getModulePatchInfo(tspPackageJSON.version, tsLibDir, [ SRC_FILES[0] ]);
-//   });
-//
-//   test(`Patches array of files`, () => {
-//     patch(SRC_FILES, TSP_OPTIONS);
-//     getModulePatchInfo(tspPackageJSON.version, tsLibDir);
-//   });
-//
-//   test(`Throws with TS version < 4.0`, () => {
-//     const pkgPath = joinPaths(tsDir, 'package.json');
-//     fs.writeFileSync(pkgPath,
-//       fs.readFileSync(pkgPath, 'utf-8')
-//         .replace(/"version": ".+?"/, `"version": "3.9.9"`)
-//     );
-//     let err: Error | undefined;
-//     try { patch(SRC_FILES, TSP_OPTIONS); }
-//     catch (e) { err = e; }
-//     expect(err && err.name).toBe('WrongTSVersion');
-//   });
-// });
