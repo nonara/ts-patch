@@ -42,7 +42,7 @@ jobs:
         run: yarn build
 
       - name: Test
-        run: yarn run test
+        run: yarn run test && yarn run perf
         env:
           CI: true
           FORCE_COLOR: 1
