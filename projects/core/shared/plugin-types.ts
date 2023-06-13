@@ -61,12 +61,6 @@ export interface PluginConfig {
    * not apply) Entry point must be (program: Program, host?: CompilerHost) => Program
    */
   transformProgram?: boolean;
-
-  /**
-   * Alias to transformProgram
-   * @deprecated
-   */
-  beforeEmit?: boolean;
 }
 
 export type TransformerList = Required<ts.CustomTransformers>;

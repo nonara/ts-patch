@@ -130,9 +130,6 @@ namespace tsp {
     )
     {
       validateConfigs(configs);
-
-      // Support for deprecated 1.1 name
-      for (const config of configs) if (config['beforeEmit']) config.transformProgram = true;
     }
 
     public mergeTransformers(into: TransformerList, source: tsShim.CustomTransformers | TransformerBasePlugin) {
