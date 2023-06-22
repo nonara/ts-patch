@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import type { TsPackage } from '../ts-package';
 import { getModuleSource, ModuleSource } from './module-source';
-import { getCachePath } from '../system';
+import { getCachePath, TspError } from '../system';
 import { getModuleFile, ModuleFile } from './module-file';
 import { cachedFilePatchedPrefix } from '../config';
 
@@ -103,7 +103,6 @@ export function getTsModule(
 
   /* Create Module */
   const isPatched = !!moduleFile.patchDetail;
-  let moduleSource: ModuleSource | undefined;
   let originalModuleFile: ModuleFile | undefined;
   const tsModule: TsModule = {
     package: tsPackage,
@@ -125,7 +124,14 @@ export function getTsModule(
     },
 
     getUnpatchedModuleFile() {
-      if (!originalModuleFile) originalModuleFile = isPatched ? getModuleFile(backupCachePaths.js) : moduleFile!;
+      if (!originalModuleFile) {
+        if (isPatched) {
+          if (!fs.existsSync(backupCachePaths.js)) throw new TspError(`Cannot find backup cache file for ${moduleName}. Please wipe node_modules and reinstall.`);
+          originalModuleFile = getModuleFile(backupCachePaths.js);
+        } else {
+          originalModuleFile = isPatched ? getModuleFile(backupCachePaths.js) : moduleFile!;
+        }
+      }
 
       return originalModuleFile;
     }
