@@ -1,6 +1,6 @@
 {
   "name": "ts-patch",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Patch typescript to support custom transformers in tsconfig.json",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -70,32 +70,77 @@
     "jest-mock-process": "^1.4.1",
     "rimraf": "^3.0.2",
     "shelljs": "^0.8.5",
-    "standard-version": "^9.3.2",
+    "standard-version": "^9.5.0",
     "ts-jest": "^28.0.7",
     "ts-node": "^10.9.1",
     "ts-patch": "3.0.0",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.0.4",
-    "standard-version": "^9.5.0"
+    "typescript": "^5.0.4"
   },
   "directories": {
     "resources": "./dist/resources"
   },
   "standard-version": {
     "types": [
-      {"type": "feat", "section": "Features"},
-      {"type": "feature", "section": "Features"},
-      {"type": "fix", "section": "Bug Fixes"},
-      {"type": "perf", "section": "Performance Improvements"},
-      {"type": "revert", "section": "Reverts"},
-      {"type": "docs", "section": "Documentation", "hidden": true},
-      {"type": "style", "section": "Styles", "hidden": true},
-      {"type": "chore", "section": "Miscellaneous Chores", "hidden": true},
-      {"type": "refactor", "section": "Code Refactoring", "hidden": true},
-      {"type": "test", "section": "Tests", "hidden": true},
-      {"type": "build", "section": "Build System", "hidden": true},
-      {"type": "ci", "section": "Continuous Integration", "hidden": true},
-      {"type": "change", "section": "Changes"}
+      {
+        "type": "feat",
+        "section": "Features"
+      },
+      {
+        "type": "feature",
+        "section": "Features"
+      },
+      {
+        "type": "fix",
+        "section": "Bug Fixes"
+      },
+      {
+        "type": "perf",
+        "section": "Performance Improvements"
+      },
+      {
+        "type": "revert",
+        "section": "Reverts"
+      },
+      {
+        "type": "docs",
+        "section": "Documentation",
+        "hidden": true
+      },
+      {
+        "type": "style",
+        "section": "Styles",
+        "hidden": true
+      },
+      {
+        "type": "chore",
+        "section": "Miscellaneous Chores",
+        "hidden": true
+      },
+      {
+        "type": "refactor",
+        "section": "Code Refactoring",
+        "hidden": true
+      },
+      {
+        "type": "test",
+        "section": "Tests",
+        "hidden": true
+      },
+      {
+        "type": "build",
+        "section": "Build System",
+        "hidden": true
+      },
+      {
+        "type": "ci",
+        "section": "Continuous Integration",
+        "hidden": true
+      },
+      {
+        "type": "change",
+        "section": "Changes"
+      }
     ]
   }
 }

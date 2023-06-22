@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.0.1](https://github.com/nonara/ts-patch/compare/v3.0.0...v3.0.1) (2023-06-22)
+
+
+### Bug Fixes
+
+* Added explicit error if ts is patched and cached backup is removed ([ac25743](https://github.com/nonara/ts-patch/commit/ac25743140f8f3954aceb8c0e43a731eeeab03a1))
+* ESM temp files not cleaned up ([8802054](https://github.com/nonara/ts-patch/commit/8802054481a9f2b4847001cb227db029e0475a72))
+* Lock file deletion check ([#102](https://github.com/nonara/ts-patch/issues/102)) ([cacf908](https://github.com/nonara/ts-patch/commit/cacf9084fd4e5a2a1263103f8dc52d2dd7062402))
+
 ## [3.0.0](https://github.com/nonara/ts-patch/compare/v2.1.0...v3.0.0) (2023-06-13)
 
 
