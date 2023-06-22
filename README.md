@@ -66,7 +66,7 @@ The live compiler patches on-the-fly, each time it is run.
 
 **Via commandline:** Simply use `tspc` (instead of `tsc`)
 
-**With tools such as ts-node, webpack, etc:** specify the compiler as  `ts-patch/compiler`
+**With tools such as ts-node, webpack, ts-jest, etc:** specify the compiler as  `ts-patch/compiler`
 
 ## Method 2: Persistent Patch
 
