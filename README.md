@@ -255,6 +255,10 @@ export default function (
 
 **Note:** For a more complete example, see [Transforming Program with additional AST transformations](https://github.com/nonara/ts-patch/discussions/29#discussioncomment-325979)
 
+**Live Examples**:
+
+[`{ transform: "@typescript-virtual-barrel/compiler-plugin", transformProgram: true }`](https://github.com/zaguiini/typescript-virtual-barrel)
+
 ## Resources
 
 ### Recommended Reading
