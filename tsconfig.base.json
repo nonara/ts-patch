@@ -7,9 +7,9 @@
     "forceConsistentCasingInFileNames": true,
     "useUnknownInCatchVariables": false,
 
-    "lib": [ "es2019" ],
+    "lib": [ "es2020", "dom" ],
     "outDir": "dist",
-    "target": "es5",
+    "target": "ES2020",
     "module": "CommonJS",
     "moduleResolution": "node",
 

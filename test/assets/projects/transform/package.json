@@ -1,0 +1,8 @@
+{
+  "name": "minimal-ts-patch",
+  "main": "src/index.ts",
+  "dependencies": {
+    "esm": "^3.2.25",
+    "ts-node" : "^10.9.1"
+  }
+}

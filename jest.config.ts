@@ -1,4 +1,5 @@
 import type { Config } from '@jest/types';
+import * as os from 'os';
 
 const config: Config.InitialOptions = {
   testEnvironment: "node",
@@ -12,16 +13,16 @@ const config: Config.InitialOptions = {
     }
   },
   modulePaths: [ "<rootDir>/node_modules" ],
-  coveragePathIgnorePatterns: [
-    'src/installer/lib/system/errors.ts$'
-  ],
-  globalSetup: './test/src/setup.js',
-  globalTeardown: './test/src/teardown.js',
+  // coveragePathIgnorePatterns: [
+  //   'src/installer/lib/system/errors.ts$'
+  // ],
+  globalSetup: '<rootDir>/test/src/prepare.ts',
+  globalTeardown: '<rootDir>/test/src/cleanup.ts',
   testTimeout: 10000,
   transformIgnorePatterns: [
     '/node_modules/(?!(ts-transformer-keys|ts-transformer-enumerate|ts-nameof)/)'
   ],
-  maxWorkers: 1 // Have to set this for now, as mockFs seems to mess up other threads
+  maxConcurrency: os.cpus().length
 }
 
 export default config;

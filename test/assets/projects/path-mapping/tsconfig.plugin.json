@@ -1,0 +1,14 @@
+{
+  "include": [ "src" ],
+  "compilerOptions": {
+    "outDir": "dist",
+    "module": "commonjs",
+    "target": "ES2020",
+    "noEmit": true,
+    "baseUrl" : "src",
+    "paths": {
+      "@a/*": [ "./a/*" ],
+      "@b": [ "./b" ],
+    }
+  }
+}

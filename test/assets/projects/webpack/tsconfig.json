@@ -1,0 +1,13 @@
+{
+  "include": [ "src" ],
+  "compilerOptions": {
+    "module": "commonjs",
+    "noEmit": true,
+    "target": "ESNext",
+    "declaration": false,
+    "moduleResolution" : "Node",
+    "plugins": [
+      { "transform": "./plugin.ts" }
+    ]
+  }
+}
