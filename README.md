@@ -40,7 +40,7 @@ _Migrating from ttypescript is easy! See: [Method 1: Live Compiler](#method-1-li
   * [Program Transformers](#program-transformers)
     * [Program Transformer Entry Point](#program-transformer-entry-point)
     * [Configuring Program Transformers](#configuring-program-transformers)
-    * [Example Program Transformer](#example-program-transformer)
+    * [Program Transformer Example](#program-transformer-example)
   * [Resources](#resources)
     * [Recommended Reading](#recommended-reading)
     * [Recommended Tools](#recommended-tools)
@@ -227,7 +227,7 @@ _Note: The `before`, `after`, and `afterDeclarations` options do not apply to a 
 
 [See Config Example](#configuration)
 
-### Example Program Transformer
+### Program Transformer Example
 ```TypeScript
 /** 
  * Add a file to Program
