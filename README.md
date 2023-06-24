@@ -182,7 +182,9 @@ export default function (program: ts.Program, pluginConfig: PluginConfig, { ts: 
 
 [`{ transform: "typescript-is/lib/transform-inline/transformer" }`](https://github.com/woutervh-/typescript-is)
 
-[`{ transform: "typia/lib/transform" }`](https://github.com/samchon/typia)
+[`{ transform: "typia/lib/transform" }`](https://github.com/samchon/typia) ([💻playground](https://typia.io/playground))
+
+[`{ transform: "@nestia/core/lib/transform" }`](https://github.com/samchon/nestia)
 
 ### Altering Diagnostics
 
