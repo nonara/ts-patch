@@ -31,30 +31,32 @@ namespace tsp {
 
     if (!transform) throw new TsPatchError('Not a valid config entry: "transform" key not found');
 
-    let transformerFn: PluginFactory;
+    const transformerKind = after ? 'after' : afterDeclarations ? 'afterDeclarations' : 'before';
+
+    let pluginFactoryResult: TransformerPlugin;
     switch (config.type) {
       case 'ls':
         if (!ls) throw new TsPatchError(`Plugin ${transform} needs a LanguageService`);
-        transformerFn = (factory as LSPattern)(ls, cleanConfig);
+        pluginFactoryResult = (factory as LSPattern)(ls, cleanConfig);
         break;
 
       case 'config':
-        transformerFn = (factory as ConfigPattern)(cleanConfig);
+        pluginFactoryResult = (factory as ConfigPattern)(cleanConfig);
         break;
 
       case 'compilerOptions':
-        transformerFn = (factory as CompilerOptionsPattern)(program.getCompilerOptions(), cleanConfig);
+        pluginFactoryResult = (factory as CompilerOptionsPattern)(program.getCompilerOptions(), cleanConfig);
         break;
 
       case 'checker':
-        transformerFn = (factory as TypeCheckerPattern)(program.getTypeChecker(), cleanConfig);
+        pluginFactoryResult = (factory as TypeCheckerPattern)(program.getTypeChecker(), cleanConfig);
         break;
 
       case undefined:
       case 'program':
         const { addDiagnostic, removeDiagnostic, diagnostics } = diagnosticExtrasFactory(program);
 
-        transformerFn = (factory as ProgramPattern)(program, cleanConfig, {
+        pluginFactoryResult = (factory as ProgramPattern)(program, cleanConfig, {
           ts: <any>ts,
           addDiagnostic,
           removeDiagnostic,
@@ -64,20 +66,35 @@ namespace tsp {
         break;
 
       case 'raw':
-        transformerFn = (ctx: tsShim.TransformationContext) => (factory as RawPattern)(ctx, program, cleanConfig);
+        pluginFactoryResult = (ctx: tsShim.TransformationContext) => (factory as RawPattern)(ctx, program, cleanConfig);
         break;
 
       default:
         throw new TsPatchError(`Invalid plugin type found in tsconfig.json: '${config.type}'`);
     }
 
-    /* Wrap w/ register */
-    const wrapper = wrapTransformer(transformerFn, registerConfig, true);
+    /* Handle result */
+    let transformerFactory: TsTransformerFactory | undefined;
+    switch (typeof pluginFactoryResult) {
+      case 'function':
+        transformerFactory = pluginFactoryResult;
+        break;
+      case 'object':
+        transformerFactory = pluginFactoryResult[transformerKind];
+        break;
+    }
 
-    const res: TransformerBasePlugin =
-      after ? ({ after: wrapper }) :
-        afterDeclarations ? ({ afterDeclarations: wrapper as tsShim.TransformerFactory<tsShim.SourceFile | tsShim.Bundle> }) :
-          { before: wrapper };
+    if (!transformerFactory || typeof transformerFactory !== 'function')
+      throw new TsPatchError(
+        `Invalid plugin entry point! Expected a transformer factory function or an object with a '${transformerKind}' property`
+      );
+
+    /* Wrap w/ register */
+    const wrapper = wrapTransformer(transformerFactory, registerConfig, true);
+
+    const res: TransformerBasePlugin = {
+      [transformerKind]: wrapper
+    };
 
     return res;
   }

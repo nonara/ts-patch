@@ -17,7 +17,8 @@ declare namespace tsp {
         transformProgram?: boolean;
     }
     export type TransformerList = Required<ts.CustomTransformers>;
-    export type TransformerPlugin = TransformerBasePlugin | ts.TransformerFactory<ts.SourceFile>;
+    export type TransformerPlugin = TransformerBasePlugin | TsTransformerFactory;
+    export type TsTransformerFactory = ts.TransformerFactory<ts.SourceFile>;
     export type PluginFactory = LSPattern | ProgramPattern | ConfigPattern | CompilerOptionsPattern | TypeCheckerPattern | RawPattern;
     export interface TransformerBasePlugin {
         before?: ts.TransformerFactory<ts.SourceFile>;
