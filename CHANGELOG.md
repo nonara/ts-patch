@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.0.2](https://github.com/nonara/ts-patch/compare/v3.0.1...v3.0.2) (2023-07-20)
+
+
+### Bug Fixes
+
+* Plugins returning TransformerBasePlugin not supported (fixes [#113](https://github.com/nonara/ts-patch/issues/113)) ([12ee3a2](https://github.com/nonara/ts-patch/commit/12ee3a23b9afebb6a42c046b33f257a2bde2467c))
+
 ### [3.0.1](https://github.com/nonara/ts-patch/compare/v3.0.0...v3.0.1) (2023-06-22)
 
 
