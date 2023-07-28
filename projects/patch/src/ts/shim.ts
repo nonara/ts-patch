@@ -34,6 +34,8 @@ namespace tsp {
     export type CompilerHost = import('typescript').CompilerHost;
     export type Diagnostic = import('typescript').Diagnostic;
     export type SourceFile = import('typescript').SourceFile;
+    export type ScriptKind = import('typescript').ScriptKind;
+    export type ScriptTarget = import('typescript').ScriptTarget;
     export type WriteFileCallback = import('typescript').WriteFileCallback;
     export type CancellationToken = import('typescript').CancellationToken;
     export type CustomTransformers = import('typescript').CustomTransformers;

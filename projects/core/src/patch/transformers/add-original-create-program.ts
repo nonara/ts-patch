@@ -28,6 +28,18 @@ export function addOriginalCreateProgramTransformer(context: ts.TransformationCo
       ) {
         const exportObjectLiteral = node.expression.arguments[1];
         if (ts.isObjectLiteralExpression(exportObjectLiteral)) {
+          const originalParseSourceFile = factory.createPropertyAssignment(
+            "originalParseSourceFile",
+            factory.createArrowFunction(
+              undefined,
+              undefined,
+              [],
+              undefined,
+              factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
+              factory.createIdentifier("originalParseSourceFile")
+            )
+          );
+
           const originalCreateProgramProperty = factory.createPropertyAssignment(
             "originalCreateProgram",
             factory.createArrowFunction(
@@ -42,7 +54,7 @@ export function addOriginalCreateProgramTransformer(context: ts.TransformationCo
 
           const updatedExportObjectLiteral = factory.updateObjectLiteralExpression(
             exportObjectLiteral,
-            [...exportObjectLiteral.properties, originalCreateProgramProperty]
+            [...exportObjectLiteral.properties, originalCreateProgramProperty, originalParseSourceFile]
           );
 
           const updatedNode = factory.updateExpressionStatement(

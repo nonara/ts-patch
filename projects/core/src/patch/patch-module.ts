@@ -12,6 +12,7 @@ import { SourceSection } from '../module/source-section';
 import { PatchError } from '../system';
 import { readFileWithLock } from '../utils';
 import { PatchDetail } from './patch-detail';
+import { patchSourceFile } from './transformers/sourcefile-parse';
 
 
 /* ****************************************************************************************************************** */
@@ -66,7 +67,7 @@ export function patchModule(tsModule: TsModule, skipDts: boolean = false): { js:
     /* Fix early return */
     const typescriptSection = source.body.find(s => s.srcFileName === 'src/typescript/typescript.ts');
     if (!typescriptSection) throw new PatchError(`Could not find Typescript source section`);
-    typescriptSection.transform([ fixTsEarlyReturnTransformer ]);
+    typescriptSection.transform([fixTsEarlyReturnTransformer]);
 
     printableBodyFooters.push(`return returnResult;`);
   }
@@ -74,27 +75,32 @@ export function patchModule(tsModule: TsModule, skipDts: boolean = false): { js:
   /* Patch Program */
   const programSection = source.body.find(s => s.srcFileName === 'src/compiler/program.ts');
   if (!programSection) throw new PatchError(`Could not find Program source section`);
-  programSection.transform([ patchCreateProgramTransformer ]);
+  programSection.transform([patchCreateProgramTransformer, patchSourceFile]);
 
   /* Add originalCreateProgram to exports */
   const namespacesTsSection = source.body.find(s => s.srcFileName === 'src/typescript/_namespaces/ts.ts');
   if (!namespacesTsSection) throw new PatchError(`Could not find NamespacesTs source section`);
-  namespacesTsSection.transform([ addOriginalCreateProgramTransformer ]);
+  namespacesTsSection.transform([addOriginalCreateProgramTransformer]);
 
   /* Patch emitter (for diagnostics tools) */
   const emitterSection = source.body.find(s => s.srcFileName === 'src/compiler/watch.ts');
   if (!emitterSection) throw new PatchError(`Could not find Emitter source section`);
-  emitterSection.transform([ patchEmitterTransformer ]);
+  emitterSection.transform([patchEmitterTransformer]);
 
   /* Move executeCommandLine outside of closure */
   if (tsModule.moduleName === 'tsc.js') {
     const tscSection = source.body.find(s => s.srcFileName === 'src/tsc/tsc.ts');
     if (!tscSection) throw new PatchError(`Could not find Tsc source section`);
 
-    tscSection.transform([ hookTscExecTransformer ]);
+    tscSection.transform([hookTscExecTransformer]);
 
     printableFooters.push(`tsp.${execTscCmd}();`);
   }
+
+  /* patch getSourceFile for incremental parser */
+  const parserSection = source.body.find(s => s.srcFileName === 'src/compiler/parser.ts');
+  if (!parserSection) throw new PatchError(`Could not find parser source section`);
+  parserSection.transform([patchSourceFile]);
 
   /* Print the module */
   const printedJs = printModule();
@@ -122,32 +128,32 @@ export function patchModule(tsModule: TsModule, skipDts: boolean = false): { js:
     let indentLevel = 0;
 
     /* File Header */
-    list.push([ source.fileHeader, indentLevel ]);
+    list.push([source.fileHeader, indentLevel]);
 
     /* Body Wrapper Open */
     if (shouldWrap) {
-      list.push([ `\n${tsWrapperOpen}\n`, indentLevel ]);
+      list.push([`\n${tsWrapperOpen}\n`, indentLevel]);
       indentLevel = 2;
     }
 
     /* Body Header*/
-    list.push([ source.bodyHeader, indentLevel ]);
+    list.push([source.bodyHeader, indentLevel]);
 
     /* Body */
-    source.body.forEach(section => list.push([ section, indentLevel ]));
+    source.body.forEach(section => list.push([section, indentLevel]));
 
     /* Body Footers */
-    printableBodyFooters.forEach(f => list.push([ f, indentLevel ]));
+    printableBodyFooters.forEach(f => list.push([f, indentLevel]));
 
     /* Body Wrapper Close */
     if (shouldWrap) {
       indentLevel = 0;
-      list.push([ `\n${tsWrapperClose}\n`, indentLevel ]);
+      list.push([`\n${tsWrapperClose}\n`, indentLevel]);
     }
 
     /* File Footer */
-    list.push([ source.fileFooter, indentLevel ]);
-    printableFooters.forEach(f => list.push([ f, indentLevel ]));
+    list.push([source.fileFooter, indentLevel]);
+    printableFooters.forEach(f => list.push([f, indentLevel]));
 
     return list;
   }
@@ -156,7 +162,7 @@ export function patchModule(tsModule: TsModule, skipDts: boolean = false): { js:
     const printer = ts.createPrinter(defaultNodePrinterOptions);
     let outputStr = ``;
 
-    for (const [ item, indentLevel ] of getPrintList()) {
+    for (const [item, indentLevel] of getPrintList()) {
       let printed: string;
       let addedIndent: number | undefined;
       if (item === undefined) continue;
@@ -190,7 +196,7 @@ export function patchModule(tsModule: TsModule, skipDts: boolean = false): { js:
     const addedSourceFile = addedSection.getSourceFile();
 
     const transformer = createMergeStatementsTransformer(baseSourceFile, addedSourceFile);
-    baseSection.transform([ transformer ]);
+    baseSection.transform([transformer]);
   }
 }
 

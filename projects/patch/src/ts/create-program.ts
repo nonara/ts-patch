@@ -1,16 +1,16 @@
 namespace tsp {
-  const activeProgramTransformers = new Set<string>();
+  export const activeProgramTransformers = new Set<string>();
   const { dirname } = require('path');
 
   /* ********************************************************* */
   // region: Helpers
   /* ********************************************************* */
 
-  function getProjectDir(compilerOptions: tsShim.CompilerOptions) {
+  export function getProjectDir(compilerOptions: tsShim.CompilerOptions) {
     return compilerOptions.configFilePath && dirname(compilerOptions.configFilePath);
   }
 
-  function getProjectConfig(compilerOptions: tsShim.CompilerOptions, rootFileNames: ReadonlyArray<string>) {
+  export function getProjectConfig(compilerOptions: tsShim.CompilerOptions, rootFileNames: ReadonlyArray<string>) {
     let configFilePath = compilerOptions.configFilePath;
     let projectDir = getProjectDir(compilerOptions);
 
@@ -37,7 +37,7 @@ namespace tsp {
     return tsShim.parseJsonConfigFileContent(result.config, tsShim.sys, projectDir, undefined, configFileNamePath);
   }
 
-  function preparePluginsFromCompilerOptions(plugins: any): PluginConfig[] {
+  export function preparePluginsFromCompilerOptions(plugins: any): PluginConfig[] {
     if (!plugins) return [];
 
     // Old transformers system
@@ -83,16 +83,16 @@ namespace tsp {
 
     /* Get Config */
     const projectConfig = getProjectConfig(options, rootNames);
-    if ([ 'tsc', 'tsserver', 'tsserverlibrary' ].includes(tsp.currentLibrary)) {
+    if (['tsc', 'tsserver', 'tsserverlibrary'].includes(tsp.currentLibrary)) {
       options = projectConfig.compilerOptions;
       if (createOpts) createOpts.options = options;
     }
 
     /* Invoke TS createProgram */
     let program: tsShim.Program & { originalEmit?: tsShim.Program['emit'] } =
-      createOpts ?
-      tsShim.originalCreateProgram(createOpts) :
-      tsShim.originalCreateProgram(rootNames, options, host, oldProgram, configFileParsingDiagnostics);
+      createOpts ? // @ts-ignore
+        tsShim.originalCreateProgram(createOpts) : // @ts-ignore
+        tsShim.originalCreateProgram(rootNames, options, host, oldProgram, configFileParsingDiagnostics);
 
     /* Prepare Plugins */
     const plugins = preparePluginsFromCompilerOptions(options.plugins);
@@ -102,7 +102,7 @@ namespace tsp {
     const programTransformers = pluginCreator.getProgramTransformers();
 
     /* Transform Program */
-    for (const [ transformerKey, [ programTransformer, config ] ] of programTransformers) {
+    for (const [transformerKey, [programTransformer, config]] of programTransformers) {
       if (activeProgramTransformers.has(transformerKey)) continue;
       activeProgramTransformers.add(transformerKey);
 
