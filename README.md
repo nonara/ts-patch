@@ -132,6 +132,7 @@ ts-patch install
 _Note: Required options are bold_
 
 # Writing Transformers
+For an overview of the typescript compiler process (such as what a `SourceFile` and `Program` is) see [Typescript Compiler Notes](https://github.com/microsoft/TypeScript-Compiler-Notes).
 
 ## Source Transformers
 
