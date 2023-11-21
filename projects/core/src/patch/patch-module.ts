@@ -96,13 +96,20 @@ export function patchModule(tsModule: TsModule, skipDts: boolean = false): { js:
     printableFooters.push(`tsp.${execTscCmd}();`);
   }
 
-  if (tsModule.moduleName === 'tsc.js') {
-    const tscSection = source.body.find(s => s.sourceText.includes('var defaultJSDocParsingMode = 2'));
+  /* Patch defaultJSDocParsingMode */
+  if (
+    tsModule.moduleName === "tsc.js" &&
+    ((tsModule.majorVer === 5 && tsModule.minorVer >= 3) ||
+      tsModule.majorVer > 5)
+  ) {
+    const tscSection = source.body.find((s) =>
+      s.sourceText.includes("var defaultJSDocParsingMode = 2"),
+    );
     if (tscSection) {
       tscSection.updateSourceText(
         tscSection.sourceText.replace(
-          'var defaultJSDocParsingMode = 2', 
-          'var defaultJSDocParsingMode = 0',
+          "var defaultJSDocParsingMode = 2",
+          "var defaultJSDocParsingMode = 0",
         ),
       );
     }
