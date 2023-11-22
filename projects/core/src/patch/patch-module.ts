@@ -103,13 +103,13 @@ export function patchModule(tsModule: TsModule, skipDts: boolean = false): { js:
       tsModule.majorVer > 5)
   ) {
     const tscSection = source.body.find((s) =>
-      s.sourceText.includes("var defaultJSDocParsingMode = 2"),
+      s.sourceText.includes(JS_DOC_MODE_FROM),
     );
     if (tscSection) {
       tscSection.updateSourceText(
         tscSection.sourceText.replace(
-          "var defaultJSDocParsingMode = 2",
-          "var defaultJSDocParsingMode = 0",
+          JS_DOC_MODE_FROM,
+          JS_DOC_MODE_TO,
         ),
       );
     }
@@ -212,5 +212,8 @@ export function patchModule(tsModule: TsModule, skipDts: boolean = false): { js:
     baseSection.transform([ transformer ]);
   }
 }
+
+const JS_DOC_MODE_FROM = `var defaultJSDocParsingMode = 2 /* ParseForTypeErrors */`;
+const JS_DOC_MODE_TO = `var defaultJSDocParsingMode = 0 /* ParseAll */`;
 
 // endregion
