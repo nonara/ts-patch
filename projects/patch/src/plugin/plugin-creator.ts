@@ -6,7 +6,7 @@ namespace tsp {
   /* ********************************************************* */
 
   /** @internal */
-  interface CreateTransformerFromPatternOptions {
+  interface CreateTransformersFromPatternOptions {
     factory: PluginFactory;
     config: PluginConfig;
     registerConfig: RegisterConfig;
@@ -26,13 +26,18 @@ namespace tsp {
   // region: Helpers
   /* ********************************************************* */
 
-  function createTransformerFromPattern(opt: CreateTransformerFromPatternOptions): TransformerBasePlugin {
+  function createTransformersFromPattern(opt: CreateTransformersFromPatternOptions): TransformerBasePlugin {
     const { factory, config, program, ls, registerConfig } = opt;
     const { transform, after, afterDeclarations, name, type, transformProgram, ...cleanConfig } = config;
 
     if (!transform) throw new TsPatchError('Not a valid config entry: "transform" key not found');
 
-    const transformerKind = after ? 'after' : afterDeclarations ? 'afterDeclarations' : 'before';
+    // @formatter:off
+    const transformerKind =
+      after ? 'after' :
+      afterDeclarations ? 'afterDeclarations' :
+      'before';
+    // @formatter:on
 
     let pluginFactoryResult: TransformerPlugin;
     switch (config.type) {
@@ -74,38 +79,57 @@ namespace tsp {
         throw new TsPatchError(`Invalid plugin type found in tsconfig.json: '${config.type}'`);
     }
 
-    /* Handle result */
-    let transformerFactory: TsTransformerFactory | undefined;
+    /* Extract factories */
+    let transformerFactories: TsTransformerFactory[];
+    // noinspection FallThroughInSwitchStatementJS
     switch (typeof pluginFactoryResult) {
+      // Single transformer factory
       case 'function':
-        transformerFactory = pluginFactoryResult;
+        transformerFactories = [ pluginFactoryResult ];
         break;
+      // TransformerBasePlugin
       case 'object':
-        transformerFactory = pluginFactoryResult[transformerKind];
-        break;
+        const factoryOrFactories = pluginFactoryResult[transformerKind];
+
+        // Single transformer factory
+        if (typeof factoryOrFactories === 'function') {
+          transformerFactories = [ pluginFactoryResult[transformerKind] ];
+        }
+        // Array of transformer factories
+        else if (Array.isArray(factoryOrFactories)) {
+          transformerFactories = [ ...factoryOrFactories ];
+        }
+        // Deliberate fall-through
+      default:
+        throw new TsPatchError(`Invalid plugin result: expected a function or an object with a '${transformerKind}' property`);
     }
 
-    if (!transformerFactory || typeof transformerFactory !== 'function')
-      throw new TsPatchError(
-        `Invalid plugin entry point! Expected a transformer factory function or an object with a '${transformerKind}' property`
-      );
+    /* Wrap factories */
+    const wrappedFactories: TsTransformerFactory[] = [];
+    for (const transformerFactory of transformerFactories) {
+      if (!transformerFactory || typeof transformerFactory !== 'function')
+        throw new TsPatchError(
+          `Invalid plugin entry point! Expected a transformer factory function or an object with a '${transformerKind}' property`
+        );
 
-    /* Wrap w/ register */
-    const wrapper = wrapTransformer(transformerFactory, registerConfig, true);
+      /* Wrap w/ register */
+      const wrapper = wrapTransformerFactory(transformerFactory, registerConfig, true);
+      wrappedFactories.push(wrapper);
+    }
 
     const res: TransformerBasePlugin = {
-      [transformerKind]: wrapper
+      [transformerKind]: wrappedFactories
     };
 
     return res;
   }
 
-  function wrapTransformer<T extends PluginFactory | ProgramTransformer>(
-    transformerFn: T,
+  function wrapTransformerFactory(
+    transformerFn: TsTransformerFactory,
     requireConfig: RegisterConfig,
     wrapInnerFunction: boolean
-  ): T {
-    const wrapper = function tspWrappedFactory(...args: any[]) {
+  ): TsTransformerFactory {
+    const wrapper: TsTransformerFactory = function tspWrappedFactory(...args: any[]) {
       let res: any;
       try {
         registerPlugin(requireConfig);
@@ -114,14 +138,15 @@ namespace tsp {
         } else {
           const resFn = (transformerFn as Function)(...args);
           if (typeof resFn !== 'function') throw new TsPatchError('Invalid plugin: expected a function');
-          res = wrapTransformer(resFn, requireConfig, false);
+          res = wrapTransformerFactory(resFn, requireConfig, false);
         }
-      } finally {
+      }
+      finally {
         unregisterPlugin();
       }
 
       return res;
-    } as T;
+    }
 
     return wrapper;
   }
@@ -155,8 +180,6 @@ namespace tsp {
     private mergeTransformers(into: TransformerList, source: tsShim.CustomTransformers | TransformerBasePlugin) {
       const slice = <T>(input: T | T[]) => (Array.isArray(input) ? input.slice() : [ input ]);
 
-      // TODO : Consider making this optional https://github.com/nonara/ts-patch/issues/122
-
       if (source.before) into.before.push(...slice(source.before));
       if (source.after) into.after.push(...slice(source.after));
       if (source.afterDeclarations) into.afterDeclarations.push(...slice(source.afterDeclarations));
@@ -184,7 +207,7 @@ namespace tsp {
 
         this.mergeTransformers(
           transformers,
-          createTransformerFromPattern({
+          createTransformersFromPattern({
             factory: factory as PluginFactory,
             registerConfig,
             config,
@@ -211,7 +234,7 @@ namespace tsp {
         if (createFactoryResult === undefined) continue;
 
         const { registerConfig, factory: unwrappedFactory } = createFactoryResult;
-        const factory = wrapTransformer(unwrappedFactory as ProgramTransformer, registerConfig, false);
+        const factory = wrapTransformerFactory(unwrappedFactory as ProgramTransformer, registerConfig, false);
 
         const transformerKey = crypto
           .createHash('md5')

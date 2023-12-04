@@ -71,9 +71,9 @@ export type PluginFactory =
   LSPattern | ProgramPattern | ConfigPattern | CompilerOptionsPattern | TypeCheckerPattern | RawPattern;
 
 export interface TransformerBasePlugin {
-  before?: ts.TransformerFactory<ts.SourceFile>;
-  after?: ts.TransformerFactory<ts.SourceFile>;
-  afterDeclarations?: ts.TransformerFactory<ts.SourceFile | ts.Bundle>;
+  before?: ts.TransformerFactory<ts.SourceFile> | ts.TransformerFactory<ts.SourceFile>[];
+  after?: ts.TransformerFactory<ts.SourceFile> | ts.TransformerFactory<ts.SourceFile>[];
+  afterDeclarations?: ts.TransformerFactory<ts.SourceFile | ts.Bundle> | ts.TransformerFactory<ts.SourceFile | ts.Bundle>[];
 }
 
 // endregion
