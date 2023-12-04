@@ -75,7 +75,7 @@
     "ts-node": "^10.9.1",
     "ts-patch": "3.0.0",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.0.4"
+    "typescript": "^5.3.2"
   },
   "directories": {
     "resources": "./dist/resources"
