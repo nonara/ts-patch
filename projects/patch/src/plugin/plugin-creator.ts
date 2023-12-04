@@ -14,16 +14,17 @@ namespace tsp {
     ls?: tsShim.LanguageService;
   }
 
+  export namespace PluginCreator {
+    export interface Options {
+      resolveBaseDir: string;
+    }
+  }
+
   // endregion
 
   /* ********************************************************* */
   // region: Helpers
   /* ********************************************************* */
-
-  function validateConfigs(configs: PluginConfig[]) {
-    for (const config of configs)
-      if (!config.name && !config.transform) throw new TsPatchError('tsconfig.json plugins error: transform must be present');
-  }
 
   function createTransformerFromPattern(opt: CreateTransformerFromPatternOptions): TransformerBasePlugin {
     const { factory, config, program, ls, registerConfig } = opt;
@@ -131,26 +132,30 @@ namespace tsp {
    * PluginCreator (Class)
    * ********************************************************* */
 
-  /**
-   * @example
-   *
-   * new PluginCreator([
-   *   {transform: '@zerollup/ts-transform-paths', someOption: '123'},
-   *   {transform: '@zerollup/ts-transform-paths', type: 'ls', someOption: '123'},
-   *   {transform: '@zerollup/ts-transform-paths', type: 'ls', after: true, someOption: '123'}
-   * ]).createTransformers({ program })
-   */
   export class PluginCreator {
-    constructor(
-      private configs: PluginConfig[],
-      public resolveBaseDir: string = process.cwd()
-    )
-    {
-      validateConfigs(configs);
+    public readonly plugins: TspPlugin[] = [];
+    public readonly options: PluginCreator.Options;
+    public readonly needsTscJsDocParsing: boolean;
+
+    private readonly configs: PluginConfig[];
+
+    constructor(configs: PluginConfig[], options: PluginCreator.Options) {
+      this.configs = configs;
+      this.options = options;
+
+      const { resolveBaseDir } = options;
+
+      /* Create plugins */
+      this.plugins = configs.map(config => new TspPlugin(config, { resolveBaseDir }));
+
+      /* Check if we need to parse all JSDoc comments */
+      this.needsTscJsDocParsing = this.plugins.some(plugin => plugin.packageConfig?.tscOptions?.parseAllJsDoc === true);
     }
 
-    public mergeTransformers(into: TransformerList, source: tsShim.CustomTransformers | TransformerBasePlugin) {
+    private mergeTransformers(into: TransformerList, source: tsShim.CustomTransformers | TransformerBasePlugin) {
       const slice = <T>(input: T | T[]) => (Array.isArray(input) ? input.slice() : [ input ]);
+
+      // TODO : Consider making this optional https://github.com/nonara/ts-patch/issues/122
 
       if (source.before) into.before.push(...slice(source.before));
       if (source.after) into.after.push(...slice(source.after));
@@ -159,7 +164,7 @@ namespace tsp {
       return this;
     }
 
-    public createTransformers(
+    public createSourceTransformers(
       params: { program: tsShim.Program } | { ls: tsShim.LanguageService },
       customTransformers?: tsShim.CustomTransformers
     ): TransformerList {
@@ -167,13 +172,15 @@ namespace tsp {
 
       const [ ls, program ] = ('ls' in params) ? [ params.ls, params.ls.getProgram()! ] : [ void 0, params.program ];
 
-      for (const config of this.configs) {
-        if (!config.transform || config.transformProgram) continue;
+      for (const plugin of this.plugins) {
+        if (plugin.kind !== 'SourceTransformer') continue;
 
-        const resolvedFactory = tsp.resolveFactory(this, config);
-        if (!resolvedFactory) continue;
+        const { config } = plugin;
 
-        const { factory, registerConfig } = resolvedFactory;
+        const createFactoryResult = plugin.createFactory();
+        if (!createFactoryResult) continue;
+
+        const { factory, registerConfig } = createFactoryResult;
 
         this.mergeTransformers(
           transformers,
@@ -193,16 +200,18 @@ namespace tsp {
       return transformers;
     }
 
-    public getProgramTransformers(): Map<string, [ ProgramTransformer, PluginConfig ]> {
+    public createProgramTransformers(): Map<string, [ ProgramTransformer, PluginConfig ]> {
       const res = new Map<string, [ ProgramTransformer, PluginConfig ]>();
-      for (const config of this.configs) {
-        if (!config.transform || !config.transformProgram) continue;
+      for (const plugin of this.plugins) {
+        if (plugin.kind !== 'ProgramTransformer') continue;
 
-        const resolvedFactory = resolveFactory(this, config);
-        if (resolvedFactory === undefined) continue;
+        const { config } = plugin;
 
-        const { registerConfig } = resolvedFactory;
-        const factory = wrapTransformer(resolvedFactory.factory as ProgramTransformer, registerConfig, false);
+        const createFactoryResult = plugin.createFactory();
+        if (createFactoryResult === undefined) continue;
+
+        const { registerConfig, factory: unwrappedFactory } = createFactoryResult;
+        const factory = wrapTransformer(unwrappedFactory as ProgramTransformer, registerConfig, false);
 
         const transformerKey = crypto
           .createHash('md5')

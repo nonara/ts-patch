@@ -43,4 +43,9 @@ declare namespace tsp {
     export type TypeCheckerPattern = (checker: ts.TypeChecker, config: {}) => TransformerPlugin;
     export type ProgramPattern = (program: ts.Program, config: {}, extras: TransformerExtras) => TransformerPlugin;
     export type RawPattern = (context: ts.TransformationContext, program: ts.Program, config: {}) => ts.Transformer<ts.SourceFile>;
+    export interface PluginPackageConfig {
+        tscOptions?: {
+            parseAllJsDoc?: boolean;
+        };
+    }
 }

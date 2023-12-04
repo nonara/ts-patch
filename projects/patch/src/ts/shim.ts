@@ -44,5 +44,6 @@ namespace tsp {
     export type TransformerFactory<T extends Node> = import('typescript').TransformerFactory<T>;
     export type Bundle = import('typescript').Bundle;
     export type Path = import('typescript').Path;
+    export type JSDocParsingMode = import('typescript').JSDocParsingMode;
   }
 }

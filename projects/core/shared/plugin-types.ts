@@ -138,3 +138,19 @@ export type RawPattern = (
 ) => ts.Transformer<ts.SourceFile>;
 
 // endregion
+
+/* ****************************************************************************************************************** */
+// region: Plugin Package
+/* ****************************************************************************************************************** */
+
+export interface PluginPackageConfig {
+  tscOptions?: {
+    /**
+     * Sets the JSDocParsingMode to ParseAll
+     * @default false
+     */
+    parseAllJsDoc?: boolean;
+  }
+}
+
+// endregion

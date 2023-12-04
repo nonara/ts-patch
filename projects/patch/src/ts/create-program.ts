@@ -88,18 +88,21 @@ namespace tsp {
       if (createOpts) createOpts.options = options;
     }
 
+    /* Prepare Plugins */
+    const plugins = preparePluginsFromCompilerOptions(options.plugins);
+    const pluginCreator = new PluginCreator(plugins, { resolveBaseDir: projectConfig.projectDir ?? process.cwd() });
+
+    if (tsp.currentLibrary === 'tsc' && pluginCreator.needsTscJsDocParsing) {
+      host!.jsDocParsingMode = tsShim.JSDocParsingMode.ParseAll;
+    }
+
     /* Invoke TS createProgram */
-    let program: tsShim.Program & { originalEmit?: tsShim.Program['emit'] } =
-      createOpts ?
+    let program: tsShim.Program & { originalEmit?: tsShim.Program['emit'] } = createOpts ?
       tsShim.originalCreateProgram(createOpts) :
       tsShim.originalCreateProgram(rootNames, options, host, oldProgram, configFileParsingDiagnostics);
 
-    /* Prepare Plugins */
-    const plugins = preparePluginsFromCompilerOptions(options.plugins);
-    const pluginCreator = new PluginCreator(plugins, projectConfig.projectDir ?? process.cwd());
-
     /* Prevent recursion in Program transformers */
-    const programTransformers = pluginCreator.getProgramTransformers();
+    const programTransformers = pluginCreator.createProgramTransformers();
 
     /* Transform Program */
     for (const [ transformerKey, [ programTransformer, config ] ] of programTransformers) {
@@ -127,7 +130,7 @@ namespace tsp {
       ...additionalArgs: any
     ): tsShim.EmitResult {
       /* Merge in our transformers */
-      const transformers = pluginCreator.createTransformers({ program }, customTransformers);
+      const transformers = pluginCreator.createSourceTransformers({ program }, customTransformers);
 
       /* Invoke TS emit */
       const result: tsShim.EmitResult = program.originalEmit!(
