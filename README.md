@@ -41,6 +41,8 @@ _Migrating from ttypescript is easy! See: [Method 1: Live Compiler](#method-1-li
     * [Program Transformer Entry Point](#program-transformer-entry-point)
     * [Configuring Program Transformers](#configuring-program-transformers)
     * [Program Transformer Example](#program-transformer-example)
+  * [Plugin Package Configuration](#plugin-package-configuration)
+    * [Example](#example)
   * [Resources](#resources)
     * [Recommended Reading](#recommended-reading)
     * [Recommended Tools](#recommended-tools)
@@ -261,6 +263,29 @@ export default function (
 
 [`{ transform: "@typescript-virtual-barrel/compiler-plugin", transformProgram: true }`](https://github.com/zaguiini/typescript-virtual-barrel)
 
+## Plugin Package Configuration
+
+The plugin package configuration allows you to specify custom options for your TypeScript plugin. 
+This configuration is defined in the `package.json` of your plugin under the `tsp` property.
+
+An example use case is enabling `parseAllJsDoc` if you require full JSDoc parsing in tsc for your transformer in TS v5.3+. (see: [5.3 JSDoc parsing changes](https://devblogs.microsoft.com/typescript/announcing-typescript-5-3/#optimizations-by-skipping-jsdoc-parsing))
+
+For all available options, see the `PluginPackageConfig` type in [plugin-types.ts](https://github.com/nonara/ts-patch/blob/master/projects/core/shared/plugin-types.ts)
+
+### Example
+
+```jsonc
+{
+  "name": "your-plugin-name",
+  "version": "1.0.0",
+  "tsp": {
+    "tscOptions": {
+      "parseAllJsDoc": true
+    }
+  }
+}
+```
+
 ## Resources
 
 ### Recommended Reading
@@ -312,7 +337,7 @@ Cleans patch cache & lockfiles
 
 ## Help Wanted
 
-If you're interested in helping and have a _high level_ of skill with the TS compiler API, please reach out!
+If you're interested in helping and are knowledgeable with the TS compiler codebase, feel free to reach out!
 
 # License
 
