@@ -147,6 +147,8 @@ export interface PluginPackageConfig {
   tscOptions?: {
     /**
      * Sets the JSDocParsingMode to ParseAll
+     *
+     * @see https://devblogs.microsoft.com/typescript/announcing-typescript-5-3/#optimizations-by-skipping-jsdoc-parsing
      * @default false
      */
     parseAllJsDoc?: boolean;
