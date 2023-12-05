@@ -105,7 +105,7 @@ ts-patch install
             { "transform": "transformer-module" },
             { "transform": "transformer2", "extraOption": 123 },
             { "transform": "trans-with-mapping", "resolvePathAliases": true },
-            { "transform": "esm-transformer, "isEsm": true },
+            { "transform": "esm-transformer", "isEsm": true },
 
             // Program Transformer
             { "transform": "transformer-module5", "transformProgram": true }
