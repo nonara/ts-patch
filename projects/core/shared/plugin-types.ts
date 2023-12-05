@@ -1,7 +1,8 @@
 /**
  * NOTE: This file is used during the build process for patch as well
  */
-import type ts from 'typescript';
+// Note: Leave as import-star, since we don't ship built file with esModuleInterop
+import type * as ts from 'typescript';
 
 
 /* ****************************************************************************************************************** */
