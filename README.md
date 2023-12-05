@@ -107,7 +107,7 @@ ts-patch install
             { "transform": "transformer-module" },
             { "transform": "transformer2", "extraOption": 123 },
             { "transform": "trans-with-mapping", "resolvePathAliases": true },
-            { "transform": "esm-transformer, "isEsm": true },
+            { "transform": "esm-transformer", "isEsm": true },
 
             // Program Transformer
             { "transform": "transformer-module5", "transformProgram": true }
@@ -134,6 +134,8 @@ ts-patch install
 _Note: Required options are bold_
 
 # Writing Transformers
+
+For an overview of the typescript compiler (such as what a `SourceFile` and `Program` is) see: [Typescript Compiler Notes](https://github.com/microsoft/TypeScript-Compiler-Notes).
 
 ## Source Transformers
 
