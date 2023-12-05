@@ -133,6 +133,8 @@ _Note: Required options are bold_
 
 # Writing Transformers
 
+For an overview of the typescript compiler (such as what a `SourceFile` and `Program` is) see: [Typescript Compiler Notes](https://github.com/microsoft/TypeScript-Compiler-Notes).
+
 ## Source Transformers
 
 Source Transformers will transform the AST of SourceFiles during compilation, allowing you to alter the output of the JS or declarations files.
