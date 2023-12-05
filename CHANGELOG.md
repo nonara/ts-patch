@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.1.0](https://github.com/nonara/ts-patch/compare/v3.0.2...v3.1.0) (2023-12-05)
+
+
+### Features
+
+* Added Plugin Package Configuration + parseAllJsDoc (closes [#134](https://github.com/nonara/ts-patch/issues/134) closes [#133](https://github.com/nonara/ts-patch/issues/133)) ([15570d0](https://github.com/nonara/ts-patch/commit/15570d05e422dd02635eb3c63dc6b3a036cb543a))
+* Added support for chaining transformers in single factory (closes [#122](https://github.com/nonara/ts-patch/issues/122) closes [#120](https://github.com/nonara/ts-patch/issues/120)) ([aabf389](https://github.com/nonara/ts-patch/commit/aabf3894a610047fade6d2d9fb9949f17afe09df))
+
+
+### Bug Fixes
+
+* TsExtras 'ts' type registering as 'any' (fixes [#127](https://github.com/nonara/ts-patch/issues/127)) ([069411e](https://github.com/nonara/ts-patch/commit/069411e49819aa87c880c7c5ff2ab04ecb68eea3))
+* tsp.currentLibrary was not set (detail) ([24d8031](https://github.com/nonara/ts-patch/commit/24d8031bafcd6483fa762ed9ad8437c4a4070093))
+
 ### [3.0.2](https://github.com/nonara/ts-patch/compare/v3.0.1...v3.0.2) (2023-07-20)
 
 
