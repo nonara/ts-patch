@@ -94,10 +94,12 @@ namespace tsp {
         // Single transformer factory
         if (typeof factoryOrFactories === 'function') {
           transformerFactories = [ pluginFactoryResult[transformerKind] ];
+          break;
         }
         // Array of transformer factories
         else if (Array.isArray(factoryOrFactories)) {
           transformerFactories = [ ...factoryOrFactories ];
+          break;
         }
         // Deliberate fall-through
       default:
