@@ -109,10 +109,12 @@ export function patchModule(tsModule: TsModule, skipDts: boolean = false): { js:
   }
 
   /* Get JS */
+  const libraryName = tsModule.moduleName.replace(/\.js$/, '');
   const patchDetail = PatchDetail.fromModule(tsModule, printedJs);
   const js =
     patchDetail.toHeader() + '\n' +
     jsPatchSrc + '\n' +
+    `tsp.currentLibrary = '${libraryName}';\n`+
     printedJs;
 
   return { dts, js };
