@@ -22,24 +22,19 @@ namespace tsp {
   // region: Helpers
   /* ****************************************************** */
 
-  function getModulePackagePath(transformerPath: string, packageFilePath: string): string | undefined {
-    let currentDir = path.dirname(transformerPath);
+  // Could likely fail if the plugin is in a symlinked directory or the package's main file is in a
+  // directory above the package.json – however, I believe that the walking up method used here is the common
+  // approach, so we'll consider these acceptable edge cases for now.
+  function getPackagePath(entryFilePath: string): string | undefined {
+    let currentDir = path.dirname(entryFilePath);
 
     const seenPaths = new Set<string>();
     while (currentDir !== path.parse(currentDir).root) {
       if (seenPaths.has(currentDir)) return undefined;
       seenPaths.add(currentDir);
 
-      // Could likely fail if the transformer is in a symlinked directory or the package's main file is in a
-      // directory above the package.json – however, I believe that the walking up method used here is the common
-      // approach, so we'll consider these acceptable edge cases for now.
-      if (path.relative(currentDir, packageFilePath).startsWith('..')) return undefined;
-
       const potentialPkgPath = path.join(currentDir, 'package.json');
-      // If the project's package matches the transformer's package, return it
-      if (fs.existsSync(potentialPkgPath)) {
-        return potentialPkgPath === packageFilePath ? packageFilePath : undefined;
-      }
+      if (fs.existsSync(potentialPkgPath)) return potentialPkgPath;
 
       currentDir = path.resolve(currentDir, '..');
     }
@@ -78,26 +73,20 @@ namespace tsp {
       this.tsConfigPath = config.tsConfig && path.resolve(resolveBaseDir, config.tsConfig);
       const entryFilePath = require.resolve(configTransformValue, { paths: [ resolveBaseDir ] });
       this.entryFilePath = entryFilePath;
-      let packageFilePath: string | undefined;
-      try {
-        packageFilePath = require.resolve(path.join(path.dirname(entryFilePath), 'package.json'), { paths: [ resolveBaseDir ] });
-      } catch (e) {}
 
       /* Get module PluginPackageConfig */
-      if (packageFilePath) {
-        let pluginPackageConfig: PluginPackageConfig | undefined;
+      let pluginPackageConfig: PluginPackageConfig | undefined;
 
-        const modulePackagePath = getModulePackagePath(entryFilePath, packageFilePath);
-        if (modulePackagePath) {
-          const modulePkgJsonContent = fs.readFileSync(modulePackagePath, 'utf8');
-          const modulePkgJson = JSON.parse(modulePkgJsonContent) as { tsp?: PluginPackageConfig };
+      const modulePackagePath = getPackagePath(entryFilePath);
+      if (modulePackagePath) {
+        const modulePkgJsonContent = fs.readFileSync(modulePackagePath, 'utf8');
+        const modulePkgJson = JSON.parse(modulePkgJsonContent) as { tsp?: PluginPackageConfig };
 
-          pluginPackageConfig = modulePkgJson.tsp;
-          if (pluginPackageConfig === null || typeof pluginPackageConfig !== 'object') pluginPackageConfig = undefined;
-        }
-
-        this.packageConfig = pluginPackageConfig;
+        pluginPackageConfig = modulePkgJson.tsp;
+        if (pluginPackageConfig === null || typeof pluginPackageConfig !== 'object') pluginPackageConfig = undefined;
       }
+
+      this.packageConfig = pluginPackageConfig;
     }
 
     private validateConfig() {
