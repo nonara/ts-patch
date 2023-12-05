@@ -1,0 +1,12 @@
+{
+  "include": [ "src" ],
+  "compilerOptions": {
+    "outDir": "dist",
+    "module": "commonjs",
+    "target": "esnext",
+    "noEmit": true,
+    "plugins" : [
+      { "transform": "./plugin" }
+    ]
+  }
+}

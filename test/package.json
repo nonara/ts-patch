@@ -6,7 +6,7 @@
   "dependencies": {
     "ts-latest": "npm:typescript@latest",
     "ts-node": "latest",
-    "ts-patch": "link:..",
+    "ts-patch": "link:../dist",
     "tsconfig-paths": "latest",
     "fs-extra": "^10.0.0",
     "@types/fs-extra": "^9.0.13"

@@ -6,8 +6,8 @@ const path = require('path');
  * ****************************************************************************************************************** */
 
 function getTransformedFile(transformerKind) {
+  process.env.TSP_SKIP_CACHE = true;
   const tsInstance = require('ts-patch/compiler');
-
 
   const configPath = path.join(__dirname, `tsconfig.${transformerKind}.json`);
   const configText = tsInstance.sys.readFile(configPath);

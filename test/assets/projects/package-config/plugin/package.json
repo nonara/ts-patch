@@ -1,0 +1,8 @@
+{
+  "main" : "plugin.js",
+  "tsp": {
+    "tscOptions": {
+      "parseAllJsDoc": true
+    }
+  }
+}
