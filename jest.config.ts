@@ -7,10 +7,8 @@ const config: Config.InitialOptions = {
   roots: [ '<rootDir>/test/tests' ],
   testRegex: '.*(test|spec)\\.tsx?$',
   moduleFileExtensions: [ 'ts', 'tsx', 'js', 'jsx', 'json', 'node' ],
-  globals: {
-    'ts-jest': {
-      tsconfig: './test/tsconfig.json'
-    }
+  transform: {
+    '^.+\\.(ts|tsx)$': ['ts-jest', { tsconfig: './test/tsconfig.json' }],
   },
   modulePaths: [ "<rootDir>/node_modules" ],
   // coveragePathIgnorePatterns: [
