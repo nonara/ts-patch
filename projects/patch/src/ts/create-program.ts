@@ -92,7 +92,8 @@ namespace tsp {
     const plugins = preparePluginsFromCompilerOptions(options.plugins);
     const pluginCreator = new PluginCreator(plugins, { resolveBaseDir: projectConfig.projectDir ?? process.cwd() });
 
-    if (tsp.currentLibrary === 'tsc' && pluginCreator.needsTscJsDocParsing) {
+    /* Handle JSDoc parsing in v5.3+ */
+    if (tsp.currentLibrary === 'tsc' && tsShim.JSDocParsingMode && pluginCreator.needsTscJsDocParsing) {
       host!.jsDocParsingMode = tsShim.JSDocParsingMode.ParseAll;
     }
 
