@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.1.1](https://github.com/nonara/ts-patch/compare/v3.1.0...v3.1.1) (2023-12-06)
+
+
+### Bug Fixes
+
+* parseAllJsDoc breaking with < ts 5.3 ([d21e02e](https://github.com/nonara/ts-patch/commit/d21e02ef6401f04301972f8f107799b8c287275b))
+
 ## [3.1.0](https://github.com/nonara/ts-patch/compare/v3.0.2...v3.1.0) (2023-12-05)
 
 
