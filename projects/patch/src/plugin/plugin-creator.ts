@@ -173,7 +173,9 @@ namespace tsp {
       const { resolveBaseDir } = options;
 
       /* Create plugins */
-      this.plugins = configs.map(config => new TspPlugin(config, { resolveBaseDir }));
+      this.plugins = configs
+        .filter(config => config.transform !== undefined)
+        .map(config => new TspPlugin(config, { resolveBaseDir }));
 
       /* Check if we need to parse all JSDoc comments */
       this.needsTscJsDocParsing = this.plugins.some(plugin => plugin.packageConfig?.tscOptions?.parseAllJsDoc === true);
