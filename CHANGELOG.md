@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.1.2](https://github.com/nonara/ts-patch/compare/v3.1.1...v3.1.2) (2024-01-10)
+
+
+### Bug Fixes
+
+* don't break if other plugin is added ([f2b591e](https://github.com/nonara/ts-patch/commit/f2b591e1a78636d009af048689f2ae1c0bb89bea))
+
 ### [3.1.1](https://github.com/nonara/ts-patch/compare/v3.1.0...v3.1.1) (2023-12-06)
 
 
