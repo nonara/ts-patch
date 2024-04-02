@@ -1,0 +1,7 @@
+{
+  "name": "transformer-extras-test",
+  "main": "src/index.ts",
+  "dependencies": {
+    "ts-node" : "^10.9.1"
+  }
+}
