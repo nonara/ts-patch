@@ -38,6 +38,11 @@ namespace tsp {
     return tmpDir;
   }
 
+  /** @internal */
+  export function getTsInstance() {
+    return (typeof ts !== 'undefined' ? ts : module.exports) as typeof import('typescript');
+  }
+
   // endregion
 
   /* ********************************************************* */

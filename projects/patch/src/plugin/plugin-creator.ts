@@ -63,7 +63,7 @@ namespace tsp {
         const { addDiagnostic, removeDiagnostic, diagnostics } = diagnosticExtrasFactory(program);
 
         pluginFactoryResult = (factory as ProgramPattern)(program, cleanConfig, {
-          ts: <any>ts,
+          ts: tsp.getTsInstance(),
           addDiagnostic,
           removeDiagnostic,
           diagnostics,

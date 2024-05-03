@@ -110,7 +110,7 @@ namespace tsp {
       if (activeProgramTransformers.has(transformerKey)) continue;
       activeProgramTransformers.add(transformerKey);
 
-      const newProgram: any = programTransformer(program, host, config, { ts: <any>ts });
+      const newProgram: any = programTransformer(program, host, config, { ts: tsp.getTsInstance() });
       if (typeof newProgram?.['emit'] === 'function') program = newProgram;
 
       activeProgramTransformers.delete(transformerKey);

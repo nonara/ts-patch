@@ -6,7 +6,10 @@ import { ModuleSlice } from './module-slice';
 // region: Utils
 /* ****************************************************************************************************************** */
 
-export function sliceTs5(moduleFile: ModuleFile): ModuleSlice {
+/**
+ * Slice 5.5+
+ */
+export function sliceTs55(moduleFile: ModuleFile): ModuleSlice {
   let firstSourceFileStart: number;
   let wrapperStart: number | undefined;
   let wrapperEnd: number | undefined;
@@ -21,6 +24,7 @@ export function sliceTs5(moduleFile: ModuleFile): ModuleSlice {
 
   const firstMatch = matcher.exec(content);
   if (!firstMatch?.[0]) throw ModuleSlice.createError();
+  let bodyWrapper: undefined | { start: string; end: string } = undefined;
 
   /* Handle wrapped */
   if (firstMatch[0].startsWith('var')) {
@@ -37,13 +41,16 @@ export function sliceTs5(moduleFile: ModuleFile): ModuleSlice {
     firstSourceFileStart = firstFileMatch.index;
 
     /* Find Wrapper end */
-    matcher = /^}\)\(\)\s*;?/gm;
+    // TODO - We may later want to find a better approach, but this will work for now
+    matcher = /^}\)\(typeof module !== "undefined" .+$/gm;
     matcher.lastIndex = firstFileMatch.index;
     const wrapperEndMatch = matcher.exec(content);
     if (!wrapperEndMatch?.[0]) throw ModuleSlice.createError();
 
     bodyEnd = wrapperEndMatch.index - 1;
     wrapperEnd = wrapperEndMatch.index + wrapperEndMatch[0].length;
+
+    bodyWrapper = { start: firstMatch[0], end: wrapperEndMatch[0] };
   }
   /* Handle non-wrapped */
   else {
@@ -65,7 +72,8 @@ export function sliceTs5(moduleFile: ModuleFile): ModuleSlice {
     wrapperPos: wrapperStart != null ? { start: wrapperStart, end: wrapperEnd! } : undefined,
     fileEnd: content.length,
     bodyPos: { start: bodyStart, end: bodyEnd },
-    sourceFileStarts
+    sourceFileStarts,
+    bodyWrapper
   };
 }
 

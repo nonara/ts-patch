@@ -50,10 +50,6 @@ export const corePatchName = `<core>`;
 export const modulePatchFilePath = path.resolve(appRoot, tspPackageJSON.directories.resources, 'module-patch.js');
 export const dtsPatchFilePath = path.resolve(appRoot, tspPackageJSON.directories.resources, 'module-patch.d.ts');
 
-// TODO - should do this in a better/dynamic way later
-export const tsWrapperOpen = `var ts = (() => {`;
-export const tsWrapperClose = `})();`;
-
 export const execTscCmd = 'execTsc';
 
 // endregion

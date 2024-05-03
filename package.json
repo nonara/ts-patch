@@ -74,7 +74,16 @@
     "ts-node": "^10.9.1",
     "ts-patch": "3.0.2",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.3.2"
+    "typescript": "^5.4.5",
+    "ts-next": "npm:typescript@beta",
+    "ts-expose-internals" : "npm:ts-expose-internals@5.4.5"
+  },
+  "workspaces": {
+    "nohoist": [
+      "jest",
+      "ts-jest",
+      "typescript"
+    ]
   },
   "directories": {
     "resources": "./dist/resources"

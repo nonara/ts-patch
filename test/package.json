@@ -4,7 +4,7 @@
     "perf": "ts-node -T --project tsconfig.json --files ./src/perf.ts"
   },
   "dependencies": {
-    "ts-latest": "npm:typescript@latest",
+    "ts-latest": "npm:typescript@beta",
     "ts-node": "latest",
     "ts-patch": "link:../dist",
     "tsconfig-paths": "latest",
