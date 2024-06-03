@@ -49,7 +49,7 @@ export namespace PrepareOptions {
 
   export const getDefaults = () => ({
     packageManager: 'npm',
-    tsVersion: 'latest'
+    tsVersion: 'beta'
   }) satisfies Partial<PrepareOptions>;
 }
 

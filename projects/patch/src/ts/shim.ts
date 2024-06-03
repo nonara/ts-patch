@@ -1,7 +1,5 @@
 /** @internal */
 namespace tsp {
-  declare const ts: typeof import('typescript') | undefined;
-
   /**
    * Compensate for modules which do not wrap functions in a `ts` namespace.
    */
@@ -9,23 +7,19 @@ namespace tsp {
     {},
     {
       get(_, key: string) {
-        if (ts) {
-          return (<any>ts)[key];
+        const target = tsp.getTsInstance();
+        if (target) {
+          return (<any>target)[key];
         } else {
           try {
             return eval(key);
           } catch (e) {
-            return undefined;
+            throw new TsPatchError(`Failed to find "${key}" in TypeScript shim`, e);
           }
         }
       },
     }
-  ) as typeof import('typescript')
-    /* Temporary until tsei works again */
-  & {
-    normalizePath: any;
-    fixupCompilerOptions: any;
-  }
+  ) as typeof import('typescript');
 
   export namespace tsShim {
     export type CompilerOptions = import('typescript').CompilerOptions;

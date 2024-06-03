@@ -83,7 +83,15 @@ namespace tsp {
           if (tsExtensions.includes(resolvedPathExt)) {
             if (!builtFiles.has(resolvedPath)) {
               const tsCode = fs.readFileSync(resolvedPath, 'utf8');
-              const jsCode = registerConfig.tsNodeInstance!.compile(tsCode, resolvedPath);
+
+              // NOTE - I don't know why, but if you supply a *.ts file to tsNode.compile it will be output as cjs,
+              //  regardless of the tsConfig properly specifying ESNext for module and target. Notably, this issue seems
+              //  to have started with TS v5.5,
+              //
+              //  To work around, we will tell ts-node that it's an "mjs" file.
+              const newPath = resolvedPath.replace(/\.ts$/, '.mts');
+
+              const jsCode = registerConfig.tsNodeInstance!.compile(tsCode, newPath);
               const outputFileName = getHash() + '.mjs';
               const outputFilePath = path.join(getTmpDir('esm'), outputFileName);
               fs.writeFileSync(outputFilePath, jsCode, 'utf8');

@@ -14,6 +14,10 @@ export interface ModuleSource {
   fileFooter?: SourceSection;
   usesTsNamespace: boolean;
   getSections(): [ sectionName: SourceSection['sectionName'], section: SourceSection | undefined ][];
+  bodyWrapper?: {
+    start: string;
+    end: string;
+  }
 }
 
 // endregion
@@ -26,7 +30,7 @@ export interface ModuleSource {
 export function getModuleSource(tsModule: TsModule): ModuleSource {
   const moduleFile = tsModule.getUnpatchedModuleFile();
 
-  const { firstSourceFileStart, fileEnd, wrapperPos, bodyPos, sourceFileStarts } =
+  const { firstSourceFileStart, fileEnd, wrapperPos, bodyPos, sourceFileStarts, bodyWrapper } =
     sliceModule(moduleFile, tsModule.package.version);
 
   const fileHeaderEnd = wrapperPos?.start ?? firstSourceFileStart;
@@ -47,7 +51,8 @@ export function getModuleSource(tsModule: TsModule): ModuleSource {
         ...this.body.map((section, i) => [ `body`, section ] as [ SourceSection['sectionName'], SourceSection ]),
         [ 'file-footer', this.fileFooter ],
       ];
-    }
+    },
+    bodyWrapper,
   }
 }
 

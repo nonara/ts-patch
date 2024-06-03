@@ -9,6 +9,8 @@ function getTransformedFile(transformerKind) {
   process.env.TSP_SKIP_CACHE = true;
   const tsInstance = require('ts-patch/compiler');
 
+  console.log('TS version: ', tsInstance.version);
+
   const configPath = path.join(__dirname, `tsconfig.${transformerKind}.json`);
   const configText = tsInstance.sys.readFile(configPath);
   const configParseResult = tsInstance.parseConfigFileTextToJson(configPath, configText);

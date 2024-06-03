@@ -1,12 +1,10 @@
 import ts from 'typescript';
 import fs from 'fs';
-import {
-  defaultNodePrinterOptions, dtsPatchFilePath, execTscCmd, modulePatchFilePath, tsWrapperClose, tsWrapperOpen
-} from '../config';
+import { defaultNodePrinterOptions, dtsPatchFilePath, execTscCmd, modulePatchFilePath } from '../config';
 import { getTsModule, TsModule } from '../module';
 import {
-  addOriginalCreateProgramTransformer, createMergeStatementsTransformer, fixTsEarlyReturnTransformer,
-  hookTscExecTransformer, patchCreateProgramTransformer, patchEmitterTransformer
+  addOriginalCreateProgramTransformer, createMergeStatementsTransformer, createProgramExportFiles,
+  fixTsEarlyReturnTransformer, hookTscExecTransformer, patchCreateProgramTransformer, patchEmitterTransformer
 } from './transformers';
 import { SourceSection } from '../module/source-section';
 import { PatchError } from '../system';
@@ -39,6 +37,7 @@ export function patchModule(tsModule: TsModule, skipDts: boolean = false): { js:
   }
 
   const source = tsModule.getUnpatchedSource();
+  const { bodyWrapper } = source;
 
   const printableBodyFooters: (SourceSection | string)[] = [];
   const printableFooters: (SourceSection | string)[] = [];
@@ -64,11 +63,13 @@ export function patchModule(tsModule: TsModule, skipDts: boolean = false): { js:
     source.body.unshift(...tsSource.body);
 
     /* Fix early return */
-    const typescriptSection = source.body.find(s => s.srcFileName === 'src/typescript/typescript.ts');
-    if (!typescriptSection) throw new PatchError(`Could not find Typescript source section`);
-    typescriptSection.transform([ fixTsEarlyReturnTransformer ]);
-
-    printableBodyFooters.push(`return returnResult;`);
+    // NOTE - This exists up until TS 5.4, but isn't there for 5.5+
+    if (tsModule.majorVer <= 5 && tsModule.minorVer <= 4) {
+      const typescriptSection = source.body.find(s => s.srcFileName === 'src/typescript/typescript.ts');
+      if (!typescriptSection) throw new PatchError(`Could not find Typescript source section`);
+      typescriptSection.transform([ fixTsEarlyReturnTransformer ]);
+      printableBodyFooters.push(`return returnResult;`);
+    }
   }
 
   /* Patch Program */
@@ -77,9 +78,22 @@ export function patchModule(tsModule: TsModule, skipDts: boolean = false): { js:
   programSection.transform([ patchCreateProgramTransformer ]);
 
   /* Add originalCreateProgram to exports */
-  const namespacesTsSection = source.body.find(s => s.srcFileName === 'src/typescript/_namespaces/ts.ts');
-  if (!namespacesTsSection) throw new PatchError(`Could not find NamespacesTs source section`);
-  namespacesTsSection.transform([ addOriginalCreateProgramTransformer ]);
+  let createProgramAdded = false;
+  for (const fileName of createProgramExportFiles) {
+    // As of TS 5.5, we have to handle cases of multiple instances of the same file name. In this case, we need to
+    // handle both src/typescript/typescript.ts
+    const sections = source.body.filter(s => s.srcFileName === fileName);
+    for (const section of sections) {
+      try {
+        section.transform([ addOriginalCreateProgramTransformer ]);
+        createProgramAdded = true;
+      } catch (e) {
+        if (!(e instanceof PatchError)) throw e;
+      }
+    }
+  }
+
+  if (!createProgramAdded) throw new PatchError(`Could not find any of the createProgram export files`);
 
   /* Patch emitter (for diagnostics tools) */
   const emitterSection = source.body.find(s => s.srcFileName === 'src/compiler/watch.ts');
@@ -128,7 +142,7 @@ export function patchModule(tsModule: TsModule, skipDts: boolean = false): { js:
 
     /* Body Wrapper Open */
     if (shouldWrap) {
-      list.push([ `\n${tsWrapperOpen}\n`, indentLevel ]);
+      if (bodyWrapper) list.push([ `\n${bodyWrapper.start}\n`, indentLevel ]);
       indentLevel = 2;
     }
 
@@ -144,7 +158,7 @@ export function patchModule(tsModule: TsModule, skipDts: boolean = false): { js:
     /* Body Wrapper Close */
     if (shouldWrap) {
       indentLevel = 0;
-      list.push([ `\n${tsWrapperClose}\n`, indentLevel ]);
+      if (bodyWrapper) list.push([ `\n${bodyWrapper.end}\n`, indentLevel ]);
     }
 
     /* File Footer */

@@ -1,7 +1,8 @@
 import { ModuleFile } from '../module';
 import { Position } from '../system';
 import semver from 'semver';
-import { sliceTs5 } from './ts5';
+import { sliceTs54 } from './ts54';
+import { sliceTs55 } from './ts55';
 
 
 /* ****************************************************************************************************************** */
@@ -15,6 +16,10 @@ export interface ModuleSlice {
   bodyPos: Position
   fileEnd: number
   sourceFileStarts: [ name: string, position: number ][]
+  bodyWrapper?: {
+    start: string;
+    end: string;
+  }
 }
 
 // endregion
@@ -25,12 +30,18 @@ export interface ModuleSlice {
 /* ****************************************************************************************************************** */
 
 export function sliceModule(moduleFile: ModuleFile, tsVersion: string) {
-  if (semver.lte(tsVersion, '5.0.0')) {
+  const baseVersion = semver.coerce(tsVersion, { includePrerelease: false });
+  if (!baseVersion) throw new Error(`Could not parse TS version: ${tsVersion}`);
+
+  if (semver.lt(baseVersion, '5.0.0')) {
     throw new Error(`Cannot patch TS version <5`);
   }
 
-  /* Handle 5+ */
-  return sliceTs5(moduleFile);
+  if (semver.lt(baseVersion, '5.5.0')) {
+    return sliceTs54(moduleFile);
+  }
+
+  return sliceTs55(moduleFile);
 }
 
 /** @internal */
