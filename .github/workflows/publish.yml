@@ -17,7 +17,7 @@ jobs:
       - name: Setup Node.js 19.x to publish to npmjs.org
         uses: actions/setup-node@v1
         with:
-          node-version: '19.x'
+          node-version: '20.x'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install Packages
