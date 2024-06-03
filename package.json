@@ -1,6 +1,6 @@
 {
   "name": "ts-patch",
-  "version": "3.1.2",
+  "version": "3.2.0",
   "description": "Patch typescript to support custom transformers in tsconfig.json",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -76,9 +76,13 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.4.5",
     "ts-next": "npm:typescript@beta",
-    "ts-expose-internals" : "npm:ts-expose-internals@5.4.5"
+    "ts-expose-internals": "npm:ts-expose-internals@5.4.5"
   },
   "workspaces": {
+    "packages": [
+      "projects/path",
+      "projects/core"
+    ],
     "nohoist": [
       "jest",
       "ts-jest",
