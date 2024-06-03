@@ -88,7 +88,7 @@ namespace tsp {
               //  regardless of the tsConfig properly specifying ESNext for module and target. Notably, this issue seems
               //  to have started with TS v5.5,
               //
-              //  To work around, we will tell ts-node that it's an "mjs" file.
+              //  To work around, we will tell ts-node that it's an "mts" file.
               const newPath = resolvedPath.replace(/\.ts$/, '.mts');
 
               const jsCode = registerConfig.tsNodeInstance!.compile(tsCode, newPath);
