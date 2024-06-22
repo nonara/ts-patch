@@ -190,8 +190,6 @@ export default function (program: ts.Program, pluginConfig: PluginConfig, { ts: 
 
 [`{ transform: "@nestia/core/lib/transform" }`](https://github.com/samchon/nestia)
 
-[`{ transform: "ts-overrides-plugin", transformProgram: true }`](https://github.com/DiFuks/ts-overrides-plugin)
-
 ### Altering Diagnostics
 
 Diagnostics can be altered in a Source Transformer.
@@ -266,6 +264,8 @@ export default function (
 **Live Examples**:
 
 [`{ transform: "@typescript-virtual-barrel/compiler-plugin", transformProgram: true }`](https://github.com/zaguiini/typescript-virtual-barrel)
+
+[`{ transform: "ts-overrides-plugin", transformProgram: true }`](https://github.com/DiFuks/ts-overrides-plugin)
 
 ## Plugin Package Configuration
 
