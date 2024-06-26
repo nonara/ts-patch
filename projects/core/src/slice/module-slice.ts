@@ -3,6 +3,7 @@ import { Position } from '../system';
 import semver from 'semver';
 import { sliceTs54 } from './ts54';
 import { sliceTs55 } from './ts55';
+import { sliceTs552 } from './ts552';
 
 
 /* ****************************************************************************************************************** */
@@ -41,7 +42,11 @@ export function sliceModule(moduleFile: ModuleFile, tsVersion: string) {
     return sliceTs54(moduleFile);
   }
 
-  return sliceTs55(moduleFile);
+  if (semver.lt(baseVersion, '5.5.2')) {
+    return sliceTs55(moduleFile);
+  }
+
+  return sliceTs552(moduleFile);
 }
 
 /** @internal */
