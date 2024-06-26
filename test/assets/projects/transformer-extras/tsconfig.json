@@ -1,0 +1,15 @@
+{
+  "include": [
+    "src"
+  ],
+  "compilerOptions": {
+    "outDir": "dist",
+    "module": "commonjs",
+    "target": "esnext",
+    "plugins" : [
+      {
+        "transform": "./src/transformer.ts"
+      }
+    ]
+  }
+}
