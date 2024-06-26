@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.2.1](https://github.com/nonara/ts-patch/compare/v3.2.0...v3.2.1) (2024-06-26)
+
+
+### Bug Fixes
+
+* Added TS 5.5.2 support ([31eb80f](https://github.com/nonara/ts-patch/commit/31eb80f1dcca45d15917e4b6621769f80e57ebe1))
+
 ## [3.2.0](https://github.com/nonara/ts-patch/compare/v3.1.2...v3.2.0) (2024-06-03)
 
 
