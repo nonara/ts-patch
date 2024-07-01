@@ -265,6 +265,8 @@ export default function (
 
 [`{ transform: "@typescript-virtual-barrel/compiler-plugin", transformProgram: true }`](https://github.com/zaguiini/typescript-virtual-barrel)
 
+[`{ transform: "ts-overrides-plugin", transformProgram: true }`](https://github.com/DiFuks/ts-overrides-plugin)
+
 ## Plugin Package Configuration
 
 The plugin package configuration allows you to specify custom options for your TypeScript plugin. 
