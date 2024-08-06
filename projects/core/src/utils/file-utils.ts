@@ -77,7 +77,7 @@ export function withFileLock<T>(filePath: string, fn: () => T): T {
     fs.writeFileSync(lockFilePath, '');
     return fn();
   } finally {
-    if (fs.existsSync(lockFilePath)) fs.unlinkSync(lockFilePath);
+    if (fs.existsSync(lockFilePath)) fs.rmSync(lockFilePath, { force: true });
   }
 }
 
