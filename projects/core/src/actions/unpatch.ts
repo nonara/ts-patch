@@ -69,7 +69,14 @@ export function unpatch(moduleNameOrNames: string | string[], opts?: Partial<Ins
           throw new Error(`Cannot find backup file: ${backupPath}. Try reinstalling typescript.`);
 
         const moduleDir = path.dirname(tsModule.modulePath);
-        const destPath = path.join(moduleDir, path.basename(backupPath));
+
+        /* Determine destination path (Need to use moduleContentPath if we're working with a cached module file */
+        const baseFileName = path.basename(backupPath);
+        const destPathName = baseFileName === tsModule.moduleName
+          ? path.basename(tsModule.moduleContentFilePath)
+          : baseFileName;
+
+        const destPath = path.join(moduleDir, destPathName);
 
         copyFileWithLock(backupPath, destPath);
       }

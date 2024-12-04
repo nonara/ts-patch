@@ -2,6 +2,7 @@ import fs from 'fs';
 import { PatchDetail } from '../patch/patch-detail';
 import path from 'path';
 import { getHash, withFileLock } from '../utils';
+import { TsModule } from './ts-module';
 
 
 /* ****************************************************************************************************************** */
@@ -22,6 +23,7 @@ export interface ModuleFile {
   moduleName: string
   patchDetail?: PatchDetail
   filePath: string
+  contentFilePath: string
   get content(): string
 
   getHash(): string
@@ -99,17 +101,21 @@ function readFile(filePath: string, headersOnly?: boolean) {
 /* ****************************************************************************************************************** */
 
 export function getModuleFile(filePath: string, loadFullContent?: boolean): ModuleFile {
-  let { headerLines, content } = readFile(filePath, !loadFullContent);
+  /* Determine shim redirect file - see: https://github.com/nonara/ts-patch/issues/174 */
+  const moduleName = path.basename(filePath);
+  const contentFilePath = TsModule.getContentFilePathForModulePath(filePath);
 
   /* Get PatchDetail */
+  let { headerLines, content } = readFile(contentFilePath, !loadFullContent);
   const patchDetail = PatchDetail.fromHeader(headerLines);
 
   return {
-    moduleName: path.basename(filePath),
+    moduleName,
     filePath,
+    contentFilePath,
     patchDetail,
     get content() {
-      if (content == null) content = readFile(this.filePath, false).content;
+      if (content == null) content = readFile(this.contentFilePath, false).content;
       return content!;
     },
     getHash(): string {

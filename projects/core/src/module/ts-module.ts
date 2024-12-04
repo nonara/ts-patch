@@ -12,7 +12,30 @@ import { cachedFilePatchedPrefix } from '../config';
 /* ****************************************************************************************************************** */
 
 export namespace TsModule {
-  export const names = <const>['tsc.js', 'tsserverlibrary.js', 'typescript.js', 'tsserver.js'];
+  export const names = <const>[ 'tsc.js', 'tsserverlibrary.js', 'typescript.js', 'tsserver.js' ];
+
+  export const contentFileMap: Record<string, string> = {
+    'tsc.js': '_tsc.js',
+    'tsserver.js': '_tsserver.js'
+  } satisfies Partial<Record<typeof names[number], string>>;
+
+  export function getContentFileName(moduleName: typeof names[number]): string {
+    return contentFileMap[moduleName] || moduleName;
+  }
+
+  /* Determine shim redirect file - see: https://github.com/nonara/ts-patch/issues/174 */
+  export function getContentFilePathForModulePath(modulePath: string): string {
+    const baseName = path.basename(modulePath);
+    if (!names.includes(baseName as any)) throw new TspError(`Invalid module path: ${modulePath}`);
+
+    const redirectFile = contentFileMap[baseName];
+    const maybeModuleContentPath = redirectFile && path.join(path.dirname(modulePath), redirectFile);
+    const moduleContentPath = maybeModuleContentPath && fs.existsSync(maybeModuleContentPath)
+      ? maybeModuleContentPath
+      : modulePath;
+
+    return moduleContentPath;
+  }
 }
 
 // endregion
@@ -30,6 +53,7 @@ export interface TsModule {
 
   moduleName: TsModule.Name;
   modulePath: string;
+  moduleContentFilePath: string;
   moduleFile: ModuleFile;
   dtsPath: string | undefined;
 
@@ -113,6 +137,7 @@ export function getTsModule(
     moduleName,
     modulePath,
     moduleFile,
+    moduleContentFilePath: moduleFile.contentFilePath,
     dtsPath,
 
     cacheKey,

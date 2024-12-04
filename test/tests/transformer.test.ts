@@ -26,7 +26,11 @@ describe(`Transformer`, () => {
   let loaderResolve: (value?: unknown) => void;
   let loaderPromise = new Promise(resolve => loaderResolve = resolve);
   beforeAll(() => {
-    const prepRes = prepareTestProject({ projectName: 'transform', packageManager: 'yarn' });
+    const prepRes = prepareTestProject({
+      projectName: 'transform',
+      packageManager: 'yarn',
+      tsVersion: '5.5.2',
+    });
     projectPath = prepRes.tmpProjectPath;
     loaderResolve();
   });
@@ -35,6 +39,6 @@ describe(`Transformer`, () => {
     await loaderPromise;
 
     const res = execSync(`node run-transform.js ${transformerKind}`, { cwd: projectPath });
-    expect(res.toString('utf8')).toMatch(new RegExp(`^var a = "after-${transformerKind}";?$`, 'm'));
+    expect(res.toString('utf8')).toMatch(new RegExp(`^(?:var|const) a = "after-${transformerKind}";?$`, 'm'));
   });
 });

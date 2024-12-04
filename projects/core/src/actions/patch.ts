@@ -54,7 +54,7 @@ export function patch(moduleNameOrNames: string | string[], opts?: Partial<Insta
     const { 1: moduleFile } = entry;
     const tsModule = getTsModule(tsPackage, moduleFile, { skipCache: true });
 
-    const { moduleName, modulePath } = tsModule;
+    const { moduleName, modulePath, moduleContentFilePath } = tsModule;
     log(
       [ '~', `Patching ${chalk.blueBright(moduleName)} in ${chalk.blueBright(path.dirname(modulePath ))}` ],
       LogLevel.verbose
@@ -68,12 +68,12 @@ export function patch(moduleNameOrNames: string | string[], opts?: Partial<Insta
         [
           '~',
           `Writing patched ${chalk.blueBright(moduleName)} to ` +
-          `${chalk.blueBright(modulePath)}${loadedFromCache ? ' (cached)' : ''}`
+          `${chalk.blueBright(moduleContentFilePath)}${loadedFromCache ? ' (cached)' : ''}`
         ],
         LogLevel.verbose
       );
 
-      writeFileWithLock(tsModule.modulePath, js!);
+      writeFileWithLock(moduleContentFilePath, js!);
       if (dts) writeFileWithLock(tsModule.dtsPath!, dts!);
 
       log([ '+', chalk.green(`Successfully patched ${chalk.bold.yellow(moduleName)}.\r\n`) ], LogLevel.verbose);

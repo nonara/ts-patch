@@ -17,6 +17,7 @@ import ts from 'typescript';
 /* ****************************************************************************************************************** */
 
 const verboseMode = !!process.env.VERBOSE;
+// const verboseMode = true;
 
 /* Options to use with install/uninstall */
 const testingPackageManagers = [
@@ -43,7 +44,10 @@ function getModulesSources(tsPackage: TsPackage, moduleNames?: string[]) {
   return new Map(moduleNames.map(name => {
     const modulePath = tsPackage.getModulePath(name);
     const dtsPath = modulePath.replace(/\.js$/, '.d.ts');
-    const js = fs.readFileSync(modulePath, 'utf-8');
+
+    const moduleContentPath = TsModule.getContentFilePathForModulePath(modulePath);
+
+    const js = fs.readFileSync(moduleContentPath, 'utf-8');
     const dts = fs.existsSync(dtsPath) ? fs.readFileSync(dtsPath, 'utf-8') : undefined;
 
     return [ name, { js, dts } ];
@@ -192,7 +196,7 @@ describe(`TSP Actions`, () => {
           const dtsFilePath = path.join(tsDir, 'typescript.d.ts');
 
           const compilerOptions = Object.assign(ts.getDefaultCompilerOptions(), {
-            target: 'ES2018',
+            target: ts.ScriptTarget.ES2018,
             lib: [ 'es2018' ],
             skipDefaultLibCheck: true
           });
@@ -255,7 +259,8 @@ describe(`TSP Actions`, () => {
             expect(src).toBe(origSrcEntry.dts);
           }
 
-          const src = fs.readFileSync(m.modulePath, 'utf-8');
+          const contentFilePath = TsModule.getContentFilePathForModulePath(m.modulePath);
+          const src = fs.readFileSync(contentFilePath, 'utf-8');
           expect(src).toBe(origSrcEntry.js);
         }
       });

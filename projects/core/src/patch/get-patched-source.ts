@@ -33,7 +33,7 @@ export function getPatchedSource(tsModule: TsModule, options?: GetPatchedSourceO
   /* Write backup if not patched */
   if (!tsModule.isPatched) {
     for (const [ key, backupPath ] of Object.entries(backupCachePaths)) {
-      const srcPath = key === 'dts' ? tsModule.dtsPath : tsModule.modulePath;
+      const srcPath = key === 'dts' ? tsModule.dtsPath : tsModule.moduleContentFilePath;
       if (key === 'dts' && options?.skipDts) continue;
       if (!srcPath) continue;
 
