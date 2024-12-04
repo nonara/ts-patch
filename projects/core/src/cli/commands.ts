@@ -16,11 +16,11 @@ export const cliCommandsConfig: CliConfig = {
       `Check patch status (use with ${chalk.cyanBright('--dir')} to specify TS package location)`
   },
   patch: {
-    short: void 0, paramCaption: '<module_file> | <glob>', caption:
+    short: void 0, paramCaption: '<module_file>', caption:
       'Patch specific module(s) ' + chalk.yellow('(advanced)')
   },
   unpatch: {
-    short: void 0, paramCaption: '<module_file> | <glob>', caption:
+    short: void 0, paramCaption: '<module_file>', caption:
       'Un-patch specific module(s) ' + chalk.yellow('(advanced)')
   },
   'clear-cache': { caption: 'Clears cache and lock-files' },
