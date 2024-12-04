@@ -14,7 +14,7 @@ jobs:
 
     strategy:
       matrix:
-        # NOTE - 22 is failing due to odd bug - maybe bug in node? Need to re-enable later
+        # NOTE - 21+ is failing due to odd bug - maybe bug in node - see https://github.com/nonara/ts-patch/issues/153
         node-version: [ 18.x, 20.x ]
 
     steps:
