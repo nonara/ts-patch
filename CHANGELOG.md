@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.3.0](https://github.com/nonara/ts-patch/compare/v3.2.1...v3.3.0) (2024-12-04)
+
+
+### Features
+
+* Add support for ts 5.7+ (closes [#174](https://github.com/nonara/ts-patch/issues/174)) ([396766c](https://github.com/nonara/ts-patch/commit/396766c2e1dbe767a99c2cd277470d3731e87623))
+
 ### [3.2.1](https://github.com/nonara/ts-patch/compare/v3.2.0...v3.2.1) (2024-06-26)
 
 
