@@ -6,6 +6,7 @@ import path from 'path';
 import { getInstallerOptions, InstallerOptions } from '../options';
 import { writeFileWithLock } from '../utils';
 import { getPatchedSource } from '../patch/get-patched-source';
+import { existsSync } from 'fs';
 
 
 /* ****************************************************************************************************************** */
@@ -29,7 +30,10 @@ export function patch(moduleNameOrNames: string | string[], opts?: Partial<Insta
 
   /* Get modules to patch and patch info */
   const moduleFiles: [ string, ModuleFile ][] =
-    targetModuleNames.map(m => [ m, getModuleFile(tsPackage.getModulePath(m)) ]);
+    targetModuleNames
+      .filter(m => existsSync(tsPackage.getModulePath(m)))
+      .map(m => [ m, getModuleFile(tsPackage.getModulePath(m)) ]);
+  if (!moduleFiles.length) throw new PatchError(`No valid modules found to patch`);
 
   /* Determine files not already patched or outdated  */
   const patchableFiles = moduleFiles.filter(entry => {
