@@ -12,7 +12,14 @@ import { cachedFilePatchedPrefix } from '../config';
 /* ****************************************************************************************************************** */
 
 export namespace TsModule {
-  export const names = <const>['tsc.js', 'tsserverlibrary.js', 'typescript.js', 'tsserver.js'];
+  export const names = <const>[
+    'tsc.js', 
+    'tsserverlibrary.js', 
+    'typescript.js', 
+    'tsserver.js', 
+    '_tsc.js', 
+    '_tsserver.js',
+  ];
 }
 
 // endregion
