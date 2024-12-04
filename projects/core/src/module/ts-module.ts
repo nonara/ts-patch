@@ -26,7 +26,6 @@ export namespace TsModule {
   /* Determine shim redirect file - see: https://github.com/nonara/ts-patch/issues/174 */
   export function getContentFilePathForModulePath(modulePath: string): string {
     const baseName = path.basename(modulePath);
-    if (!names.includes(baseName as any)) throw new TspError(`Invalid module path: ${modulePath}`);
 
     const redirectFile = contentFileMap[baseName];
     const maybeModuleContentPath = redirectFile && path.join(path.dirname(modulePath), redirectFile);
