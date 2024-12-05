@@ -71,9 +71,9 @@
     "standard-version": "^9.5.0",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.1",
-    "ts-patch": "^3.2.1",
+    "ts-patch": "^3.3.0",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "5.5.2",
+    "typescript": "5.7.2",
     "ts-next": "npm:typescript@beta",
     "ts-expose-internals": "npm:ts-expose-internals@5.4.5"
   },
