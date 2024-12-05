@@ -74,7 +74,7 @@ namespace tsp {
       rootNames = createOpts.rootNames;
       options = createOpts.options;
       host = createOpts.host;
-      oldProgram = createOpts.oldProgram;
+      oldProgram = <tsShim.Program>(createOpts.oldProgram);
       configFileParsingDiagnostics = createOpts.configFileParsingDiagnostics;
     } else {
       options = options!;
@@ -98,9 +98,12 @@ namespace tsp {
     }
 
     /* Invoke TS createProgram */
-    let program: tsShim.Program & { originalEmit?: tsShim.Program['emit'] } = createOpts ?
-      tsShim.originalCreateProgram(createOpts) :
-      tsShim.originalCreateProgram(rootNames, options, host, oldProgram, configFileParsingDiagnostics);
+    let program: tsShim.Program & {
+      originalEmit?: tsShim.Program['emit'];
+      originalGetSemanticDiagnostics?: tsShim.Program['getSemanticDiagnostics'];
+    } = createOpts ?
+      <tsShim.Program>(tsShim.originalCreateProgram(createOpts)):
+      <tsShim.Program>(tsShim.originalCreateProgram(rootNames, options, host, oldProgram, configFileParsingDiagnostics));
 
     /* Prevent recursion in Program transformers */
     const programTransformers = pluginCreator.createProgramTransformers();
@@ -149,6 +152,20 @@ namespace tsp {
         if (!result.diagnostics.includes(diagnostic)) (<tsShim.Diagnostic[]>result.diagnostics).push(diagnostic)
 
       return result;
+    }
+
+    /* Hook getSemanticDiagnostics method for ts-loader */
+    if (!program.originalGetSemanticDiagnostics) {
+      program.originalGetSemanticDiagnostics = program.getSemanticDiagnostics;
+      program.getSemanticDiagnostics = newGetSemanticDiagnostics;
+    }
+
+    function newGetSemanticDiagnostics(sourceFile: tsShim.SourceFile, cancellationToken?: tsShim.CancellationToken) {
+      const originalDiagnostics = program.originalGetSemanticDiagnostics!(sourceFile, cancellationToken);
+      const addedDiagnostics = tsp.diagnosticMap.get(program) || [];
+      const diagnosticsByFile = addedDiagnostics.filter(it => it.file === sourceFile);
+
+      return originalDiagnostics.concat(diagnosticsByFile);
     }
 
     return program;
