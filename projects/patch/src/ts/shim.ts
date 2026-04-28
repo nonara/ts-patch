@@ -19,7 +19,7 @@ namespace tsp {
         }
       },
     }
-  ) as typeof import('typescript');
+  ) as TsInstance;
 
   export namespace tsShim {
     export type CompilerOptions = import('typescript').CompilerOptions;

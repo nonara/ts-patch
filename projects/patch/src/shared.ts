@@ -15,6 +15,11 @@ namespace tsp {
   export const supportedExtensions = [ '.ts', '.mts', '.cts', '.js', '.mjs', '.cjs' ];
   export const tsExtensions = [ '.ts', '.mts', '.cts' ];
 
+  /** @internal */
+  export type TsInstance = typeof import('typescript') & {
+    originalCreateProgram: typeof import('typescript').createProgram
+  };
+
   // endregion
 
   /* ********************************************************* */
@@ -40,7 +45,7 @@ namespace tsp {
 
   /** @internal */
   export function getTsInstance() {
-    return (typeof ts !== 'undefined' ? ts : module.exports) as typeof import('typescript');
+    return (typeof ts !== 'undefined' ? ts : module.exports) as TsInstance;
   }
 
   // endregion

@@ -5,25 +5,6 @@ namespace tsp {
   const crypto = require('crypto');
 
   /* ********************************************************* */
-  // region: Helpers
-  /* ********************************************************* */
-
-  function getEsmLibrary() {
-    try {
-      return require('esm') as typeof import('esm');
-    } catch (e) {
-      if (e.code === 'MODULE_NOT_FOUND')
-        throw new TsPatchError(
-          `Plugin is an ESM module. To enable experimental ESM support, ` +
-          `install the 'esm' package as a (dev)-dependency or global.`
-        );
-      else throw e;
-    }
-  }
-
-  // endregion
-
-  /* ********************************************************* */
   // region: Utils
   /* ********************************************************* */
 
@@ -72,15 +53,27 @@ namespace tsp {
       try {
         return originalRequire.apply(this, arguments);
       } catch (e) {
+        /*
+         * Native Node >=22.12 can synchronously require compatible JavaScript ESM, so this branch is not expected
+         * for normal .mjs transformer loading anymore. It is still reached while ts-node is in the loading path:
+         * ts-node's CommonJS require hook refuses .mts files, and .ts files inside "type": "module" packages,
+         * by throwing ERR_REQUIRE_ESM. Until ts-node is replaced, this fallback compiles that TS ESM source to a
+         * temporary .mjs file and lets native Node require() load the compiled output.
+         *
+         * When the transformer loader is moved from ts-node to a direct TypeScript compiler API path, revisit
+         * whether this require hook, the ERR_REQUIRE_ESM control flow, and the isEsm option can be removed.
+         */
         if (e.code === 'ERR_REQUIRE_ESM') {
           const resolvedPath = Module._resolveFilename(request, this, false);
           const resolvedPathExt = path.extname(resolvedPath);
 
-          if (Module._cache[resolvedPath]) return Module._cache[resolvedPath].exports;
-
           /* Compile TS */
           let targetFilePath: string;
           if (tsExtensions.includes(resolvedPathExt)) {
+            if (resolvedPathExt === '.cts') {
+              throw new TsPatchError(`Cannot load ".cts" transformer "${resolvedPath}" as ESM. Use ".mts" for ESM transformers.`);
+            }
+
             if (!builtFiles.has(resolvedPath)) {
               const tsCode = fs.readFileSync(resolvedPath, 'utf8');
 
@@ -105,19 +98,7 @@ namespace tsp {
             targetFilePath = resolvedPath;
           }
 
-          /* Setup new module */
-          const newModule = new Module(request, this);
-          newModule.filename = resolvedPath;
-          newModule.paths = Module._nodeModulePaths(resolvedPath);
-
-          /* Add to cache */
-          Module._cache[resolvedPath] = newModule;
-
-          /* Load with ESM library */
-          const res = getEsmLibrary()(newModule)(targetFilePath);
-          newModule.filename = resolvedPath;
-
-          return res;
+          return originalRequire.apply(this, [ targetFilePath ]);
         }
 
         throw e;

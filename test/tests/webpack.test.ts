@@ -1,4 +1,4 @@
-import { execSync, ExecSyncOptions } from 'child_process';
+import { execSync } from 'child_process';
 import { prepareTestProject } from '../src/project';
 
 
@@ -6,19 +6,14 @@ import { prepareTestProject } from '../src/project';
 // region: Helpers
 /* ****************************************************************************************************************** */
 
-function execAndGetErr(projectPath: string, projectFile: string = '', hideModules?: string) {
-  const extraOpts: ExecSyncOptions = {
-    ...(hideModules ? { env: { ...process.env, HIDE_MODULES: hideModules } } : {})
-  };
-
-  const cmd = `ts-node ${hideModules ? '-r ./hide-module.js' : ''} -C ts-patch/compiler${projectFile ? ` -P ${projectFile}` : ''}`
+function execAndGetErr(projectPath: string, projectFile: string = '') {
+  const cmd = `ts-node -C ts-patch/compiler${projectFile ? ` -P ${projectFile}` : ''}`
   try {
     execSync(
       cmd,
       {
         cwd: projectPath,
         stdio: [ 'ignore', 'pipe', 'pipe' ],
-        ...extraOpts
       });
   } catch (e) {
     return e.stderr.toString();
@@ -46,18 +41,13 @@ describe('Webpack', () => {
     expect(err).toContain('Error: ts-patch worked (cjs)');
   });
 
-  test.skip(`Compiler with ESM TS transformer works`, () => {
+  test(`Compiler with ESM TS transformer works`, () => {
     const err = execAndGetErr(projectPath, './tsconfig.esmts.json');
     expect(err).toContain('Error: ts-patch worked (esmts)');
   });
 
-  test.skip(`Compiler with ESM JS transformer works`, () => {
+  test(`Compiler with ESM JS transformer works`, () => {
     const err = execAndGetErr(projectPath, './tsconfig.esm.json');
     expect(err).toContain('Error: ts-patch worked (esm)');
-  });
-
-  test.skip(`Compiler with ESM transformer throws if no ESM package`, () => {
-    const err = execAndGetErr(projectPath, './tsconfig.esm.json', 'esm');
-    expect(err).toContain('To enable experimental ESM support, install the \'esm\' package');
   });
 });
