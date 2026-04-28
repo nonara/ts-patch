@@ -4,6 +4,7 @@
     "outDir": "dist",
     "module": "commonjs",
     "target": "esnext",
+    "types": [],
     "noEmit": true,
     "plugins" : [
       { "transform": "./plugin" }

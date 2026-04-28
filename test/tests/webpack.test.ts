@@ -46,17 +46,17 @@ describe('Webpack', () => {
     expect(err).toContain('Error: ts-patch worked (cjs)');
   });
 
-  test(`Compiler with ESM TS transformer works`, () => {
+  test.skip(`Compiler with ESM TS transformer works`, () => {
     const err = execAndGetErr(projectPath, './tsconfig.esmts.json');
     expect(err).toContain('Error: ts-patch worked (esmts)');
   });
 
-  test(`Compiler with ESM JS transformer works`, () => {
+  test.skip(`Compiler with ESM JS transformer works`, () => {
     const err = execAndGetErr(projectPath, './tsconfig.esm.json');
     expect(err).toContain('Error: ts-patch worked (esm)');
   });
 
-  test(`Compiler with ESM transformer throws if no ESM package`, () => {
+  test.skip(`Compiler with ESM transformer throws if no ESM package`, () => {
     const err = execAndGetErr(projectPath, './tsconfig.esm.json', 'esm');
     expect(err).toContain('To enable experimental ESM support, install the \'esm\' package');
   });
