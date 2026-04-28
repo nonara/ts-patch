@@ -124,7 +124,7 @@ ts-patch install
 | after              | boolean | Apply transformer after stock TS transformers                                                                 |
 | afterDeclarations  | boolean | Apply transformer to declaration (*.d.ts) files                                                               |
 | transformProgram   | boolean | Transform `Program` during `ts.createProgram()` _(see: [Program Transformers](#program-transformers))_        |
-| isEsm              | boolean | Transformer is ES Module (_note: experimental_ — requires [esm](https://www.npmjs.com/package/esm))           |
+| isEsm              | boolean | Transformer is ES Module                                                                                     |
 | resolvePathAliases | boolean | Resolve path aliases in transformer (requires [tsconfig-paths](https://www.npmjs.com/package/tsconfig-paths)) |
 | type               | string  | See: [Source Transformer Entry Point](#source-transformer-entry-point) (default: 'program')                   |
 | import             | string  | Name of exported transformer function _(defaults to `default` export)_                                        |

@@ -8,10 +8,7 @@ import { execSync } from 'child_process';
 
 const transformerKinds = [
   'cts',
-  'cjs'
-];
-
-const esmTransformerKinds = [
+  'cjs',
   'mts',
   'ts',
   'mjs'
@@ -45,5 +42,4 @@ describe(`Transformer`, () => {
     expect(res.toString('utf8')).toMatch(new RegExp(`^(?:var|const) a = "after-${transformerKind}";?$`, 'm'));
   });
 
-  test.skip.each(esmTransformerKinds)(`%s transformer works`, () => {});
 });

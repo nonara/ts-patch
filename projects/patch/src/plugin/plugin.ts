@@ -121,6 +121,13 @@ namespace tsp {
         isEsm = impliedModuleFormat === tsShim.ModuleKind.ESNext;
       }
 
+      const entryFilePathExt = path.extname(entryFilePath);
+      if (isEsm && entryFilePathExt === '.cts') {
+        throw new TsPatchError(
+          `Cannot load ".cts" transformer "${configTransformValue}" as ESM. Use ".mts" for ESM transformers or remove "isEsm".`
+        );
+      }
+
       const isTs = configTransformValue.match(/\.[mc]?ts$/) != null;
 
       const registerConfig: RegisterConfig = {
