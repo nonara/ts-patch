@@ -55,6 +55,9 @@
     "ts-patch": "./dist/bin/ts-patch.js",
     "tspc": "./dist/bin/tspc.js"
   },
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "devDependencies": {
     "@types/esm": "^3.2.2",
     "@types/jest": "^29.5.10",
