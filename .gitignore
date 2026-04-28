@@ -26,6 +26,7 @@ generated/
 .env
 .vscode
 .idea/jsLibraryMappings.xml
+.idea/copilot.*.xml
 todo/
 TODO.ts
 
