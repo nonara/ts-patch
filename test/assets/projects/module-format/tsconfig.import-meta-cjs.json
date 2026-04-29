@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig",
+  "compilerOptions": {
+    "plugins": [
+      {
+        "transform": "./transformers/import-meta-cjs/plugin.ts",
+        "tsConfig": "./transformers/import-meta-cjs/tsconfig.json"
+      }
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig",
+  "compilerOptions": {
+    "plugins": [
+      {
+        "transform": "./transformers/package-module-ts/plugin.ts"
+      }
+    ]
+  }
+}

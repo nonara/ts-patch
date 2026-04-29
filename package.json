@@ -56,7 +56,7 @@
     "tspc": "./dist/bin/tspc.js"
   },
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=22.15.0"
   },
   "devDependencies": {
     "@types/jest": "^29.5.10",

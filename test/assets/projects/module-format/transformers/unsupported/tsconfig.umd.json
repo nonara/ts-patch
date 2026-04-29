@@ -1,0 +1,6 @@
+{
+  "compilerOptions": {
+    "module": "UMD",
+    "target": "ES2018"
+  }
+}

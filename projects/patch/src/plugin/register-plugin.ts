@@ -11,12 +11,10 @@ namespace tsp {
 
   /** @internal */
   export interface RegisterConfig {
-    tsNodeInstance?: import('ts-node').Service
+    compilerLoaderCleanup?: () => void
     tsConfigPathsCleanup?: () => void
-    esmInterceptCleanup?: () => void
     isTs: boolean
     pluginConfig: PluginConfig
-    isEsm: boolean
     tsConfig: string | undefined
     compilerOptions?: tsShim.CompilerOptions
   }
@@ -27,20 +25,7 @@ namespace tsp {
   // region: Helpers
   /* ********************************************************* */
 
-  function getTsNode() {
-    try {
-      return require('ts-node') as typeof import('ts-node');
-    } catch (e) {
-      if (e.code === 'MODULE_NOT_FOUND')
-        throw new TsPatchError(
-          `Cannot use a typescript-based transformer without ts-node installed. `+
-          `Add ts-node as a (dev)-dependency or install globally.`
-        );
-      else throw e;
-    }
-  }
-
-  function getTsConfigPaths() {
+  export function getTsConfigPaths() {
     try {
       return require('tsconfig-paths') as typeof import('tsconfig-paths');
     } catch (e) {
@@ -78,13 +63,9 @@ namespace tsp {
       delete activeRegisterConfig.tsConfigPathsCleanup;
     }
 
-    if (activeRegisterConfig.tsNodeInstance) {
-      activeRegisterConfig.tsNodeInstance.enabled(false);
-    }
-
-    if (activeRegisterConfig.esmInterceptCleanup) {
-      activeRegisterConfig.esmInterceptCleanup();
-      delete activeRegisterConfig.esmInterceptCleanup;
+    if (activeRegisterConfig.compilerLoaderCleanup) {
+      activeRegisterConfig.compilerLoaderCleanup();
+      delete activeRegisterConfig.compilerLoaderCleanup;
     }
   }
 
@@ -92,37 +73,7 @@ namespace tsp {
     if (!registerConfig) throw new TsPatchError('requireConfig is required');
     configStack.push(registerConfig);
 
-    const { isTs, isEsm, tsConfig, pluginConfig } = registerConfig;
-
-    /* Register ESM */
-    if (isEsm) {
-      registerConfig.esmInterceptCleanup = registerEsmIntercept(registerConfig);
-    }
-
-    /* Register tsNode */
-    if (isTs) {
-      const tsNode = getTsNode();
-
-      let tsNodeInstance: import('ts-node').Service;
-      if (registerConfig.tsNodeInstance) {
-        tsNodeInstance = registerConfig.tsNodeInstance;
-        tsNode.register(tsNodeInstance);
-      } else {
-        tsNodeInstance = tsNode.register({
-          transpileOnly: true,
-          ...(tsConfig ? { project: tsConfig } : { skipProject: true }),
-          compilerOptions: {
-            target: isEsm ? 'ESNext' : 'ES2018',
-            jsx: 'react',
-            esModuleInterop: true,
-            module: isEsm ? 'ESNext' : 'commonjs',
-          }
-        });
-      }
-
-      tsNodeInstance.enabled(true);
-      registerConfig.tsNodeInstance = tsNodeInstance;
-    }
+    const { isTs, tsConfig, pluginConfig } = registerConfig;
 
     /* Register tsconfig-paths */
     if (tsConfig && pluginConfig.resolvePathAliases) {
@@ -132,6 +83,12 @@ namespace tsp {
       if (paths && baseUrl) {
         registerConfig.tsConfigPathsCleanup = getTsConfigPaths().register({ baseUrl, paths });
       }
+    }
+
+    /* Register TypeScript compiler loader */
+    if (isTs) {
+      if (tsConfig) registerConfig.compilerOptions ??= getCompilerOptions(tsConfig);
+      registerConfig.compilerLoaderCleanup = registerCompilerLoader(registerConfig);
     }
   }
 

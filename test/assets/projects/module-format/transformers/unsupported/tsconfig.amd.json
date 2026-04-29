@@ -1,0 +1,6 @@
+{
+  "compilerOptions": {
+    "module": "AMD",
+    "target": "ES2018"
+  }
+}

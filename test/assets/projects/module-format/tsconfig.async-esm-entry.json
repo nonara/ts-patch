@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig",
+  "compilerOptions": {
+    "plugins": [
+      {
+        "transform": "./transformers/async-esm-entry/plugin.mts",
+        "tsConfig": "./transformers/async-esm-entry/tsconfig.json"
+      }
+    ]
+  }
+}

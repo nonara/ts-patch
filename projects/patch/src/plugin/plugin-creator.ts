@@ -143,6 +143,11 @@ namespace tsp {
           res = wrapTransformerFactory(resFn, requireConfig, false);
         }
       }
+      catch (e) {
+        const hint = describeEsmInCjsError(e);
+        if (hint) throw new TsPatchError(hint);
+        throw e;
+      }
       finally {
         unregisterPlugin();
       }

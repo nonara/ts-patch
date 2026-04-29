@@ -1,4 +1,5 @@
 const path = require('path');
+const configFile = process.env.TS_CONFIG || 'tsconfig.json';
 
 module.exports = {
   mode: 'development',
@@ -13,7 +14,11 @@ module.exports = {
         test: /\.(ts|tsx)$/,
         loader: require.resolve('ts-loader'),
         options: {
-          compiler: 'ts-patch/typescript'
+          compiler: 'ts-patch/compiler',
+          configFile,
+          compilerOptions: {
+            noEmit: false
+          }
         }
       }
     ]
