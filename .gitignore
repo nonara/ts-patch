@@ -29,6 +29,9 @@ generated/
 .idea/copilot.*.xml
 todo/
 TODO.ts
+.agents/
+.claude/
+/.codex
 
 # Junk
 temp/
