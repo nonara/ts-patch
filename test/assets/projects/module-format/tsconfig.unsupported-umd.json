@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig",
+  "compilerOptions": {
+    "plugins": [
+      {
+        "transform": "./transformers/unsupported/plugin.ts",
+        "tsConfig": "./transformers/unsupported/tsconfig.umd.json"
+      }
+    ]
+  }
+}

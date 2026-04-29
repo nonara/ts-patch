@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig",
+  "compilerOptions": {
+    "plugins": [
+      {
+        "transform": "./transformers/node-next-package-module/plugin.ts",
+        "tsConfig": "./transformers/node-next-package-module/tsconfig.json"
+      }
+    ]
+  }
+}

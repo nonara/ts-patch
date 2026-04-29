@@ -1,0 +1,6 @@
+{
+  "compilerOptions": {
+    "module": "System",
+    "target": "ES2018"
+  }
+}

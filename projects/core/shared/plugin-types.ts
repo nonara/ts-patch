@@ -38,11 +38,6 @@ export interface PluginConfig {
   import?: string;
 
   /**
-   * Is the transformer an ES Module
-   */
-  isEsm?: boolean
-
-  /**
    * Plugin entry point format type, default is program
    */
   type?: 'ls' | 'program' | 'config' | 'checker' | 'raw' | 'compilerOptions';

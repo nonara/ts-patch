@@ -1,0 +1,11 @@
+{
+  "extends" : "./tsconfig",
+  "compilerOptions" : {
+    "plugins": [
+      {
+        "transform": "./transformers/cjs/bad-plugin.ts",
+        "tsConfig": "./transformers/cjs/tsconfig.json"
+      }
+    ]
+  }
+}

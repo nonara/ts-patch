@@ -10,7 +10,6 @@ declare namespace tsp {
         resolvePathAliases?: boolean;
         tsConfig?: string;
         import?: string;
-        isEsm?: boolean;
         type?: 'ls' | 'program' | 'config' | 'checker' | 'raw' | 'compilerOptions';
         after?: boolean;
         afterDeclarations?: boolean;

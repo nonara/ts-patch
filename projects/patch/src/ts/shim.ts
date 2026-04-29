@@ -23,6 +23,7 @@ namespace tsp {
 
   export namespace tsShim {
     export type CompilerOptions = import('typescript').CompilerOptions;
+    export type CreateSourceFileOptions = import('typescript').CreateSourceFileOptions;
     export type CreateProgramOptions = import('typescript').CreateProgramOptions;
     export type Program = import('typescript').Program;
     export type CompilerHost = import('typescript').CompilerHost;
@@ -39,5 +40,6 @@ namespace tsp {
     export type Bundle = import('typescript').Bundle;
     export type Path = import('typescript').Path;
     export type JSDocParsingMode = import('typescript').JSDocParsingMode;
+    export type ModuleKind = import('typescript').ModuleKind;
   }
 }

@@ -107,7 +107,7 @@ ts-patch install
             { "transform": "transformer-module" },
             { "transform": "transformer2", "extraOption": 123 },
             { "transform": "trans-with-mapping", "resolvePathAliases": true },
-            { "transform": "esm-transformer", "isEsm": true },
+            { "transform": "esm-transformer.mjs" },
 
             // Program Transformer
             { "transform": "transformer-module5", "transformProgram": true }
@@ -124,7 +124,6 @@ ts-patch install
 | after              | boolean | Apply transformer after stock TS transformers                                                                 |
 | afterDeclarations  | boolean | Apply transformer to declaration (*.d.ts) files                                                               |
 | transformProgram   | boolean | Transform `Program` during `ts.createProgram()` _(see: [Program Transformers](#program-transformers))_        |
-| isEsm              | boolean | Transformer is ES Module                                                                                     |
 | resolvePathAliases | boolean | Resolve path aliases in transformer (requires [tsconfig-paths](https://www.npmjs.com/package/tsconfig-paths)) |
 | type               | string  | See: [Source Transformer Entry Point](#source-transformer-entry-point) (default: 'program')                   |
 | import             | string  | Name of exported transformer function _(defaults to `default` export)_                                        |
@@ -132,6 +131,8 @@ ts-patch install
 | _..._              |         | Provide your own custom options, which will be passed to the transformer                                      |
 
 _Note: Required options are bold_
+
+_As of v4, `isEsm` has been removed. Transformer module format is inferred from the file extension and package metadata._
 
 # Writing Transformers
 

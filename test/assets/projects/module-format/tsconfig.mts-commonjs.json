@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig",
+  "compilerOptions": {
+    "plugins": [
+      {
+        "transform": "./transformers/mts-commonjs/plugin.mts",
+        "tsConfig": "./transformers/mts-commonjs/tsconfig.json"
+      }
+    ]
+  }
+}

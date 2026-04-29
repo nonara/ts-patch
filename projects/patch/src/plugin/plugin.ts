@@ -108,31 +108,10 @@ namespace tsp {
       if (requireStack.includes(entryFilePath)) return;
       requireStack.push(entryFilePath);
 
-      /* Check if ESM */
-      let isEsm: boolean | undefined = config.isEsm;
-      if (isEsm == null) {
-        const impliedModuleFormat = tsShim.getImpliedNodeFormatForFile(
-          entryFilePath as tsShim.Path,
-          undefined,
-          tsShim.sys,
-          { moduleResolution: tsShim.ModuleResolutionKind.Node16 }
-        );
-
-        isEsm = impliedModuleFormat === tsShim.ModuleKind.ESNext;
-      }
-
-      const entryFilePathExt = path.extname(entryFilePath);
-      if (isEsm && entryFilePathExt === '.cts') {
-        throw new TsPatchError(
-          `Cannot load ".cts" transformer "${configTransformValue}" as ESM. Use ".mts" for ESM transformers or remove "isEsm".`
-        );
-      }
-
       const isTs = configTransformValue.match(/\.[mc]?ts$/) != null;
 
       const registerConfig: RegisterConfig = {
         isTs,
-        isEsm,
         tsConfig: tsConfigPath,
         pluginConfig: config
       };
@@ -171,25 +150,13 @@ namespace tsp {
 
       function loadEntryFile(): PluginFactory | { [key: string]: PluginFactory } {
         /* Load plugin */
-        let res: PluginFactory | { [key: string]: PluginFactory }
         try {
-          res = require(entryFilePath);
+          return require(entryFilePath);
         } catch (e) {
-          if (e.code === 'ERR_REQUIRE_ESM') {
-            if (!registerConfig.isEsm) {
-              unregisterPlugin();
-              registerConfig.isEsm = true;
-              registerPlugin(registerConfig);
-              return loadEntryFile();
-            } else {
-              throw new TsPatchError(
-                `Cannot load ESM transformer "${configTransformValue}" from "${entryFilePath}". Please file a bug report`
-              );
-            }
-          }
-          else throw e;
+          const hint = describeEsmInCjsError(e);
+          if (hint) throw new TsPatchError(hint);
+          throw e;
         }
-        return res;
       }
     }
   }

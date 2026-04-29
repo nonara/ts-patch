@@ -1,5 +1,8 @@
 import type * as ts from 'typescript';
 
+const nested = require('./nested-helper');
+if (nested.nestedCjsValue !== 'cjs-nested-ok') throw new Error('Nested CJS TS helper did not load');
+
 export default function (program: ts.Program, _, { ts: tsInstance }: { ts: typeof ts }) {
   return (ctx: ts.TransformationContext) => {
     const factory = ctx.factory;

@@ -1,0 +1,4 @@
+{
+  "name": "module-format-ts-patch",
+  "main": "src/index.ts"
+}

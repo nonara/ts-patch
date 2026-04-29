@@ -6,17 +6,18 @@ import { prepareTestProject } from '../src/project';
 // region: Helpers
 /* ****************************************************************************************************************** */
 
-function execAndGetErr(projectPath: string, projectFile: string = '') {
-  const cmd = `ts-node -C ts-patch/compiler${projectFile ? ` -P ${projectFile}` : ''}`
+function execAndGetErr(projectPath: string, projectFile = 'tsconfig.json') {
+  const cmd = `node ./node_modules/webpack/bin/webpack.js --config webpack.config.js`;
   try {
     execSync(
       cmd,
       {
         cwd: projectPath,
         stdio: [ 'ignore', 'pipe', 'pipe' ],
+        env: { ...process.env, TS_CONFIG: projectFile }
       });
   } catch (e) {
-    return e.stderr.toString();
+    return `${e.stdout.toString()}${e.stderr.toString()}`;
   }
 
   throw new Error('Expected error to be thrown, but none was');
@@ -42,12 +43,12 @@ describe('Webpack', () => {
   });
 
   test(`Compiler with ESM TS transformer works`, () => {
-    const err = execAndGetErr(projectPath, './tsconfig.esmts.json');
+    const err = execAndGetErr(projectPath, 'tsconfig.esmts.json');
     expect(err).toContain('Error: ts-patch worked (esmts)');
   });
 
   test(`Compiler with ESM JS transformer works`, () => {
-    const err = execAndGetErr(projectPath, './tsconfig.esm.json');
+    const err = execAndGetErr(projectPath, 'tsconfig.esm.json');
     expect(err).toContain('Error: ts-patch worked (esm)');
   });
 });
