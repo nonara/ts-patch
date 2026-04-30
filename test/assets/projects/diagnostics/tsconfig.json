@@ -1,0 +1,15 @@
+{
+  "include": [ "src" ],
+  "compilerOptions": {
+    "target": "ES2018",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "lib": [ "ES2018" ],
+    "types": [],
+    "skipLibCheck": true,
+    "noEmit": false,
+    "plugins": [
+      { "transform": "./transformer.ts" }
+    ]
+  }
+}

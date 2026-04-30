@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "plugins": [
+      { "transform": "./transformers/program.ts", "transformProgram": true, "import": "addOne" },
+      { "transform": "./transformers/program.ts", "transformProgram": true, "import": "addTwo" }
+    ]
+  }
+}
