@@ -59,4 +59,18 @@ describe(`Transformer`, () => {
     expect(execAndGetErrorOutput(`node run-transform.js bad`, projectPath)).toMatch(/Unable to compile TypeScript transformer/);
   });
 
+  test(`transpileModule applies ts-patch plugins`, async () => {
+    await loaderPromise;
+
+    const res = execSync(`node run-transpile.js`, { cwd: projectPath });
+    expect(res.toString('utf8')).toMatch(/(?:var|const) a = "after-cts";?/);
+  });
+
+  test(`custom transformers are merged with ts-patch transformers`, async () => {
+    await loaderPromise;
+
+    const res = execSync(`node run-custom-transformers.js`, { cwd: projectPath });
+    expect(res.toString('utf8')).toMatch(/(?:var|const) a = "after-custom";?/);
+  });
+
 });

@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "plugins": [
+      { "transform": "./transformers/program.ts", "transformProgram": true, "import": "recursive" }
+    ]
+  }
+}
