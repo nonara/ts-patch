@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [4.0.1](https://github.com/nonara/ts-patch/compare/v4.0.0...v4.0.1) (2026-05-01)
+
 ## [4.0.0](https://github.com/nonara/ts-patch/compare/v3.3.0...v4.0.0) (2026-05-01)
 
 
