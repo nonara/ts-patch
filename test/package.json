@@ -4,11 +4,11 @@
     "perf": "ts-node -T --project tsconfig.json --files ./src/perf.ts"
   },
   "dependencies": {
-    "ts-latest": "npm:typescript@beta",
+    "ts-latest": "npm:typescript@6.0.3",
     "ts-node": "latest",
     "ts-patch": "link:../dist",
     "tsconfig-paths": "latest",
-    "fs-extra": "^10.0.0",
-    "@types/fs-extra": "^9.0.13"
+    "fs-extra": "^11.3.4",
+    "@types/fs-extra": "^11.0.4"
   }
 }
