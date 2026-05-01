@@ -49,7 +49,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/nonara/ts-patch.git"
+    "url": "git+https://github.com/nonara/ts-patch.git"
   },
   "bugs": {
     "url": "https://github.com/nonara/ts-patch/issues"

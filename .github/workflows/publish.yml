@@ -6,6 +6,10 @@ on:
     tags:
       - v*.*.*
 
+permissions:
+  contents: write
+  id-token: write
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -36,9 +40,7 @@ jobs:
         run: npx extract-changelog-release > RELEASE_BODY.md
 
       - name: Publish to NPM
-        run: yarn publish dist --non-interactive
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish ./dist
 
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
