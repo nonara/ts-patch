@@ -1,8 +1,8 @@
-import { LogLevel, PatchError, RestoreError } from '../system';
+import { assertSupportedTypeScript, LogLevel, PatchError, RestoreError } from '../system';
 import chalk from 'chalk';
 import path from 'path';
 import { getTsPackage } from '../ts-package';
-import { getModuleFile, getTsModule, ModuleFile } from '../module';
+import { getModuleFile, getTsModule, ModuleFile, TsModule } from '../module';
 import fs from 'fs';
 import { getInstallerOptions, InstallerOptions } from '../options';
 import { copyFileWithLock } from '../utils';
@@ -17,7 +17,7 @@ export function unpatch(moduleNames: string[], opts?: Partial<InstallerOptions>)
 export function unpatch(moduleNameOrNames: string | string[], opts?: Partial<InstallerOptions>): boolean {
   let res = false;
 
-  const targetModuleNames = [ moduleNameOrNames ].flat();
+  const targetModuleNames = [ moduleNameOrNames ].flat().map(name => TsModule.normalizePatchableName(name));
   if (!targetModuleNames.length) throw new PatchError(`Must provide at least one module name to patch`);
 
   const options = getInstallerOptions(opts);
@@ -25,6 +25,7 @@ export function unpatch(moduleNameOrNames: string | string[], opts?: Partial<Ins
 
   /* Load Package */
   const tsPackage = getTsPackage(dir);
+  assertSupportedTypeScript(tsPackage);
 
   /* Get modules to patch and patch info */
   const moduleFiles: [ string, ModuleFile ][] =
@@ -97,7 +98,7 @@ export function unpatch(moduleNameOrNames: string | string[], opts?: Partial<Ins
     throw new RestoreError(
       `[${Object.keys(errors).join(', ')}]`,
       'Try reinstalling typescript.' +
-      (options.logLevel < LogLevel.verbose ? ' (Or, run uninstall again with --verbose for specific error detail)' : '')
+      (options.logLevel < LogLevel.verbose ? ' (Or, run unpatch again with --verbose for specific error detail)' : '')
     );
   } else {
     res = true;

@@ -5,6 +5,7 @@
 
   "compilerOptions": {
     "outFile": "../../dist/resources/module-patch.js",
+    "rootDir": "./src",
     "declaration": true,
     "types": [ "@types/node" ],
 
@@ -19,11 +20,13 @@
     "useUnknownInCatchVariables": false,
     "newLine": "LF",
     "moduleResolution": "Node",
+    "ignoreDeprecations": "6.0",
     "esModuleInterop": true,
 
     "plugins": [
       {
         "transform": "./plugin.ts",
+        "tsConfig": "./tsconfig.plugin.json",
         "transformProgram": true,
         "import": "transformProgram"
       }

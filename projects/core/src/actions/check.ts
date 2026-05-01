@@ -1,8 +1,8 @@
-import { LogLevel, PatchError } from '../system';
+import { assertSupportedTypeScript, LogLevel, PatchError } from '../system';
 import chalk from 'chalk';
 import { getTsPackage } from '../ts-package';
 import { PatchDetail } from "../patch/patch-detail";
-import { getTsModule } from "../module";
+import { getTsModule, TsModule } from "../module";
 import { getInstallerOptions, InstallerOptions } from "../options";
 
 
@@ -33,10 +33,12 @@ export function check(moduleNameOrNames?: string | string[], opts?: Partial<Inst
 
   /* Load Package */
   const tsPackage = getTsPackage(dir);
+  assertSupportedTypeScript(tsPackage);
   const { packageDir, version } = tsPackage;
 
-
-  targetModuleNames ??= tsPackage.moduleNames;
+  targetModuleNames = targetModuleNames
+    ? targetModuleNames.map(name => TsModule.normalizePatchableName(name))
+    : tsPackage.moduleNames.filter(name => (TsModule.patchableNames as readonly string[]).includes(name));
 
   /* Check Modules */
   log(`Checking TypeScript ${chalk.blueBright(`v${version}`)} installation in ${chalk.blueBright(packageDir)}\r\n`);
@@ -45,7 +47,7 @@ export function check(moduleNameOrNames?: string | string[], opts?: Partial<Inst
   for (const moduleName of targetModuleNames) {
     /* Validate */
     if (!tsPackage.moduleNames.includes(moduleName))
-      throw new PatchError(`${moduleName} is not a valid TypeScript module in ${packageDir}`);
+      throw new PatchError(`${moduleName} is not present in ${packageDir}`);
 
     /* Report */
     const tsModule = getTsModule(tsPackage, moduleName, { skipCache: options.skipCache });

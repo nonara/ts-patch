@@ -43,8 +43,6 @@ export const defaultNodePrinterOptions: ts.PrinterOptions = {
 // region: Patch Config
 /* ****************************************************************************************************************** */
 
-export const defaultInstallLibraries = [ 'tsc.js', 'typescript.js' ];
-
 export const corePatchName = `<core>`;
 
 export const modulePatchFilePath = path.resolve(appRoot, tspPackageJSON.directories.resources, 'module-patch.js');

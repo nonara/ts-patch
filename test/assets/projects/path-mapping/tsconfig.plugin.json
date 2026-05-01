@@ -4,6 +4,7 @@
     "outDir": "dist",
     "module": "commonjs",
     "target": "ES2020",
+    "ignoreDeprecations": "6.0",
     "noEmit": true,
     "baseUrl" : "src",
     "paths": {

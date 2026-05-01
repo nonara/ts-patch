@@ -4,6 +4,18 @@
   "description": "Patch typescript to support custom transformers in tsconfig.json",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./compiler": "./dist/compiler/typescript.js",
+    "./compiler/typescript": "./dist/compiler/typescript.js",
+    "./compiler/tsc": "./dist/compiler/tsc.js",
+    "./compiler/tsserver": "./dist/compiler/tsserver.js",
+    "./compiler/tsserverlibrary": "./dist/compiler/tsserverlibrary.js",
+    "./package.json": "./package.json"
+  },
   "scripts": {
     "compile": "yarn run compile:core && yarn run compile:patch",
     "build": "yarn run clean && yarn run compile:patch && yarn run compile:core",
@@ -76,7 +88,7 @@
     "ts-node": "^10.9.1",
     "ts-patch": "^3.3.0",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "5.9.3"
+    "typescript": "6.0.3"
   },
   "workspaces": {
     "packages": [

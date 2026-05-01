@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs';
 import type { TsPackage } from '../ts-package';
 import { getModuleSource, ModuleSource } from './module-source';
-import { getCachePath, TspError } from '../system';
+import { getCachePath, PatchError, TspError } from '../system';
 import { getModuleFile, ModuleFile } from './module-file';
 import { cachedFilePatchedPrefix } from '../config';
 
@@ -12,14 +12,16 @@ import { cachedFilePatchedPrefix } from '../config';
 /* ****************************************************************************************************************** */
 
 export namespace TsModule {
-  export const names = <const>[ 'tsc.js', 'tsserverlibrary.js', 'typescript.js', 'tsserver.js' ];
+  export const knownNames = <const>[ 'tsc.js', 'typescript.js', 'tsserver.js', 'tsserverlibrary.js' ];
+  export const patchableNames = <const>[ 'tsc.js', 'typescript.js' ] satisfies readonly typeof knownNames[number][];
+  export const legacyServiceNames = <const>[ 'tsserver.js', 'tsserverlibrary.js' ] satisfies readonly typeof knownNames[number][];
 
   export const contentFileMap: Record<string, string> = {
     'tsc.js': '_tsc.js',
     'tsserver.js': '_tsserver.js'
-  } satisfies Partial<Record<typeof names[number], string>>;
+  } satisfies Partial<Record<typeof knownNames[number], string>>;
 
-  export function getContentFileName(moduleName: typeof names[number]): string {
+  export function getContentFileName(moduleName: typeof knownNames[number]): string {
     return contentFileMap[moduleName] || moduleName;
   }
 
@@ -35,6 +37,29 @@ export namespace TsModule {
 
     return moduleContentPath;
   }
+
+  export function normalizeName(name: string): string {
+    return /\.js$/.test(name) ? name : `${name}.js`;
+  }
+
+  export function normalizePatchableName(name: string): typeof patchableNames[number] {
+    const normalized = normalizeName(name);
+
+    if ((patchableNames as readonly string[]).includes(normalized)) {
+      return normalized as typeof patchableNames[number];
+    }
+
+    if ((legacyServiceNames as readonly string[]).includes(normalized)) {
+      throw new PatchError(
+        `${name} is no longer a patchable target on TypeScript 6. ` +
+        `Use ts-patch/compiler/${normalized.replace(/\.js$/, '')} for live patched routing instead.`,
+        { code: 'PATCH_TARGET_UNSUPPORTED' }
+      );
+    }
+
+    throw new PatchError(`Unknown TypeScript module: ${name}`, { code: 'UNKNOWN_MODULE' });
+  }
+
 }
 
 // endregion
@@ -65,7 +90,7 @@ export interface TsModule {
 }
 
 export namespace TsModule {
-  export type Name = (typeof names)[number] | string;
+  export type Name = (typeof knownNames)[number] | string;
 }
 
 export interface GetTsModuleOptions {

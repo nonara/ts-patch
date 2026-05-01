@@ -5,6 +5,7 @@
   "compilerOptions": {
     "noEmit": true,
     "target": "ESNext",
+    "types": [ "node", "jest" ],
     "skipDefaultLibCheck": true,
     "skipLibCheck": true
   }

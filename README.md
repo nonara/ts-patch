@@ -8,12 +8,15 @@ Patch typescript to allow custom transformers (plugins) during build.
 
 Plugins are specified in `tsconfig.json`, or provided programmatically in `CompilerOptions`.
 
+> [!IMPORTANT]
+> ts-patch v4 supports TypeScript 6 and later only. For TypeScript 5 projects, use ts-patch v3.
+
 _Migrating from ttypescript is easy! See: [Method 1: Live Compiler](#method-1-live-compiler)_
 
 ## Features
 
-* Patch typescript installation via on-the-fly, in-memory patching _or_ as a persistent patch
-* Can patch individual libraries (see `ts-patch /?`)
+* Patch typescript via on-the-fly, in-memory compiler routes _or_ persistent patches for supported files
+* Can patch supported compiler libraries (see `ts-patch /?`)
 * Hook build process by transforming the `Program` (see: [Transforming Program](#transforming-program))
 * Add, remove, or modify diagnostics (see: [Altering Diagnostics](#altering-diagnostics))
 * Fully compatible with legacy [ttypescript](https://github.com/cevek/ttypescript) projects
@@ -48,6 +51,7 @@ _Migrating from ttypescript is easy! See: [Method 1: Live Compiler](#method-1-li
     * [Recommended Tools](#recommended-tools)
     * [Discussion](#discussion)
 * [Advanced Options](#advanced-options)
+* [Compatibility Direction](#compatibility-direction)
 * [Maintainers](#maintainers)
   * [Help Wanted](#help-wanted)
 * [License](#license)
@@ -70,29 +74,42 @@ The live compiler patches on-the-fly, each time it is run.
 
 **With tools such as ts-node, webpack, ts-jest, etc:** specify the compiler as  `ts-patch/compiler`
 
+Additional live routes are available for tools that need a specific TypeScript entry:
+
+| Route | Library identity supplied to transformers |
+|-------|-------------------------------------------|
+| `ts-patch/compiler` | `typescript` |
+| `ts-patch/compiler/typescript` | `typescript` |
+| `ts-patch/compiler/tsc` | `tsc` |
+| `ts-patch/compiler/tsserver` | `tsserver` |
+| `ts-patch/compiler/tsserverlibrary` | `tsserverlibrary` |
+
 ## Method 2: Persistent Patch
 
-Persistent patch modifies the typescript installation within the node_modules path. It requires additional configuration
-to remain persisted, but it carries less load time and complexity compared to the live compiler.
+Persistent patching modifies supported TypeScript files inside `node_modules`. It is still available for TypeScript 6,
+but the patchable surface is narrower than it was in earlier TypeScript versions.
 
-1. Install the patch
+TypeScript 6 ships thin entry shims for several library files. Some service entries delegate to shared implementation
+files; for example, `tsserverlibrary.js` delegates to `typescript.js`. Rewriting those service files in place would not
+preserve enough entry context to distinguish direct compiler API use from `tsc`, `tsserver`, or `tsserverlibrary` use.
+For those entries, use the live compiler routes instead.
+
+`install` and `uninstall` remain available, but they now affect only `typescript.js` and `tsc.js`:
 
 ```shell
-# For advanced options, see: ts-patch /?
 ts-patch install
+ts-patch uninstall
 ```
 
-2. Add `prepare` script (keeps patch persisted after npm install)
+The lower-level `patch` and `unpatch` commands are also limited to those two targets:
 
-`package.json`
- ```jsonc
-{
-  /* ... */
-  "scripts": {
-    "prepare": "ts-patch install -s"
-  }
-}
- ```
+```shell
+ts-patch patch typescript tsc
+ts-patch unpatch typescript tsc
+```
+
+`tsserver.js` and `tsserverlibrary.js` are not persistent patch targets on TypeScript 6. Use the live routes above so
+transformers still receive the correct library identity for those service entries.
 
 # Configuration
 
@@ -329,6 +346,19 @@ Override patch cache directory
 **(cli) `ts-patch clear-cache`**
 
 Cleans patch cache & lockfiles
+
+# Compatibility Direction
+
+TypeScript 6 changed the compiler distribution shape by introducing thin CommonJS shims around several implementation
+files. ts-patch uses live routing where entry identity matters because a live route can preserve whether a tool requested
+`typescript`, `tsc`, `tsserver`, or `tsserverlibrary` without permanently rewriting service-entry shims.
+
+For TypeScript 6, persistent patching is intentionally narrow: only `typescript.js` and `tsc.js` are patchable targets.
+Service entries should be loaded through `ts-patch/compiler/tsserver` or `ts-patch/compiler/tsserverlibrary`.
+
+The TypeScript team has also announced a future Go-based compiler line. ts-patch will evaluate that implementation as a
+separate compatibility track, including whether the JavaScript compiler API and transformer hooks remain available or
+whether a redesigned integration is required.
 
 # Maintainers
 

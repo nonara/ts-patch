@@ -1,7 +1,7 @@
-import { LogLevel, PatchError, TspError, } from '../system';
+import { assertSupportedTypeScript, LogLevel, PatchError, TspError, } from '../system';
 import { getTsPackage } from '../ts-package';
 import chalk from 'chalk';
-import { getModuleFile, getTsModule, ModuleFile } from '../module';
+import { getModuleFile, getTsModule, ModuleFile, TsModule } from '../module';
 import path from 'path';
 import { getInstallerOptions, InstallerOptions } from '../options';
 import { writeFileWithLock } from '../utils';
@@ -18,7 +18,7 @@ import { getPatchedSource } from '../patch/get-patched-source';
 export function patch(moduleName: string, opts?: Partial<InstallerOptions>): boolean
 export function patch(moduleNames: string[], opts?: Partial<InstallerOptions>): boolean
 export function patch(moduleNameOrNames: string | string[], opts?: Partial<InstallerOptions>): boolean {
-  const targetModuleNames = [ moduleNameOrNames ].flat();
+  const targetModuleNames = [ moduleNameOrNames ].flat().map(name => TsModule.normalizePatchableName(name));
   if (!targetModuleNames.length) throw new PatchError(`Must provide at least one module name to patch`);
 
   const options = getInstallerOptions(opts);
@@ -26,6 +26,7 @@ export function patch(moduleNameOrNames: string | string[], opts?: Partial<Insta
 
   /* Load Package */
   const tsPackage = getTsPackage(dir);
+  assertSupportedTypeScript(tsPackage);
 
   /* Get modules to patch and patch info */
   const moduleFiles: [ string, ModuleFile ][] =
@@ -83,7 +84,7 @@ export function patch(moduleNameOrNames: string | string[], opts?: Partial<Insta
     }
   }
 
-  if (failedModulePaths.length > 1) {
+  if (failedModulePaths.length > 0) {
     log([ '!',
       `Some files can't be patched! You can run again with --verbose to get specific error detail. The following files are unable to be ` +
       `patched:\n  - ${failedModulePaths.join('\n  - ')}`

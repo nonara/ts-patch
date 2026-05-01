@@ -40,7 +40,6 @@ describe(`Transformer`, () => {
     const prepRes = prepareTestProject({
       projectName: 'transform',
       packageManager: 'yarn',
-      tsVersion: '5.5.2',
     });
     projectPath = prepRes.tmpProjectPath;
     loaderResolve();

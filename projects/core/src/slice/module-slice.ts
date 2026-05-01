@@ -1,9 +1,7 @@
 import { ModuleFile } from '../module';
 import { Position } from '../system';
 import semver from 'semver';
-import { sliceTs54 } from './ts54';
-import { sliceTs55 } from './ts55';
-import { sliceTs552 } from './ts552';
+import { sliceTs6 } from './ts6';
 
 
 /* ****************************************************************************************************************** */
@@ -34,19 +32,11 @@ export function sliceModule(moduleFile: ModuleFile, tsVersion: string) {
   const baseVersion = semver.coerce(tsVersion, { includePrerelease: false });
   if (!baseVersion) throw new Error(`Could not parse TS version: ${tsVersion}`);
 
-  if (semver.lt(baseVersion, '5.0.0')) {
-    throw new Error(`Cannot patch TS version <5`);
+  if (semver.lt(baseVersion, '6.0.0')) {
+    throw new Error(`Cannot patch TS version <6`);
   }
 
-  if (semver.lt(baseVersion, '5.5.0')) {
-    return sliceTs54(moduleFile);
-  }
-
-  if (semver.lt(baseVersion, '5.5.2')) {
-    return sliceTs55(moduleFile);
-  }
-
-  return sliceTs552(moduleFile);
+  return sliceTs6(moduleFile);
 }
 
 /** @internal */
@@ -56,4 +46,3 @@ export namespace ModuleSlice {
 }
 
 // endregion
-

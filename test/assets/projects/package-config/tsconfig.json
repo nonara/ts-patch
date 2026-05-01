@@ -2,8 +2,10 @@
   "include": [ "src" ],
   "compilerOptions": {
     "outDir": "dist",
+    "rootDir": "src",
     "module": "commonjs",
     "target": "esnext",
+    "ignoreDeprecations": "6.0",
     "types": [],
     "noEmit": true,
     "plugins" : [

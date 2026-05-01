@@ -1,6 +1,4 @@
 namespace tsp {
-  const path = require('path');
-
   /* ********************************************************* */
   // region: Types
   /* ********************************************************* */
@@ -25,48 +23,6 @@ namespace tsp {
   /* ********************************************************* */
   // region: Helpers
   /* ********************************************************* */
-
-  function isNodeModuleKind(moduleKind: tsShim.ModuleKind) {
-    return tsShim.ModuleKind.Node16 <= moduleKind && moduleKind <= tsShim.ModuleKind.NodeNext;
-  }
-
-  function getPackageJsonType(sourceFile: tsShim.SourceFile) {
-    return (sourceFile as tsShim.SourceFile & ImpliedNodeFormatInfo).packageJsonScope?.contents?.packageJsonContent?.type;
-  }
-
-  function getImpliedNodeFormatForEmit(sourceFile: tsShim.SourceFile, compilerOptions: tsShim.CompilerOptions) {
-    const moduleKind = tsShim.getEmitModuleKind(compilerOptions);
-    if (isNodeModuleKind(moduleKind)) return sourceFile.impliedNodeFormat;
-
-    const packageJsonType = getPackageJsonType(sourceFile);
-    const ext = path.extname(sourceFile.fileName);
-
-    if (
-      sourceFile.impliedNodeFormat === tsShim.ModuleKind.CommonJS &&
-      (packageJsonType === 'commonjs' || ext === '.cjs' || ext === '.cts')
-    ) {
-      return tsShim.ModuleKind.CommonJS;
-    }
-
-    if (
-      sourceFile.impliedNodeFormat === tsShim.ModuleKind.ESNext &&
-      (packageJsonType === 'module' || ext === '.mjs' || ext === '.mts')
-    ) {
-      return tsShim.ModuleKind.ESNext;
-    }
-
-    return undefined;
-  }
-
-  function getEmitModuleFormatOfFile(sourceFile: tsShim.SourceFile, compilerOptions: tsShim.CompilerOptions) {
-    if (typeof tsShim.getEmitModuleFormatOfFileWorker === 'function') {
-      return tsShim.getEmitModuleFormatOfFileWorker(sourceFile, compilerOptions);
-    }
-
-    // TS 5.5 exposes the node-format worker but not this wrapper. Keep the fallback
-    // equivalent to TS 5.9's getEmitModuleFormatOfFileWorker implementation.
-    return getImpliedNodeFormatForEmit(sourceFile, compilerOptions) ?? tsShim.getEmitModuleKind(compilerOptions);
-  }
 
   function getCreateSourceFileOptions(
     filePath: string,
@@ -109,7 +65,7 @@ namespace tsp {
     compilerOptions: tsShim.CompilerOptions
   ): TsFileFormat {
     const sourceFile = createFormatSourceFile(filePath, sourceText, compilerOptions);
-    const emitKind = getEmitModuleFormatOfFile(sourceFile, compilerOptions);
+    const emitKind = tsShim.getEmitModuleFormatOfFileWorker(sourceFile, compilerOptions);
 
     /*
      * This switch names the Node load format, not the user's exact TypeScript emit target.

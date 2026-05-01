@@ -1,6 +1,7 @@
 import chalk from 'chalk';
-import { getInstallerOptions, InstallerOptions, patch } from '..';
-import { defaultInstallLibraries } from '../config';
+import { TsModule } from '../module';
+import { getInstallerOptions, InstallerOptions } from '../options';
+import { patch } from './patch';
 
 
 /* ****************************************************************************************************************** */
@@ -14,7 +15,7 @@ export function install(opts?: Partial<InstallerOptions>) {
   const options = getInstallerOptions(opts);
   const { logger: log } = options;
 
-  const ret = patch(defaultInstallLibraries, options);
+  const ret = patch([ ...TsModule.patchableNames ], options);
   if (ret) log([ '+', chalk.green(`ts-patch installed!`) ]);
 
   return ret;
