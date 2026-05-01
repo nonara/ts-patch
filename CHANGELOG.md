@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.0.0](https://github.com/nonara/ts-patch/compare/v3.3.0...v4.0.0) (2026-05-01)
+
+
+### ⚠ BREAKING CHANGES
+
+* Support TS v6
+* raises the Node.js floor to >=22.15.0 for module.registerHooks(). TypeScript transformer loading no longer uses ts-node; transformer module format is inferred from TypeScript compiler semantics, and the public isEsm option has been removed.
+* removes the optional esm package fallback. ESM transformer loading now relies on Node >=22.12.0 native ESM support. Configuring isEsm: true on a .cts transformer entry is now rejected.
+* Node.js 22.12.0 or newer is now required.
+
+### Features
+
+* Dropped ts-node, replaced with pure TS compiler API & Swapped require wrap with module.registerHooks ([987a199](https://github.com/nonara/ts-patch/commit/987a1998063d220972bda28fe954533adc2fb348))
+* Support TS v6 ([e9c000f](https://github.com/nonara/ts-patch/commit/e9c000f1e804c4c78c66dc07961edd1478004b8d))
+* use native Node ESM loading for transformer plugins ([4c4e837](https://github.com/nonara/ts-patch/commit/4c4e837015e8ae549016c78815d888b49647bdda))
+
+
+### Build System
+
+* raise Node.js floor to 22.12.0 ([d8f0a8f](https://github.com/nonara/ts-patch/commit/d8f0a8f6056e85b78f744d931fe3ff08231bb0a8))
+
 ## [3.3.0](https://github.com/nonara/ts-patch/compare/v3.2.1...v3.3.0) (2024-12-04)
 
 
