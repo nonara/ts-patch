@@ -1,16 +1,16 @@
-import type { Config } from '@jest/types';
-import * as os from 'os';
+const os = require('os');
 
-const config: Config.InitialOptions = {
-  testEnvironment: "node",
+/** @type {import('@jest/types').Config.InitialOptions} */
+const config = {
+  testEnvironment: 'node',
   preset: 'ts-jest',
   roots: [ '<rootDir>/test/tests' ],
   testRegex: '.*(test|spec)\\.tsx?$',
-  moduleFileExtensions: [ 'ts', 'tsx', 'js', 'jsx', 'json', 'node' ],
+  moduleFileExtensions: [ 'ts', 'tsx', 'mts', 'cts', 'js', 'jsx', 'mjs', 'cjs', 'json', 'node' ],
   transform: {
     '^.+\\.(ts|tsx)$': ['ts-jest', { tsconfig: './test/tsconfig.json' }],
   },
-  modulePaths: [ "<rootDir>/node_modules" ],
+  modulePaths: [ '<rootDir>/node_modules' ],
   // coveragePathIgnorePatterns: [
   //   'src/installer/lib/system/errors.ts$'
   // ],
@@ -21,6 +21,6 @@ const config: Config.InitialOptions = {
     '/node_modules/(?!(ts-transformer-keys|ts-transformer-enumerate|ts-nameof)/)'
   ],
   maxConcurrency: os.cpus().length
-}
+};
 
-export default config;
+module.exports = config;
