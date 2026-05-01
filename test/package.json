@@ -1,11 +1,11 @@
 {
   "private": true,
   "scripts" : {
-    "perf": "ts-node -T --project tsconfig.json --files ./src/perf.ts"
+    "perf": "tsx --tsconfig tsconfig.json ./src/perf.ts"
   },
   "dependencies": {
     "ts-latest": "npm:typescript@6.0.3",
-    "ts-node": "latest",
+    "tsx": "^4.21.0",
     "ts-patch": "link:../dist",
     "tsconfig-paths": "latest",
     "fs-extra": "^11.3.4",
