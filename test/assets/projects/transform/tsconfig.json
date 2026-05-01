@@ -4,6 +4,7 @@
     "outDir": "dist",
     "module": "commonjs",
     "target": "esnext",
+    "ignoreDeprecations": "6.0",
     "noEmit": true
   }
 }

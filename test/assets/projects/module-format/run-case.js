@@ -33,7 +33,7 @@ function runCase(caseName) {
   });
 
   program.emit(undefined, (fileName, content) => emittedFiles.set(fileName, content));
-  return emittedFiles.get('dist/index.js');
+  return emittedFiles.get('dist/index.js') || emittedFiles.get(path.join('dist', 'src', 'index.js'));
 }
 
 function diagnosticHost(tsInstance) {

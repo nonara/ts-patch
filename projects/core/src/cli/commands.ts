@@ -9,8 +9,8 @@ import type { CliConfig } from './cli';
 
 /** @internal */
 export const cliCommandsConfig: CliConfig = {
-  install: { short: 'i', caption: `Installs ts-patch (to main libraries)` },
-  uninstall: { short: 'u', caption: 'Restores original typescript files' },
+  install: { short: 'i', caption: `Installs ts-patch (to patchable libraries)` },
+  uninstall: { short: 'u', caption: 'Restores original patchable TypeScript files' },
   check: {
     short: 'c', caption:
       `Check patch status (use with ${chalk.cyanBright('--dir')} to specify TS package location)`

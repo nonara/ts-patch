@@ -19,7 +19,7 @@ namespace tsp {
   export type TsInstance = typeof import('typescript') & {
     originalCreateProgram: typeof import('typescript').createProgram
     getEmitModuleKind(options: import('typescript').CompilerOptions): import('typescript').ModuleKind
-    getEmitModuleFormatOfFileWorker?(
+    getEmitModuleFormatOfFileWorker(
       sourceFile: import('typescript').SourceFile,
       options: import('typescript').CompilerOptions
     ): import('typescript').ModuleKind

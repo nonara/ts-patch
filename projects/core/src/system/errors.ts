@@ -10,7 +10,20 @@ export class FileNotFound extends TspError {name = 'FileNotFound'}
 
 export class PackageError extends TspError {name = 'PackageError'}
 
-export class PatchError extends TspError {name = 'PatchError'}
+export type PatchErrorCode =
+  | 'PATCH_TARGET_UNSUPPORTED'
+  | 'UNKNOWN_MODULE'
+  | 'TS_VERSION_UNSUPPORTED';
+
+export class PatchError extends TspError {
+  name = 'PatchError';
+  code?: PatchErrorCode;
+
+  constructor(message: string, opts?: { code?: PatchErrorCode }) {
+    super(message);
+    if (opts?.code) this.code = opts.code;
+  }
+}
 
 export class PersistenceError extends TspError {name = 'PersistenceError'}
 

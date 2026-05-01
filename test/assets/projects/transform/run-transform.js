@@ -44,7 +44,7 @@ function getTransformedFile(transformerKind) {
 
   program.emit(undefined, writeFile);
 
-  return emittedFiles.get('dist/index.js');
+  return emittedFiles.get('dist/index.js') || emittedFiles.get(path.join('dist', 'src', 'index.js'));
 }
 
 

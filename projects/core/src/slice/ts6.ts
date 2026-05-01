@@ -6,10 +6,7 @@ import { ModuleSlice } from './module-slice';
 // region: Utils
 /* ****************************************************************************************************************** */
 
-/**
- * Slice 5.5+
- */
-export function sliceTs55(moduleFile: ModuleFile): ModuleSlice {
+export function sliceTs6(moduleFile: ModuleFile): ModuleSlice {
   let firstSourceFileStart: number;
   let wrapperStart: number | undefined;
   let wrapperEnd: number | undefined;
@@ -41,8 +38,7 @@ export function sliceTs55(moduleFile: ModuleFile): ModuleSlice {
     firstSourceFileStart = firstFileMatch.index;
 
     /* Find Wrapper end */
-    // TODO - We may later want to find a better approach, but this will work for now
-    matcher = /^}\)\(typeof module !== "undefined" .+$/gm;
+    matcher = /^}\)\({ get exports\(\) { return ts; }.+$/gm;
     matcher.lastIndex = firstFileMatch.index;
     const wrapperEndMatch = matcher.exec(content);
     if (!wrapperEndMatch?.[0]) throw ModuleSlice.createError();

@@ -7,11 +7,7 @@ import { PatchError } from '../../system';
 /* ****************************************************************************************************************** */
 
 export const createProgramExportFiles = [
-  /* TS < 5.4 */
-  'src/typescript/_namespaces/ts.ts',
-
-  /* TS >= 5.4 */
-  'src/server/_namespaces/ts.ts',
+  /* TS >= 6 */
   'src/typescript/typescript.ts'
 ]
 

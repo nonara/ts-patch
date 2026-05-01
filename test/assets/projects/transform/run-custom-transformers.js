@@ -26,7 +26,7 @@ program.emit(
   { before: [ customTransformer ] }
 );
 
-process.stdout.write(emittedFiles.get('dist/index.js') || '');
+process.stdout.write(emittedFiles.get('dist/index.js') || emittedFiles.get(path.join('dist', 'src', 'index.js')) || '');
 
 function customTransformer(ctx) {
   const { factory } = ctx;

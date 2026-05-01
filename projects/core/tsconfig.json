@@ -8,10 +8,12 @@
     "sourceMap" : true,
     "composite" : true,
     "declaration" : true,
+    "types" : [ "node" ],
 
     "plugins" : [
       {
         "transform" : "./plugin.ts",
+        "tsConfig" : "./tsconfig.plugin.json",
         "transformProgram" : true
       }
     ]

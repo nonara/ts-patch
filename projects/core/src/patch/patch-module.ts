@@ -4,7 +4,7 @@ import { defaultNodePrinterOptions, dtsPatchFilePath, execTscCmd, modulePatchFil
 import { getTsModule, TsModule } from '../module';
 import {
   addOriginalCreateProgramTransformer, createMergeStatementsTransformer, createProgramExportFiles,
-  fixTsEarlyReturnTransformer, hookTscExecTransformer, patchCreateProgramTransformer, patchEmitterTransformer
+  hookTscExecTransformer, patchCreateProgramTransformer, patchEmitterTransformer
 } from './transformers';
 import { SourceSection } from '../module/source-section';
 import { PatchError } from '../system';
@@ -23,10 +23,22 @@ const jsPatchSrc = fs.readFileSync(modulePatchFilePath, 'utf-8')
 
 
 /* ****************************************************************************************************************** */
+// region: Types
+/* ****************************************************************************************************************** */
+
+export interface PatchModuleOptions {
+  skipDts?: boolean
+  libraryName?: string
+}
+
+// endregion
+
+
+/* ****************************************************************************************************************** */
 // region: Utils
 /* ****************************************************************************************************************** */
 
-export function patchModule(tsModule: TsModule, skipDts: boolean = false): { js: string, dts?: string } {
+export function patchModule(tsModule: TsModule, options?: PatchModuleOptions): { js: string, dts?: string } {
   let shouldWrap: boolean = false;
   switch (tsModule.moduleName) {
     case 'tsc.js':
@@ -61,15 +73,6 @@ export function patchModule(tsModule: TsModule, skipDts: boolean = false): { js:
     }
 
     source.body.unshift(...tsSource.body);
-
-    /* Fix early return */
-    // NOTE - This exists up until TS 5.4, but isn't there for 5.5+
-    if (tsModule.majorVer <= 5 && tsModule.minorVer <= 4) {
-      const typescriptSection = source.body.find(s => s.srcFileName === 'src/typescript/typescript.ts');
-      if (!typescriptSection) throw new PatchError(`Could not find Typescript source section`);
-      typescriptSection.transform([ fixTsEarlyReturnTransformer ]);
-      printableBodyFooters.push(`return returnResult;`);
-    }
   }
 
   /* Patch Program */
@@ -115,7 +118,7 @@ export function patchModule(tsModule: TsModule, skipDts: boolean = false): { js:
 
   /* Get Dts */
   let dts: string | undefined;
-  if (!skipDts && tsModule.dtsPath) {
+  if (!options?.skipDts && tsModule.dtsPath) {
     const dtsText = readFileWithLock(tsModule.dtsPath);
     dts =
       dtsPatchSrc + '\n' +
@@ -123,7 +126,7 @@ export function patchModule(tsModule: TsModule, skipDts: boolean = false): { js:
   }
 
   /* Get JS */
-  const libraryName = tsModule.moduleName.replace(/\.js$/, '');
+  const libraryName = options?.libraryName ?? tsModule.moduleName.replace(/\.js$/, '');
   const patchDetail = PatchDetail.fromModule(tsModule, printedJs);
   const js =
     patchDetail.toHeader() + '\n' +

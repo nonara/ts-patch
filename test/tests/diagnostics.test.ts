@@ -1,4 +1,5 @@
 import { execSync } from 'child_process';
+import path from 'path';
 import { prepareTestProject } from '../src/project';
 
 
@@ -33,7 +34,7 @@ describe('Transformer diagnostics', () => {
 
   test('tspc prints added diagnostics and honors removed diagnostics', () => {
     const output = execAndGetErrorOutput(
-      `tspc --pretty false`,
+      `${path.join(projectPath, 'node_modules', '.bin', 'tspc')} --pretty false`,
       projectPath
     );
 

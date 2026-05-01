@@ -1,10 +1,11 @@
-import { Logger, LogLevel } from '../system';
+import { getCachePath, Logger, LogLevel } from '../system';
 import chalk from 'chalk';
 import path from 'path';
 import { copyFileWithLock, mkdirIfNotExist, readFileWithLock, writeFileWithLock } from '../utils';
 import fs from 'fs';
 import { getModuleFile, TsModule } from '../module';
 import { patchModule } from './patch-module';
+import { cachedFilePatchedPrefix } from '../config';
 
 
 /* ****************************************************************************************************************** */
@@ -15,6 +16,7 @@ export interface GetPatchedSourceOptions {
   log?: Logger
   skipCache?: boolean
   skipDts?: boolean
+  libraryName?: string
 }
 
 // endregion
@@ -27,8 +29,12 @@ export interface GetPatchedSourceOptions {
 export function getPatchedSource(tsModule: TsModule, options?: GetPatchedSourceOptions):
   { js: string, dts: string | undefined, loadedFromCache: boolean }
 {
-  const { backupCachePaths, patchedCachePaths } = tsModule;
-  const { log, skipCache } = options || {};
+  const { backupCachePaths } = tsModule;
+  const { log, skipCache, libraryName } = options || {};
+  const defaultLibraryName = tsModule.moduleName.replace(/\.js$/, '');
+  const patchedCachePaths = libraryName && libraryName !== defaultLibraryName
+    ? getLibraryPatchedCachePaths(tsModule, libraryName)
+    : tsModule.patchedCachePaths;
 
   /* Write backup if not patched */
   if (!tsModule.isPatched) {
@@ -48,7 +54,7 @@ export function getPatchedSource(tsModule: TsModule, options?: GetPatchedSourceO
   /* Get Patched Module */
   const canUseCache = !skipCache
     && !tsModule.moduleFile.patchDetail?.isOutdated
-    && (!patchedCachePaths.dts || fs.existsSync(patchedCachePaths.dts))
+    && (options?.skipDts || !patchedCachePaths.dts || fs.existsSync(patchedCachePaths.dts))
     && fs.existsSync(patchedCachePaths.js)
     && !getModuleFile(patchedCachePaths.js).patchDetail?.isOutdated;
 
@@ -58,7 +64,7 @@ export function getPatchedSource(tsModule: TsModule, options?: GetPatchedSourceO
     js = readFileWithLock(patchedCachePaths.js);
     dts = !options?.skipDts && patchedCachePaths.dts ? readFileWithLock(patchedCachePaths.dts) : undefined;
   } else {
-    const res = patchModule(tsModule, options?.skipDts);
+    const res = patchModule(tsModule, { skipDts: options?.skipDts, libraryName });
     js = res.js;
     dts = res.dts;
 
@@ -80,6 +86,20 @@ export function getPatchedSource(tsModule: TsModule, options?: GetPatchedSourceO
   }
 
   return { js, dts, loadedFromCache: canUseCache };
+}
+
+function getLibraryPatchedCachePaths(tsModule: TsModule, libraryName: string) {
+  const jsName = withLibraryName(tsModule.moduleName, libraryName);
+  const dtsName = tsModule.dtsPath && withLibraryName(path.basename(tsModule.dtsPath), libraryName);
+
+  return {
+    js: getCachePath(tsModule.cacheKey, cachedFilePatchedPrefix + jsName),
+    dts: dtsName && getCachePath(tsModule.cacheKey, cachedFilePatchedPrefix + dtsName)
+  };
+}
+
+function withLibraryName(fileName: string, libraryName: string) {
+  return fileName.replace(/(\.d\.ts|(?:\.[^.]+))$/, `@${libraryName}$1`);
 }
 
 // endregion

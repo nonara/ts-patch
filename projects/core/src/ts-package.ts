@@ -71,7 +71,7 @@ export function getTsPackage(dir: string = process.cwd()): TsPackage {
       /* Get all available module names in libDir */
       const moduleNames: TsModule.Name[] = [];
       for (const fileName of fs.readdirSync(libDir))
-        if ((<string[]><unknown>TsModule.names).includes(fileName)) moduleNames.push(fileName as TsModule.Name);
+        if ((TsModule.knownNames as readonly string[]).includes(fileName)) moduleNames.push(fileName as TsModule.Name);
 
       const res: TsPackage = {
         version,
